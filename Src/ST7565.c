@@ -106,9 +106,9 @@ void ST7565_drawbitmap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, u
   ST7565_updateBoundingBox(x, y, x+w, y+h);
 }
 
-void ST7565_drawstring(uint8_t x, uint8_t line, char *c) {
+void ST7565_drawstring_line(uint8_t x, uint8_t line, char *c) {
   while (c[0] != 0) {
-	ST7565_drawchar(x, line, c[0]);
+	ST7565_drawchar_line(x, line, c[0]);
     c++;
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
@@ -120,13 +120,32 @@ void ST7565_drawstring(uint8_t x, uint8_t line, char *c) {
   }
 }
 
-void ST7565_drawstring_P(uint8_t x, uint8_t line, const char *str) {
+void ST7565_drawstring_pixel(uint8_t x, uint8_t y, char *c) {
+  if(y%8 == 0){
+    ST7565_drawstring_line(x, y/8, c);
+    return;
+  }
+
+  while (c[0] != 0) {
+	ST7565_drawchar_pixel(x, y, c[0]);
+    c++;
+    x += 6; // 6 pixels wide
+    if (x + 6 >= LCDWIDTH) {
+      x = 0; // ran out of this line
+      y += 8;
+    }
+    if (y >= LCDHEIGHT)
+      return;        // ran out of space :(
+  }
+}
+
+void ST7565_drawstring_P_line(uint8_t x, uint8_t line, const char *str) {
   char c;
   while (1) {
     c = *str++;
     if (! c)
       return;
-    ST7565_drawchar(x, line, c);
+    ST7565_drawchar_line(x, line, c);
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
       x = 0;    // ran out of this line
@@ -137,7 +156,29 @@ void ST7565_drawstring_P(uint8_t x, uint8_t line, const char *str) {
   }
 }
 
-void  ST7565_drawchar(uint8_t x, uint8_t line, char c) {
+void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *str) {
+  if(y%8 == 0){
+	  ST7565_drawstring_P_line(x, y/8, str);
+	  return;
+  }
+
+  char c;
+  while (1) {
+    c = *str++;
+    if (! c)
+      return;
+    ST7565_drawchar_pixel(x, y, c);
+    x += 6; // 6 pixels wide
+    if (x + 6 >= LCDWIDTH) {
+      x = 0;    // ran out of this line
+      y += 8;
+    }
+    if (y >= LCDHEIGHT)
+      return;        // ran out of space :(
+  }
+}
+
+void  ST7565_drawchar_line(uint8_t x, uint8_t line, char c) {
   uint8_t i;
   for (i =0; i<5; i++ ) {
     st7565_buffer[x + (line*128) ] = font[((unsigned char)c * 5) + i];
@@ -145,6 +186,47 @@ void  ST7565_drawchar(uint8_t x, uint8_t line, char c) {
   }
 
   ST7565_updateBoundingBox(x-5, line*8, x-1, line*8 + 8);
+}
+
+void  ST7565_drawchar_pixel(uint8_t x, uint8_t y, char c) {
+  uint8_t i;
+  uint8_t y1, y2, a, b;
+  a = y%8;
+  b = y/8;
+  if(a==0){
+	  ST7565_drawchar_line(x, b, c);
+  }
+  else{
+	  if(y > LCDHEIGHT - 8){
+		  if(y > LCDHEIGHT)
+			  return;
+		  if(x > LCDWIDTH - 5){
+			  for (i =0; i<5 && x+i<LCDWIDTH; i++ ) {
+				  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
+				  y1 |= font[((unsigned char)c * 5) + i] >> a;
+				  st7565_buffer[x + (b*128) ] = y1;
+				  x++;
+			  }
+		  }
+			  return;
+		  for (i =0; i<5; i++ ) { //draw only top part
+			  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
+			  y1 |= font[((unsigned char)c * 5) + i] >> a;
+			  st7565_buffer[x + (b*128) ] = y1;
+			  x++;
+		  }
+	  }
+	  for (i =0; i<5; i++ ) {
+		  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
+		  y2 = st7565_buffer[x + ((b+1)*128) ] & (0xff >> a);
+		  y1 |= font[((unsigned char)c * 5) + i] >> a;
+		  y2 |= font[((unsigned char)c * 5) + i] << (8-a);
+	      st7565_buffer[x + (b*128) ] = y1;
+	      st7565_buffer[x + ((b+1)*128) ] = y2;
+	      x++;
+	  }
+  }
+
 }
 
 // bresenham's algorithm - thx wikpedia

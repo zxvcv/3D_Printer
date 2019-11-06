@@ -145,9 +145,12 @@ void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
 void ST7565_drawrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
 void ST7565_fillrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
 void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color);
-void ST7565_drawchar(uint8_t x, uint8_t line, char c);
-void ST7565_drawstring(uint8_t x, uint8_t line, char *c);
-void ST7565_drawstring_P(uint8_t x, uint8_t line, const char *c);
+void ST7565_drawchar_line(uint8_t x, uint8_t line, char c);
+void ST7565_drawchar_pixel(uint8_t x, uint8_t y, char c);
+void ST7565_drawstring_line(uint8_t x, uint8_t line, char *c);
+void ST7565_drawstring_pixel(uint8_t x, uint8_t y, char *c);
+void ST7565_drawstring_P_line(uint8_t x, uint8_t line, const char *c);
+void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *c);
 
 void ST7565_drawbitmap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color);
 
