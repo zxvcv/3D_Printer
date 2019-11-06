@@ -27,6 +27,7 @@
 #include "ModKB4x4.h"
 #include "ST7565.h"
 #include "../Drivers/FATFS/ff.h"
+#include "menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,7 +80,7 @@ static void MX_SPI3_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint16_t state;
+	KeyboardButtons buttState = NONE;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,19 +110,27 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
   ST7565_begin(0x08);
   ST7565_clear_display();
-
+  menu_init();
+  menu_run(buttState);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  //char data[50];
+  //uint8_t size;
+  //size = sprintf(data, "%d\n", buttState);
+  //HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
+
   while (1)
   {
-	/*
+	///get keyboard state
 	if(keyboard.stateChanged){
-	  	state = ModKB4x4_readKeyboard(&keyboard);
-		KeyboardButtons butt = ModKB4x4_getButton(state);
+		buttState = ModKB4x4_getButton(ModKB4x4_readKeyboard(&keyboard));
+		menu_run(buttState);
 	}
-	*/
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -10,7 +10,6 @@
 #include "ST7565.h"
 #include "ModKB4x4.h"
 
-
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 	ListStruct_Pop_C(Buff_SPI_ST7565R);
 	__disable_irq();
