@@ -37,10 +37,10 @@
 #define VIBRATION_WAIT_LEN 20
 
 typedef enum KeyboardButtons{
-	BUTT_1 = 0,  BUTT_2 = 1,  BUTT_3 = 2,  BUTT_A = 3,
-	BUTT_4 = 4,  BUTT_5 = 5,  BUTT_6 = 6,  BUTT_B = 7,
-	BUTT_7 = 8,  BUTT_8 = 9,  BUTT_9 = 10, BUTT_C = 11,
-	BUTT_S = 12, BUTT_0 = 13, BUTT_H = 14, BUTT_D = 15,
+	BUTT_1 = 1,  BUTT_2 = 2,  BUTT_3 = 3, BUTT_A = 10,
+	BUTT_4 = 4,  BUTT_5 = 5,  BUTT_6 = 6, BUTT_B = 11,
+	BUTT_7 = 7,  BUTT_8 = 8,  BUTT_9 = 9, BUTT_C = 12,
+	BUTT_S = 14, BUTT_0 = 0, BUTT_H = 15, BUTT_D = 13,
 	NONE = 16, ERR = 17
 }KeyboardButtons;
 
