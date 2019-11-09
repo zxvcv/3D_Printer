@@ -223,20 +223,20 @@ void menu_run(KeyboardButtons buttState){
 						if(markVerticalPos == 1){
 							ST7565_drawline(14, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 14+6*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
 							ST7565_display();
-							pos[arrowLinePos - 2] = updateDoubleValue(14, LINE_HIGH * arrowLinePos + arrowLinePos -1, 6, false, "%6.2f%c", pos[arrowLinePos - 4]);
+							pos[arrowLinePos - 4] = updateDoubleValue(14, LINE_HIGH * arrowLinePos + arrowLinePos -1, 6, false, "%6.2f%c", pos[arrowLinePos - 4]);
 							ST7565_drawline(14, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 14+6*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
 							ST7565_display();
 						}else if(markVerticalPos == 2){
 							ST7565_drawline(52, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 52+7*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
 							ST7565_display();
-							mov[arrowLinePos - 2] = updateDoubleValue(52, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 7, true, "%+7.2f%c", mov[arrowLinePos - 4]);
+							mov[arrowLinePos - 4] = updateDoubleValue(52, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 7, true, "%+7.2f%c", mov[arrowLinePos - 4]);
 							ST7565_drawline(52, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 52+7*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
 							ST7565_display();
 						}else if(markVerticalPos == 3){
-							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 125, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
+							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 124, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
 							ST7565_display();
-							mov[arrowLinePos - 2] = updateIntegerValue(96, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 5, false, "%5d%c", spd[arrowLinePos - 4]);
-							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 125, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
+							spd[arrowLinePos - 4] = updateIntegerValue(96, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 5, false, "%5d%c", spd[arrowLinePos - 4]);
+							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 124, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
 							ST7565_display();
 						}
 					}
@@ -435,7 +435,7 @@ void draw_edit_mark(bool on){
 	ST7565_setpixel(2, 4, color);
 }
 
-
+extern UART_HandleTypeDef huart2;
 double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sign, char* format, double oldValue){
 	KeyboardButtons buttState = NONE;
 	int exit = charWidth;
@@ -446,6 +446,12 @@ double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool s
 	while(1){
 		if(keyboard.stateChanged){
 			buttState = ModKB4x4_getButton(ModKB4x4_readKeyboard(&keyboard));
+
+			char data[50];
+			uint8_t size;
+			size = sprintf(data, "%d\n", buttState);
+			HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
+
 
 			if(buttState == BUTT_B){
 				sprintf(data, format, oldValue, '\0');

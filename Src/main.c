@@ -116,8 +116,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  //char data[50];
-  //uint8_t size;
+  char data[50];
+  uint8_t size;
   //size = sprintf(data, "%d\n", buttState);
   //HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
 
@@ -126,6 +126,10 @@ int main(void)
 	///get keyboard state
 	if(keyboard.stateChanged){
 		buttState = ModKB4x4_getButton(ModKB4x4_readKeyboard(&keyboard));
+
+		size = sprintf(data, "%d\n", buttState);
+		HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
+
 		menu_run(buttState);
 	}
 

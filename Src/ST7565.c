@@ -193,40 +193,19 @@ void  ST7565_drawchar_pixel(uint8_t x, uint8_t y, char c) {
   uint8_t y1, y2, a, b;
   a = y%8;
   b = y/8;
-  if(a==0){
+  if(a==0)
 	  ST7565_drawchar_line(x, b, c);
-  }
   else{
-	  if(y > LCDHEIGHT - 8){
-		  if(y > LCDHEIGHT)
-			  return;
-		  if(x > LCDWIDTH - 5){
-			  for (i =0; i<5 && x+i<LCDWIDTH; i++ ) {
-				  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
-				  y1 |= font[((unsigned char)c * 5) + i] >> a;
-				  st7565_buffer[x + (b*128) ] = y1;
-				  x++;
-			  }
-		  }
-			  return;
-		  for (i =0; i<5; i++ ) { //draw only top part
-			  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
-			  y1 |= font[((unsigned char)c * 5) + i] >> a;
-			  st7565_buffer[x + (b*128) ] = y1;
-			  x++;
-		  }
-	  }
 	  for (i =0; i<5; i++ ) {
-		  y1 = st7565_buffer[x + (b*128) ] & (0xff << (8-a));
-		  y2 = st7565_buffer[x + ((b+1)*128) ] & (0xff >> a);
+		  y1 = ST7565_getbuffunit(x, b) & (0xff << (8-a));
+		  y2 = ST7565_getbuffunit(x, b+1) & (0xff >> a);
 		  y1 |= font[((unsigned char)c * 5) + i] >> a;
 		  y2 |= font[((unsigned char)c * 5) + i] << (8-a);
-	      st7565_buffer[x + (b*128) ] = y1;
-	      st7565_buffer[x + ((b+1)*128) ] = y2;
+		  ST7565_setbuffunit(x, b, y1);
+		  ST7565_setbuffunit(x, b+1, y2);
 	      x++;
 	  }
   }
-
 }
 
 // bresenham's algorithm - thx wikpedia
@@ -409,6 +388,20 @@ uint8_t ST7565_getpixel(uint8_t x, uint8_t y) {
     return 0;
 
   return (st7565_buffer[x+ (y/8)*128] >> (7-(y%8))) & 0x1;  
+}
+
+uint8_t ST7565_getbuffunit(uint8_t x, uint8_t line) {
+  if ((x >= LCDWIDTH) || (line >= LCDHEIGHT / 8))
+    return 0;
+
+  return st7565_buffer[x + (line*128) ];
+}
+
+void ST7565_setbuffunit(uint8_t x, uint8_t line, uint8_t data) {
+  if ((x >= LCDWIDTH) || (line >= LCDHEIGHT / 8))
+    return;
+  else
+	  st7565_buffer[x + (line*128) ] = data;
 }
 
 void ST7565_begin(uint8_t contrast) {

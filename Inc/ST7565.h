@@ -157,7 +157,8 @@ void ST7565_drawbitmap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, u
 void ST7565_spiwrite();
 
 void ST7565_my_setpixel(uint8_t x, uint8_t y, uint8_t color);
-
+uint8_t ST7565_getbuffunit(uint8_t x, uint8_t line);
+void ST7565_setbuffunit(uint8_t x, uint8_t line, uint8_t data);
 /*----------------------------END_function_declarations----------------------------*/
 
 #endif /* ST7565_H_ */
