@@ -28,16 +28,16 @@ typedef struct PrinterSettings{
 	double minStep;
 
 	double position[3];
-	double speed[3];
+	int speed[3];
 }PrinterSettings;
 
 PROGRAM_STATE actualPrgState;
-uint8_t arrowLinePos;
 uint8_t markVerticalPos;
+uint8_t markHorizontalPos;
 PrinterSettings printerSettings;
-double pos[3] = {100.00, 100.00, 100.0};
+double pos[3];
 double mov[3] = {0.0, 0.0, 0.0};
-int spd[3] = {88888, 77777, 11111};
+int spd[3];
 
 char data[20]; //for sprintf
 
@@ -46,13 +46,14 @@ char data[20]; //for sprintf
 void draw_st1_main_menu();
 void draw_st2_run_program();
 void draw_st3_move_head();
+void draw_mark_st3(uint8_t markX, uint8_t markY, uint8_t color);
 void draw_st4_settings();
 void draw_arrow(uint8_t x, uint8_t y, uint8_t color);
 void draw_coordinate_diagram(uint8_t x, uint8_t y, uint8_t color);
 void draw_edit_mark(bool on);
 double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sign, char* format, double oldValue);
 int updateIntegerValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sign, char* format, int oldValue);
-
+void restore_showed_values();
 
 /* FUNCTIONS DEFINITIONS */
 void menu_init(){
@@ -62,6 +63,14 @@ void menu_init(){
 	printerSettings.maxPosY = 348.80;
 	printerSettings.maxPosZ = 87.05;
 	printerSettings.minStep = 0.05;
+
+	printerSettings.position[0] = 50.0;
+	printerSettings.position[1] = 100.0;
+	printerSettings.position[2] = 75.0;
+	printerSettings.speed[0] = 100;
+	printerSettings.speed[1] = 100;
+	printerSettings.speed[2] = 10;
+
 }
 
 void menu_run(KeyboardButtons buttState){
@@ -75,31 +84,38 @@ void menu_run(KeyboardButtons buttState){
 		case ST1_MAIN_MENU:
 			switch (buttState) {
 				case BUTT_2:
-					if(arrowLinePos > 1){
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 0);
-						--arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
+					if(markVerticalPos > 1){
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 0);
+						--markVerticalPos;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_8:
-					if(arrowLinePos < 3){
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 0);
-						++arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
+					if(markVerticalPos < 3){
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 0);
+						++markVerticalPos;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_5:
 					ST7565_clear();
-					if(arrowLinePos == 1){
+					if(markVerticalPos == 1){
 						draw_st2_run_program();
+						markVerticalPos = 1;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						actualPrgState = ST2_RUN_PROGRAM;
-					}else if(arrowLinePos == 2){
+					}else if(markVerticalPos == 2){
 						draw_st3_move_head();
+						markVerticalPos = 3;
+						markHorizontalPos = 0;
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 						actualPrgState = ST3_MOVE_HEAD;
-					}else if(arrowLinePos == 3){
+					}else if(markVerticalPos == 3){
 						draw_st4_settings();
+						markVerticalPos = 1;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						actualPrgState = ST4_SETTINGS;
 					}
 					ST7565_display();
@@ -119,133 +135,154 @@ void menu_run(KeyboardButtons buttState){
 		case ST3_MOVE_HEAD:
 			switch (buttState) {
 				case BUTT_2:
-					if(arrowLinePos > 3 && markVerticalPos == 0){
-						draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-						--arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
+					if(markVerticalPos > 3){
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
+						--markVerticalPos;
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_8:
-					if(arrowLinePos < 6 && markVerticalPos == 0){
-						draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-						++arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
+					if(markVerticalPos < 6){
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
+						++markVerticalPos;
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_6:
-					if(markVerticalPos < 3 && arrowLinePos >= 3 && arrowLinePos <= 6){
-						++markVerticalPos;
-						if(arrowLinePos == 3){
-							if(markVerticalPos == 1){
-								draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(14, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 2){
-								draw_arrow(14, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(52, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 3){
-								draw_arrow(52, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(96, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-
-						}
-						else{
-							int y = arrowLinePos * LINE_HIGH + arrowLinePos + 6;
-							if(markVerticalPos == 1){
-								draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								ST7565_drawline(14, y, 48, y, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 2){
-								ST7565_drawline(14, y, 48, y, 0);
-								ST7565_drawline(52, y, 92, y, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 3){
-								ST7565_drawline(52, y, 92, y, 0);
-								ST7565_drawline(96, y, 124, y, 255);
-								ST7565_display();
-							}
-						}
-
+					if(markHorizontalPos < 3){
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
+						++markHorizontalPos;
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
 					}
 					break;
 				case BUTT_4:
-					if(markVerticalPos > 0){
-						--markVerticalPos;
-
-						if(arrowLinePos == 3){
-							if(markVerticalPos == 0){
-								draw_arrow(14, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 1){
-								draw_arrow(52, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(14, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 2){
-								draw_arrow(96, arrowLinePos * LINE_HIGH + arrowLinePos, 0);
-								draw_arrow(52, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_display();
-							}
-
-						}
-						else{
-							int y = arrowLinePos * LINE_HIGH + arrowLinePos + 6;
-							if(markVerticalPos == 0){
-								draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-								ST7565_drawline(14, y, 48, y, 0);
-								ST7565_display();
-							}
-							if(markVerticalPos == 1){
-								ST7565_drawline(52, y, 92, y, 0);
-								ST7565_drawline(14, y, 48, y, 255);
-								ST7565_display();
-							}
-							if(markVerticalPos == 2){
-								ST7565_drawline(96, y, 124, y, 0);
-								ST7565_drawline(52, y, 92, y, 255);
-								ST7565_display();
-							}
-						}
+					if(markHorizontalPos > 0){
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
+						--markHorizontalPos;
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
 					}
-					break;//poprawione do tad
+					break;
 				case BUTT_5:
-					if(arrowLinePos != 3){
-						if(markVerticalPos == 1){
-							ST7565_drawline(14, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 14+6*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
+					if(markVerticalPos != 3){
+						if(markHorizontalPos == 1){
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 							ST7565_display();
-							pos[arrowLinePos - 4] = updateDoubleValue(14, LINE_HIGH * arrowLinePos + arrowLinePos -1, 6, false, "%6.2f%c", pos[arrowLinePos - 4]);
-							ST7565_drawline(14, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 14+6*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
+							pos[markVerticalPos - 4] = updateDoubleValue(14, LINE_HIGH * markVerticalPos + markVerticalPos -1, 6, false, "%6.2f%c", pos[markVerticalPos - 4]);
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 							ST7565_display();
-						}else if(markVerticalPos == 2){
-							ST7565_drawline(52, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 52+7*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
+						}else if(markHorizontalPos == 2){
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 							ST7565_display();
-							mov[arrowLinePos - 4] = updateDoubleValue(52, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 7, true, "%+7.2f%c", mov[arrowLinePos - 4]);
-							ST7565_drawline(52, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 52+7*6-2, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
+							mov[markVerticalPos - 4] = updateDoubleValue(52, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 7, true, "%+7.2f%c", mov[markVerticalPos - 4]);
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 							ST7565_display();
-						}else if(markVerticalPos == 3){
-							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 124, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 0);
+						}else if(markHorizontalPos == 3){
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 							ST7565_display();
-							spd[arrowLinePos - 4] = updateIntegerValue(96, LINE_HIGH * arrowLinePos + arrowLinePos - 1, 5, false, "%5d%c", spd[arrowLinePos - 4]);
-							ST7565_drawline(96, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 124, LINE_HIGH * arrowLinePos + arrowLinePos + LINE_HIGH - 2, 255);
+							spd[markVerticalPos - 4] = updateIntegerValue(96, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 5, false, "%5d%c", spd[markVerticalPos - 4]);
+							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 							ST7565_display();
 						}
 					}
 					break;
 				case BUTT_B:
 					ST7565_clear();
+					restore_showed_values();
 					draw_st1_main_menu();
 					ST7565_display();
 					actualPrgState = ST1_MAIN_MENU;
+					break;
+				case BUTT_D:
+					ST7565_clear();
+					restore_showed_values();
+					draw_st3_move_head();
+					draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+					ST7565_display();
+					break;
+				case BUTT_A:
+					if(markVerticalPos == 3){
+						switch (markHorizontalPos) {
+							case 1:
+								//wyslij komende ruchu do wszystkich osi na wyznaczona pozycje
+								//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
+								printerSettings.position[0] = pos[0];
+								printerSettings.position[1] = pos[1];
+								printerSettings.position[2] = pos[2];
+								//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+
+								restore_showed_values();
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							case 2:
+								//wyslij komende ruchu do wszystkich osi o podana wartosc mov
+								//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
+								printerSettings.position[0] = pos[0] + mov[0];
+								printerSettings.position[1] = pos[1] + mov[1];
+								printerSettings.position[2] = pos[2] + mov[2];
+								//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+
+								restore_showed_values();
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							case 3:
+								printerSettings.speed[0] = spd[0]; printerSettings.speed[1] = spd[1]; printerSettings.speed[2] = spd[2];
+								restore_showed_values();
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							default:
+								break;
+						}
+					}else {
+						switch (markHorizontalPos) {
+							case 1:
+								//wyslij komende ruchu do odpowiedniej osi na wyznaczona pozycje
+								//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
+								printerSettings.position[markHorizontalPos - 1] = pos[markHorizontalPos - 1];
+								//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+
+								mov[markHorizontalPos - 1] = 0.0;
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							case 2:
+								//wyslij komende ruchu do wszystkich osi o podana wartosc mov
+								//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
+								printerSettings.position[markHorizontalPos - 1] = pos[markHorizontalPos - 1] + mov[markHorizontalPos - 1];
+								//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+
+								pos[markHorizontalPos - 1] = printerSettings.position[markHorizontalPos - 1];
+								mov[markHorizontalPos - 1] = 0.0;
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							case 3:
+								printerSettings.speed[markHorizontalPos - 1] = spd[markHorizontalPos - 1];
+								ST7565_clear();
+								draw_st3_move_head();
+								draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+								ST7565_display();
+								break;
+							default:
+								break;
+						}
+					}
 					break;
 				default:
 					break;
@@ -254,28 +291,28 @@ void menu_run(KeyboardButtons buttState){
 		case ST4_SETTINGS:
 			switch (buttState) {
 				case BUTT_2:
-					if (arrowLinePos > 1) {
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 0);
-						--arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
+					if (markVerticalPos > 1) {
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 0);
+						--markVerticalPos;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_8:
-					if (arrowLinePos < 5) {
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 0);
-						++arrowLinePos;
-						draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
+					if (markVerticalPos < 5) {
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 0);
+						++markVerticalPos;
+						draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 						ST7565_display();
 					}
 					break;
 				case BUTT_5:
-					switch (arrowLinePos) {
-						case 1: printerSettings.maxSpeed = updateDoubleValue(60, LINE_HIGH * arrowLinePos, 6, false, "%6.2f%c", printerSettings.maxSpeed); break;
-						case 2: printerSettings.maxPosX = updateDoubleValue(60, LINE_HIGH * arrowLinePos, 6, false, "%6.2f%c", printerSettings.maxPosX); break;
-						case 3: printerSettings.maxPosY = updateDoubleValue(60, LINE_HIGH * arrowLinePos, 6, false, "%6.2f%c", printerSettings.maxPosY); break;
-						case 4: printerSettings.maxPosZ = updateDoubleValue(60, LINE_HIGH * arrowLinePos, 6, false, "%6.2f%c", printerSettings.maxPosZ); break;
-						case 5: printerSettings.minStep = updateDoubleValue(60, LINE_HIGH * arrowLinePos, 6, false, "%6.2f%c", printerSettings.minStep); break;
+					switch (markVerticalPos) {
+						case 1: printerSettings.maxSpeed = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxSpeed); break;
+						case 2: printerSettings.maxPosX = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosX); break;
+						case 3: printerSettings.maxPosY = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosY); break;
+						case 4: printerSettings.maxPosZ = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosZ); break;
+						case 5: printerSettings.minStep = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.minStep); break;
 						default: break;
 					}
 					break;
@@ -302,20 +339,20 @@ void draw_st1_main_menu() {
 	ST7565_drawstring_line(6, 1, "run program");
 	ST7565_drawstring_line(6, 2, "move head");
 	ST7565_drawstring_line(6, 3, "settings");
-	arrowLinePos = 1;
-	draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
+	markVerticalPos = 1;
+	draw_arrow(0, markVerticalPos * LINE_HIGH + 1, 255);
 }
 
 void draw_st2_run_program(){
 	ST7565_drawstring_line(10, 0, "RUN PROGRAM");
-	//ST7565_drawstring(6, 1, comunicats[C2_run_program]);
-	//ST7565_drawstring(6, 2, comunicats[C3_move_head]);
-	//ST7565_drawstring(6, 3, comunicats[C4_settings]);
-	arrowLinePos = 1;
-	draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
 }
 
 void draw_st3_move_head(){
+	for(int i=0; i<3; ++i){
+		pos[i] = printerSettings.position[i];
+		spd[i] = printerSettings.speed[i];
+	}
+
 	ST7565_drawstring_line(10, 0, "MOVE HEAD");
 	ST7565_drawstring_line(20, 3, "pos");
 	ST7565_drawstring_line(58, 3, "mov");
@@ -350,11 +387,33 @@ void draw_st3_move_head(){
 	ST7565_drawline(50, LINE_HIGH * 3 + 2, 50, LINE_HIGH * 7 + 4, 255);
 	ST7565_drawline(94, LINE_HIGH * 3 + 2, 94, LINE_HIGH * 7 + 4, 255);
 	draw_coordinate_diagram(100, 0, 255);
-	arrowLinePos = 3;
-	draw_arrow(0, arrowLinePos * LINE_HIGH + arrowLinePos, 255);
-	markVerticalPos = 0;
 }
 
+void draw_mark_st3(uint8_t markX, uint8_t markY, uint8_t color){
+	int x1 = 0, y1 = 0;
+	int x2 = 0, y2 = 0;
+
+	if(markX > 0 && markY > 3){
+		switch (markX) {
+			case 1: x1 = 14; x2 = 48; break;
+			case 2: x1 = 52; x2 = 92; break;
+			case 3: x1 = 96; x2 = 124; break;
+			default: break;
+		}
+		y1 = y2 = markY * LINE_HIGH + markY + 6;
+		ST7565_drawline(x1, y1, x2, y2, color);
+	}else{
+		switch (markX) {
+			case 0: x1 = 0; break;
+			case 1: x1 = 14; break;
+			case 2: x1 = 52; break;
+			case 3: x1 = 96; break;
+			default: break;
+		}
+		y1 = markY * LINE_HIGH + markY;
+		draw_arrow(x1, y1, color);
+	}
+}
 
 void draw_st4_settings(){
 	ST7565_drawstring_line(10, 0, "SETTINGS");
@@ -380,11 +439,7 @@ void draw_st4_settings(){
 	ST7565_drawstring_line(60, 5, data);
 
 	draw_coordinate_diagram(100, 5, 255);
-	arrowLinePos = 1;
-	draw_arrow(0, arrowLinePos * LINE_HIGH + 1, 255);
-
 }
-
 
 void draw_arrow(uint8_t x, uint8_t y, uint8_t color){
 	int yy=0;
@@ -404,7 +459,6 @@ void draw_arrow(uint8_t x, uint8_t y, uint8_t color){
 		ST7565_setpixel(x+xx, y+yy, color);
 }
 
-
 void draw_coordinate_diagram(uint8_t x, uint8_t y, uint8_t color){
 	ST7565_drawline(x, y, x, y+15, 255);
 	ST7565_drawline(x, y+15, x+20, y+15, 255);
@@ -414,7 +468,6 @@ void draw_coordinate_diagram(uint8_t x, uint8_t y, uint8_t color){
 	ST7565_drawchar_pixel(x+16, y+2, 'y');
 	ST7565_drawchar_pixel(x+2, y, 'z');
 }
-
 
 void draw_edit_mark(bool on){
 	uint8_t color;
@@ -435,7 +488,12 @@ void draw_edit_mark(bool on){
 	ST7565_setpixel(2, 4, color);
 }
 
-extern UART_HandleTypeDef huart2;
+void restore_showed_values(){
+	mov[0] = 0.0; mov[1] = 0.0; mov[2] = 0.0;
+	pos[0] = printerSettings.position[0]; pos[1] = printerSettings.position[1]; pos[2] = printerSettings.position[2];
+	spd[0] = printerSettings.speed[0]; spd[1] = printerSettings.speed[1]; spd[2] = printerSettings.speed[2];
+}
+
 double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sign, char* format, double oldValue){
 	KeyboardButtons buttState = NONE;
 	int exit = charWidth;
@@ -446,12 +504,6 @@ double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool s
 	while(1){
 		if(keyboard.stateChanged){
 			buttState = ModKB4x4_getButton(ModKB4x4_readKeyboard(&keyboard));
-
-			char data[50];
-			uint8_t size;
-			size = sprintf(data, "%d\n", buttState);
-			HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
-
 
 			if(buttState == BUTT_B){
 				sprintf(data, format, oldValue, '\0');
@@ -485,7 +537,6 @@ double updateDoubleValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool s
 		}
 	}
 }
-
 
 int updateIntegerValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sign, char* format, int oldValue){
 	KeyboardButtons buttState = NONE;
