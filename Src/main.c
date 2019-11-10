@@ -26,6 +26,7 @@
 #include "interrupts.h"
 #include "ModKB4x4.h"
 #include "ST7565.h"
+#include "a4988_stepstick.h"
 #include "../Drivers/FATFS/ff.h"
 #include "menu.h"
 /* USER CODE END Includes */
@@ -107,6 +108,8 @@ int main(void)
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
   ModKB4x4_initKeyboard(&keyboard);
+  motorInitSettings(&motor1);
+  motorUpdatePinoutState(&motor1);
   HAL_TIM_Base_Start_IT(&htim6);
   ST7565_begin(0x08);
   ST7565_clear_display();
@@ -356,6 +359,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, KEYBOARD_1O_Pin|KEYBOARD_2O_Pin|KEYBOARD_3O_Pin|LD2_Pin 
                           |KEYBOARD_4O_Pin, GPIO_PIN_RESET);
 
@@ -370,6 +376,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : MOT1_STEP_Pin MOT1_DIRECTION_Pin MOT1_RESET_Pin MOT1_SLEEP_Pin */
+  GPIO_InitStruct.Pin = MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : KEYBOARD_1O_Pin KEYBOARD_2O_Pin KEYBOARD_3O_Pin LD2_Pin 
                            KEYBOARD_4O_Pin */

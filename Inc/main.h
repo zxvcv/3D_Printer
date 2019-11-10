@@ -60,6 +60,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define MOT1_STEP_Pin GPIO_PIN_0
+#define MOT1_STEP_GPIO_Port GPIOC
+#define MOT1_DIRECTION_Pin GPIO_PIN_1
+#define MOT1_DIRECTION_GPIO_Port GPIOC
+#define MOT1_RESET_Pin GPIO_PIN_2
+#define MOT1_RESET_GPIO_Port GPIOC
+#define MOT1_SLEEP_Pin GPIO_PIN_3
+#define MOT1_SLEEP_GPIO_Port GPIOC
 #define KEYBOARD_1O_Pin GPIO_PIN_0
 #define KEYBOARD_1O_GPIO_Port GPIOA
 #define KEYBOARD_2O_Pin GPIO_PIN_1

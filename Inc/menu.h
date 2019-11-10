@@ -10,6 +10,19 @@
 
 #include "ModKB4x4.h"
 
+typedef struct PrinterSettings {
+	double maxSpeed;
+	double maxPosX;
+	double maxPosY;
+	double maxPosZ;
+	double minStep;
+
+	double position[3];
+	int speed[3];
+} PrinterSettings;
+
+extern PrinterSettings printerSettings;
+
 void menu_init();
 void menu_run(KeyboardButtons buttState);
 

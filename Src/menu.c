@@ -7,6 +7,7 @@
 
 #include "menu.h"
 #include "ST7565.h"
+#include "a4988_stepstick.h"
 #include <math.h>
 
 #define LINE_HIGH 8
@@ -14,17 +15,6 @@
 typedef enum {
 	ST0_INITIALIZE, ST1_MAIN_MENU, ST2_RUN_PROGRAM, ST3_MOVE_HEAD, ST4_SETTINGS
 } PROGRAM_STATE;
-
-typedef struct PrinterSettings {
-	double maxSpeed;
-	double maxPosX;
-	double maxPosY;
-	double maxPosZ;
-	double minStep;
-
-	double position[3];
-	int speed[3];
-} PrinterSettings;
 
 PROGRAM_STATE actualPrgState;
 uint8_t markVerticalPos;
@@ -220,85 +210,127 @@ void st3_move_head(KeyboardButtons buttState){
 			ST7565_display();
 			break;
 		case BUTT_A:
-			switch (markVerticalPos) {
-				case 3:
-					switch (markHorizontalPos) {
-						case 1:
-							//wyslij komende ruchu do wszystkich osi na wyznaczona pozycje
-							//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
-							printerSettings.position[0] = pos[0];
-							printerSettings.position[1] = pos[1];
-							printerSettings.position[2] = pos[2];
-							//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+			if (markVerticalPos == 3) {
+				switch (markHorizontalPos) {
+					case 1:
+						if (motor1.stateReset == START && motor1.stateStep == OFF) {
+							//ustawienie ruchu osiX
+							//...
+							//ustawienie ruchu osiY
+							setMotorMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
+							motorSetStart(&motor1);
+							motorUpdatePinoutState(&motor1);
+							//ustawienie ruchu osiY
+							//...
 
-							restore_showed_values();
-							ST7565_clear();
-							draw_st3_move_head();
-							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-							ST7565_display();
-							break;
-						case 2:
-							//wyslij komende ruchu do wszystkich osi o podana wartosc mov
-							//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
-							printerSettings.position[0] = pos[0] + mov[0];
-							printerSettings.position[1] = pos[1] + mov[1];
-							printerSettings.position[2] = pos[2] + mov[2];
-							//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+							//ruch wszystkich osi razem
+							while (motor1.stateStep != OFF); //czekaj az do koñca ruchu g³owicy
+						}
 
-							restore_showed_values();
-							ST7565_clear();
-							draw_st3_move_head();
-							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-							ST7565_display();
-							break;
-						case 3:
-							printerSettings.speed[0] = spd[0];
-							printerSettings.speed[1] = spd[1];
-							printerSettings.speed[2] = spd[2];
-							restore_showed_values();
-							ST7565_clear();
-							draw_st3_move_head();
-							draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-							ST7565_display();
-							break;
-						default:
-							break;
-					}
-					break;
-				case 4:
-					//wyslij komende ruchu do odpowiedniej osi na wyznaczona pozycje
-					//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
-					printerSettings.position[markHorizontalPos - 1] = pos[markHorizontalPos - 1];
-					//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+						restore_showed_values();
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					case 2:
+						if (motor1.stateReset == START && motor1.stateStep == OFF) {
+							//ustawienie ruchu osiX
+							//...
+							//ustawienie ruchu osiY
+							setMotorMove(&motor1, mov[1], printerSettings.speed[1]);
+							motorSetStart(&motor1);
+							motorUpdatePinoutState(&motor1);
+							//ustawienie ruchu osiY
+							//...
 
-					mov[markHorizontalPos - 1] = 0.0;
-					ST7565_clear();
-					draw_st3_move_head();
-					draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-					ST7565_display();
-					break;
-				case 5:
-					//wyslij komende ruchu do wszystkich osi o podana wartosc mov
-					//ruch g³owic¹ zmienia polozenie (poni¿szy kod zmieniajacy wartoœci printerSettings.position sa tu tylko na czas testów)
-					printerSettings.position[markHorizontalPos - 1] = pos[markHorizontalPos - 1] + mov[markHorizontalPos - 1];
-					//poczekaj do koñca ruchu (brak mozliwoœci zmian wartoœci (ekran i klawiatura zablokowana))
+							//ruch wszystkich osi razem
+							while (motor1.stateStep != OFF); //czekaj az do koñca ruchu g³owicy
+						}
 
-					pos[markHorizontalPos - 1] = printerSettings.position[markHorizontalPos - 1];
-					mov[markHorizontalPos - 1] = 0.0;
-					ST7565_clear();
-					draw_st3_move_head();
-					draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-					ST7565_display();
-					break;
-				case 6:
-					printerSettings.speed[markHorizontalPos - 1] = spd[markHorizontalPos - 1];
-					ST7565_clear();
-					draw_st3_move_head();
-					draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
-					ST7565_display();
-					break;
-				default:
-					break;
+						restore_showed_values();
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					case 3:
+						printerSettings.speed[0] = spd[0];
+						printerSettings.speed[1] = spd[1];
+						printerSettings.speed[2] = spd[2];
+						restore_showed_values();
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					default:
+						break;
+				}
+			} else {
+				switch (markHorizontalPos) {
+					case 1:
+						switch (markVerticalPos) {
+							case 4:
+								//...
+								break;
+							case 5:
+								if (motor1.stateReset == START && motor1.stateStep == OFF) {
+									setMotorMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
+									motorSetStart(&motor1);
+									motorUpdatePinoutState(&motor1);
+									while (motor1.stateStep != OFF); //czekaj az do koñca ruchu g³owicy
+								}
+								break;
+							case 6:
+								//...
+								break;
+							default:
+								break;
+						}
+						pos[markVerticalPos - 4] = printerSettings.position[markVerticalPos - 4];
+						mov[markVerticalPos - 4] = 0.0;
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					case 2:
+						switch (markVerticalPos) {
+							case 4:
+								//...
+								break;
+							case 5:
+								if (motor1.stateReset == START && motor1.stateStep == OFF) {
+									setMotorMove(&motor1, mov[1], printerSettings.speed[1]);
+									motorSetStart(&motor1);
+									motorUpdatePinoutState(&motor1);
+									while (motor1.stateStep != OFF); //czekaj az do koñca ruchu g³owicy
+								}
+								break;
+							case 6:
+								//...
+								break;
+							default:
+								break;
+						}
+						pos[markVerticalPos - 4] = printerSettings.position[markVerticalPos - 4];
+						mov[markVerticalPos - 4] = 0.0;
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					case 3:
+						printerSettings.speed[markVerticalPos - 4] = spd[markVerticalPos - 4];
+						ST7565_clear();
+						draw_st3_move_head();
+						draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
+						ST7565_display();
+						break;
+					default:
+						break;
+				}
 			}
 			break;
 		default:
@@ -409,12 +441,15 @@ void draw_st3_move_head() {
 	sprintf(data, "%5d%c", spd[2], '\0');
 	ST7565_drawstring_pixel(96, LINE_HIGH * 6 + 5, data);
 
-//ST7565_drawstring_line(100, 0, "[cm]");
+	ST7565_drawstring_pixel(20, LINE_HIGH * 2 + 1, "[mm]");
+	ST7565_drawstring_pixel(58, LINE_HIGH * 2 + 1, "[mm]");
+	ST7565_drawstring_line(96, 1, "[1mm/");
+	ST7565_drawstring_line(96, 2, " 10s]");
 	ST7565_drawline(0, LINE_HIGH * 4 + 1, 127, LINE_HIGH * 4 + 1, 255);
-	ST7565_drawline(12, LINE_HIGH * 3 + 2, 12, LINE_HIGH * 7 + 4, 255);
-	ST7565_drawline(50, LINE_HIGH * 3 + 2, 50, LINE_HIGH * 7 + 4, 255);
-	ST7565_drawline(94, LINE_HIGH * 3 + 2, 94, LINE_HIGH * 7 + 4, 255);
-	draw_coordinate_diagram(100, 0, 255);
+	ST7565_drawline(12, LINE_HIGH * 2, 12, LINE_HIGH * 7 + 4, 255);
+	ST7565_drawline(50, LINE_HIGH * 2, 50, LINE_HIGH * 7 + 4, 255);
+	ST7565_drawline(94, 0, 94, LINE_HIGH * 7 + 4, 255);
+	draw_coordinate_diagram(66, 0, 255);
 }
 
 void draw_st4_settings() {

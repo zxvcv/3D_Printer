@@ -9,6 +9,8 @@
 #include "FIFO_struct.h"
 #include "ST7565.h"
 #include "ModKB4x4.h"
+#include "a4988_stepstick.h"
+#include "menu.h"
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 	ListStruct_Pop_C(Buff_SPI_ST7565R);
@@ -21,6 +23,18 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(motor1.stateStep != OFF){
+		//os Y
+		if(motorChangeState(&motor1)){
+			if(motor1.stateDirection == CLOCK)
+				printerSettings.position[1] += STEP_LEN;
+			else
+				printerSettings.position[1] -= STEP_LEN;
+		}
+
+	}
+
+
 	ModKB4x4_readButtons(&keyboard);
 	ModKB4x4_checkKeyboard(&keyboard);
 }
