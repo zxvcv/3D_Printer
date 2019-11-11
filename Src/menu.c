@@ -52,10 +52,10 @@ int updateIntegerValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sig
 /* FUNCTIONS DEFINITIONS */
 void menu_init() {
 	actualPrgState = ST0_INITIALIZE;
-	printerSettings.maxSpeed = 53.35;
-	printerSettings.maxPosX = 231.25;
-	printerSettings.maxPosY = 348.80;
-	printerSettings.maxPosZ = 87.05;
+	printerSettings.maxSpeed = 30.00;
+	printerSettings.maxPos[0] = 120.00;
+	printerSettings.maxPos[1] = 120.00;
+	printerSettings.maxPos[2] = 120.00;
 	printerSettings.minStep = 0.05;
 
 	printerSettings.position[0] = 50.0;
@@ -178,19 +178,25 @@ void st3_move_head(KeyboardButtons buttState){
 			if (markVerticalPos != 3 && markHorizontalPos == 1) {
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 				ST7565_display();
-				pos[markVerticalPos - 4] = updateDoubleValue(14, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 6, false, "%6.2f%c", pos[markVerticalPos - 4]);
+				updateDoubleValue(14, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 6, false, "%6.2f%c", pos[markVerticalPos - 4]);
+				//if(d <= printerSettings.maxPos[markVerticalPos - 4])
+				//	pos[markVerticalPos - 4] = d;
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 				ST7565_display();
-			} else if (markHorizontalPos == 2) {
+			} else if (markVerticalPos != 3 && markHorizontalPos == 2) {
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 				ST7565_display();
 				mov[markVerticalPos - 4] = updateDoubleValue(52, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 7, true, "%+7.2f%c", mov[markVerticalPos - 4]);
+				//if(pos[markVerticalPos - 4] + d <= printerSettings.maxPos[markVerticalPos - 4] && pos[markVerticalPos - 4] + d >= 0)
+				//	mov[markVerticalPos - 4] = d;
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 				ST7565_display();
-			} else if (markHorizontalPos == 3) {
+			} else if (markVerticalPos != 3 && markHorizontalPos == 3) {
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 0);
 				ST7565_display();
 				spd[markVerticalPos - 4] = updateIntegerValue(96, LINE_HIGH * markVerticalPos + markVerticalPos - 1, 5, false, "%5d%c", spd[markVerticalPos - 4]);
+				//if(i <= printerSettings.maxSpeed)
+				//	spd[markVerticalPos - 4] = i;
 				draw_mark_st3(markHorizontalPos, markVerticalPos, 255);
 				ST7565_display();
 			}
@@ -213,18 +219,19 @@ void st3_move_head(KeyboardButtons buttState){
 			if (markVerticalPos == 3) {
 				switch (markHorizontalPos) {
 					case 1:
-						if (motor1.stateReset == START && motor1.stateStep == OFF) {
+						if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
 							//ustawienie ruchu osiX
 							//...
 							//ustawienie ruchu osiY
-							setMotorMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
-							motorSetStart(&motor1);
-							motorUpdatePinoutState(&motor1);
+							if(pos[1] <= printerSettings.maxPos[1]){
+								motorSetMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
+								motorStart(&motor1);
+							}
 							//ustawienie ruchu osiY
 							//...
 
 							//ruch wszystkich osi razem
-							while (motor1.stateStep != OFF); //czekaj az do ko鎍a ruchu g這wicy
+							while (motorIsOn(&motor1)); //czekaj az do ko鎍a ruchu g這wicy
 						}
 
 						restore_showed_values();
@@ -234,18 +241,19 @@ void st3_move_head(KeyboardButtons buttState){
 						ST7565_display();
 						break;
 					case 2:
-						if (motor1.stateReset == START && motor1.stateStep == OFF) {
+						if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
 							//ustawienie ruchu osiX
 							//...
 							//ustawienie ruchu osiY
-							setMotorMove(&motor1, mov[1], printerSettings.speed[1]);
-							motorSetStart(&motor1);
-							motorUpdatePinoutState(&motor1);
+							if(pos[1] + mov[1] <= printerSettings.maxPos[1] && pos[1] + mov[1] >= 0){
+								motorSetMove(&motor1, mov[1], printerSettings.speed[1]);
+								motorStart(&motor1);
+							}
 							//ustawienie ruchu osiY
 							//...
 
 							//ruch wszystkich osi razem
-							while (motor1.stateStep != OFF); //czekaj az do ko鎍a ruchu g這wicy
+							while (motorIsOn(&motor1)); //czekaj az do ko鎍a ruchu g這wicy
 						}
 
 						restore_showed_values();
@@ -275,11 +283,12 @@ void st3_move_head(KeyboardButtons buttState){
 								//...
 								break;
 							case 5:
-								if (motor1.stateReset == START && motor1.stateStep == OFF) {
-									setMotorMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
-									motorSetStart(&motor1);
-									motorUpdatePinoutState(&motor1);
-									while (motor1.stateStep != OFF); //czekaj az do ko鎍a ruchu g這wicy
+								if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
+									if(pos[1] <= printerSettings.maxPos[1]){
+										motorSetMove(&motor1, pos[1] - printerSettings.position[1], printerSettings.speed[1]);
+										motorStart(&motor1);
+									}
+									while (motorIsOn(&motor1)); //czekaj az do ko鎍a ruchu g這wicy
 								}
 								break;
 							case 6:
@@ -301,11 +310,12 @@ void st3_move_head(KeyboardButtons buttState){
 								//...
 								break;
 							case 5:
-								if (motor1.stateReset == START && motor1.stateStep == OFF) {
-									setMotorMove(&motor1, mov[1], printerSettings.speed[1]);
-									motorSetStart(&motor1);
-									motorUpdatePinoutState(&motor1);
-									while (motor1.stateStep != OFF); //czekaj az do ko鎍a ruchu g這wicy
+								if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
+									if(pos[1] + mov[1] <= printerSettings.maxPos[1] && pos[1] + mov[1] >= 0){
+										motorSetMove(&motor1, mov[1], printerSettings.speed[1]);
+										motorStart(&motor1);
+									}
+									while (motorIsOn(&motor1)); //czekaj az do ko鎍a ruchu g這wicy
 								}
 								break;
 							case 6:
@@ -359,24 +369,19 @@ void st4_settings(KeyboardButtons buttState){
 		case BUTT_5:
 			switch (markVerticalPos) {
 				case 1:
-					printerSettings.maxSpeed = updateDoubleValue(60,
-					LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxSpeed);
+					printerSettings.maxSpeed = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxSpeed);
 					break;
 				case 2:
-					printerSettings.maxPosX = updateDoubleValue(60,
-					LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosX);
+					printerSettings.maxPos[0] = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPos[0]);
 					break;
 				case 3:
-					printerSettings.maxPosY = updateDoubleValue(60,
-					LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosY);
+					printerSettings.maxPos[1] = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPos[1]);
 					break;
 				case 4:
-					printerSettings.maxPosZ = updateDoubleValue(60,
-					LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPosZ);
+					printerSettings.maxPos[2] = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.maxPos[2]);
 					break;
 				case 5:
-					printerSettings.minStep = updateDoubleValue(60,
-					LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.minStep);
+					printerSettings.minStep = updateDoubleValue(60, LINE_HIGH * markVerticalPos, 6, false, "%6.2f%c", printerSettings.minStep);
 					break;
 				default:
 					break;
@@ -460,15 +465,15 @@ void draw_st4_settings() {
 	ST7565_drawstring_line(60, 1, data);
 
 	ST7565_drawstring_line(6, 2, "XmaxPos:");
-	sprintf(data, "%6.2f%c", printerSettings.maxPosX, '\0');
+	sprintf(data, "%6.2f%c", printerSettings.maxPos[0], '\0');
 	ST7565_drawstring_line(60, 2, data);
 
 	ST7565_drawstring_line(6, 3, "YmaxPos:");
-	sprintf(data, "%6.2f%c", printerSettings.maxPosY, '\0');
+	sprintf(data, "%6.2f%c", printerSettings.maxPos[1], '\0');
 	ST7565_drawstring_line(60, 3, data);
 
 	ST7565_drawstring_line(6, 4, "ZmaxPos:");
-	sprintf(data, "%6.2f%c", printerSettings.maxPosZ, '\0');
+	sprintf(data, "%6.2f%c", printerSettings.maxPos[2], '\0');
 	ST7565_drawstring_line(60, 4, data);
 
 	ST7565_drawstring_line(6, 5, "minStep:");

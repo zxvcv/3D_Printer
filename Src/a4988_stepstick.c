@@ -12,30 +12,40 @@ MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_R
 						.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
 						.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
 						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin }
-						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin }
+						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
+						.timerFrequency = 1000,
+						.stepSize = 0.5
 };
 
-void  motorInitSettings(MotorSettings* stct)
-{
-	stct->stateReset = START;
-	stct->stateSleep = SLEEP;
-	stct->stateDirection = CLOCK;
-	stct->stateStep = OFF;
 
-	stct->changeTime = 0;
-	stct->changeTimeCounter = 0;
-	stct->stepLeftCounter = 0;
+/* PRIVATE FUNCTIONS DECLARATIONS */
+void motorUpdatePins(MotorSettings* settings);
+
+
+/* FUNCTIONS DEFINITIONS */
+void  motorInit(MotorSettings* settings) {
+	settings->stateReset = START;
+	settings->stateSleep = SLEEP;
+	settings->stateDirection = CLOCK;
+	settings->stateStep = HIGH;
+
+	settings->isOn = false;
+
+	settings->changeTime = 0;
+	settings->stepLeftCounter = 0;
+
+	motorUpdatePins(settings);
 }
 
-bool motorChangeState(MotorSettings* settings)
-{
+bool motorUpdate(MotorSettings* settings) {
 	bool returnVal = false;
 	--settings->changeTimeCounter;
 	if(settings->changeTimeCounter <= 0){
 		settings->changeTimeCounter = settings->changeTime;
 		--settings->stepLeftCounter;
 		if(settings->stepLeftCounter <= 0){
-			settings->stateStep = OFF;
+			settings->stateStep = HIGH;
+			settings->isOn = false;
 			settings->stateSleep = SLEEP;
 		}
 
@@ -51,14 +61,13 @@ bool motorChangeState(MotorSettings* settings)
 			default:
 				break;
 		}
-		motorUpdatePinoutState(settings);
+		motorUpdatePins(settings);
 		return returnVal;
 	}else
 		return returnVal;
 }
 
-void motorUpdatePinoutState(MotorSettings* settings)
-{
+void motorUpdatePins(MotorSettings* settings) {
 	if(settings->IOreset.PORT != NULL)
 		HAL_GPIO_WritePin(settings->IOreset.PORT, settings->IOreset.PIN, settings->stateReset);
 	if(settings->IOsleep.PORT != NULL)
@@ -68,25 +77,52 @@ void motorUpdatePinoutState(MotorSettings* settings)
 	if(settings->IOstep.PORT != NULL)
 		HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN, settings->stateStep);
 }
-//extern UART_HandleTypeDef huart2;
-//char data[50];
-//uint8_t size;
-void setMotorMove(MotorSettings* motor, double move, double speed){
-	double stepsNum = abs(move)/STEP_LEN;
-	double time = abs(move)*10/speed;
-	double changeFreq = TIMER_FREQ*time/stepsNum;
 
-	motor->stateDirection = move > 0 ? CLOCK : RCLOCK;
-	motor->stepLeftCounter = stepsNum*2;	//odleglosc (* 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
-	motor->changeTime = changeFreq/2;		//szybkosc ruchu (/ 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
-	//size = sprintf(data, "%d %d\n", motor->stepLeftCounter, motor->changeTime);
-	//size = sprintf(data, "%f %f\n", move, speed);
-	//HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
+void motorSetMove(MotorSettings* settings, double move, double speed){ //bledne obliczenia (naprawic)
+	double stepsNum = abs(move) / settings->stepSize;
+	double time = abs(move) * 10 / speed;
+	double changeFreq = settings->timerFrequency * time / stepsNum;
+
+	settings->stateDirection = move > 0 ? CLOCK : RCLOCK;
+	settings->stepLeftCounter = stepsNum * 2;	//odleglosc (* 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
+	settings->changeTime = changeFreq / 2;		//szybkosc ruchu (/ 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
+	settings->changeTimeCounter = settings->changeTime;
 }
 
-void motorSetStart(MotorSettings* settings){
-	motor1.stateSleep = AWAKE;
-	motor1.changeTimeCounter = motor1.changeTime;
+void motorStart(MotorSettings* settings){
+	settings->stateSleep = AWAKE;
 
-	motor1.stateStep = LOW;
+	settings->stateStep = LOW;
+	motorUpdatePins(settings);
+	settings->isOn = true;
+}
+
+void motorStop(MotorSettings* settings){
+	settings->isOn = false;
+	settings->stateSleep = SLEEP;
+	motorUpdatePins(settings);
+}
+
+bool motorIsOn(MotorSettings* settigns){
+	return settigns->isOn;
+}
+
+MOTOR_RESET_FAZE motorGetReset(MotorSettings* settigns){
+	return settigns->stateReset;
+}
+
+MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settigns){
+	return settigns->stateDirection;
+}
+
+MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settigns){
+	return settigns->stateSleep;
+}
+
+double motorGetTimerFreq(MotorSettings* settigns){
+	return settigns->timerFrequency;
+}
+
+double motorGetStepSize(MotorSettings* settigns){
+	return settigns->stepSize;
 }

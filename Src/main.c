@@ -108,8 +108,7 @@ int main(void)
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
   ModKB4x4_initKeyboard(&keyboard);
-  motorInitSettings(&motor1);
-  motorUpdatePinoutState(&motor1);
+  motorInit(&motor1);
   HAL_TIM_Base_Start_IT(&htim6);
   ST7565_begin(0x08);
   ST7565_clear_display();

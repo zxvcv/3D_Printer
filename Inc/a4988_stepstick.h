@@ -39,14 +39,10 @@
 #include "stdint.h"
 #include "pin_struct.h"
 
-#define TIMER_FREQ 1000		//[Hz] timer frequency
-#define STEP_LEN 0.5		//[mm] length of move with one motor step
-
 
 typedef enum MOTOR_STEP_FAZE{
 	HIGH = GPIO_PIN_SET,
 	LOW = GPIO_PIN_RESET,
-	OFF = 2
 }MOTOR_STEP_FAZE;
 
 typedef enum MOTOR_DIRECTION_FAZE{
@@ -70,6 +66,7 @@ typedef struct MotorSettings{
 	IO_Pin IOdirection;
 	IO_Pin IOstep;
 
+	bool isOn;
 	MOTOR_STEP_FAZE stateStep;
 	MOTOR_DIRECTION_FAZE stateDirection;
 	MOTOR_SLEEP_FAZE stateSleep;
@@ -78,19 +75,34 @@ typedef struct MotorSettings{
 	uint16_t changeTime;
 	uint16_t changeTimeCounter;
 	uint16_t stepLeftCounter;
+
+	double timerFrequency;	//[Hz] timer frequency
+	double stepSize;		//[mm] length of move with one motor step
 } MotorSettings;
 
 extern MotorSettings motor1;
 
 
-void  motorInitSettings(MotorSettings* stct);
+void  motorInit(MotorSettings* settings);
 
-bool motorChangeState(MotorSettings* settings);
+bool motorUpdate(MotorSettings* settings);
 
-void motorUpdatePinoutState(MotorSettings* settings);
+void motorSetMove(MotorSettings* settings, double move, double speed);
 
-void setMotorMove(MotorSettings* motor, double move, double speed);
+void motorStart(MotorSettings* settings);
 
-void motorSetStart(MotorSettings* settings);
+void motorStop(MotorSettings* settings);
+
+bool motorIsOn(MotorSettings* settigns);
+
+MOTOR_RESET_FAZE motorGetReset(MotorSettings* settigns);
+
+MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settigns);
+
+MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settigns);
+
+double motorGetTimerFreq(MotorSettings* settigns);
+
+double motorGetStepSize(MotorSettings* settigns);
 
 #endif /* A4988_STEPSTICK_H_ */

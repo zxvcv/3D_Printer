@@ -23,13 +23,13 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(motor1.stateStep != OFF){
+	if(motorIsOn(&motor1)){
 		//os Y
-		if(motorChangeState(&motor1)){
-			if(motor1.stateDirection == CLOCK)
-				printerSettings.position[1] += STEP_LEN;
+		if(motorUpdate(&motor1)){
+			if(motorGetDirection(&motor1) == CLOCK)
+				printerSettings.position[1] += motorGetStepSize(&motor1);
 			else
-				printerSettings.position[1] -= STEP_LEN;
+				printerSettings.position[1] -= motorGetStepSize(&motor1);
 		}
 
 	}

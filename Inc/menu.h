@@ -12,9 +12,7 @@
 
 typedef struct PrinterSettings {
 	double maxSpeed;
-	double maxPosX;
-	double maxPosY;
-	double maxPosZ;
+	double maxPos[3];
 	double minStep;
 
 	double position[3];
