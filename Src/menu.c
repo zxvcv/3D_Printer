@@ -52,17 +52,17 @@ int updateIntegerValue(uint8_t xDraw, uint8_t yDraw, uint8_t charWidth, bool sig
 /* FUNCTIONS DEFINITIONS */
 void menu_init() {
 	actualPrgState = ST0_INITIALIZE;
-	printerSettings.maxSpeed = 30.00;
-	printerSettings.maxPos[0] = 120.00;
-	printerSettings.maxPos[1] = 120.00;
-	printerSettings.maxPos[2] = 120.00;
-	printerSettings.minStep = 0.05;
+	printerSettings.maxSpeed = 30.00;	//jeszcze nieuzywane
+	printerSettings.maxPos[0] = 20.00;
+	printerSettings.maxPos[1] = 20.00;
+	printerSettings.maxPos[2] = 20.00;
+	printerSettings.minStep = 0.05;		//jeszcze nieuzywane
 
-	printerSettings.position[0] = 50.0;
-	printerSettings.position[1] = 100.0;
-	printerSettings.position[2] = 75.0;
-	printerSettings.speed[0] = 100;
-	printerSettings.speed[1] = 100;
+	printerSettings.position[0] = 10.0;
+	printerSettings.position[1] = 10.0;
+	printerSettings.position[2] = 10.0;
+	printerSettings.speed[0] = 10;
+	printerSettings.speed[1] = 10;
 	printerSettings.speed[2] = 10;
 
 }

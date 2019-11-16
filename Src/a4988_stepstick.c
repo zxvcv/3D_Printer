@@ -7,14 +7,15 @@
 
 #include "a4988_stepstick.h"
 #include <stdlib.h>
+#include <math.h>
 
 MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
 						.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
 						.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
-						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin }
+						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
 						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
 						.timerFrequency = 1000,
-						.stepSize = 0.5
+						.stepSize = 0.203
 };
 
 
@@ -27,7 +28,7 @@ void  motorInit(MotorSettings* settings) {
 	settings->stateReset = START;
 	settings->stateSleep = SLEEP;
 	settings->stateDirection = CLOCK;
-	settings->stateStep = HIGH;
+	settings->stateStep = LOW;
 
 	settings->isOn = false;
 
@@ -78,18 +79,36 @@ void motorUpdatePins(MotorSettings* settings) {
 		HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN, settings->stateStep);
 }
 
-void motorSetMove(MotorSettings* settings, double move, double speed){ //bledne obliczenia (naprawic)
-	double stepsNum = abs(move) / settings->stepSize;
-	double time = abs(move) * 10 / speed;
-	double changeFreq = settings->timerFrequency * time / stepsNum;
+RoundingErrorData motorSetMove(MotorSettings* settings, double move, double speed){
+	speed /= 10; //[mm/s]
+	double absMove = fabs(move);
+	double stepsNum = absMove / settings->stepSize;
+	//double time = absMove / speed;
+	double changeFreq = speed / settings->stepSize;
+
+	double changeTimeD = settings->timerFrequency / (changeFreq * 2);
+	double stepLeftCounterD = stepsNum;
 
 	settings->stateDirection = move > 0 ? CLOCK : RCLOCK;
-	settings->stepLeftCounter = stepsNum * 2;	//odleglosc (* 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
-	settings->changeTime = changeFreq / 2;		//szybkosc ruchu (/ 2 poniewaz poruszenie silnikiem wymaga jednego impulsu a nie jednego zbocza)
+	settings->changeTime = changeTimeD;
+	settings->stepLeftCounter = stepLeftCounterD;
+	settings->stepLeftCounter *= 2;
 	settings->changeTimeCounter = settings->changeTime;
+
+	RoundingErrorData roundingError;
+	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
+	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize) / (settings->changeTime * 2));
+	char data2[30];
+	uint8_t sizeData2 = sprintf(data2, "%d | %d | %f | %f\n", settings->changeTime, settings->stepLeftCounter, roundingError.roundingMoveError, roundingError.roundingSpeedError);
+	extern UART_HandleTypeDef huart2;
+	HAL_UART_Transmit(&huart2, (uint8_t*)data2, sizeData2, 1000);
+	return roundingError;
 }
 
 void motorStart(MotorSettings* settings){
+	if(settings->stepLeftCounter <= 0 || settings->changeTime <= 0)
+		return;
+
 	settings->stateSleep = AWAKE;
 
 	settings->stateStep = LOW;

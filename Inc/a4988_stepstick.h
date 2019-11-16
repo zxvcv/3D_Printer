@@ -80,6 +80,11 @@ typedef struct MotorSettings{
 	double stepSize;		//[mm] length of move with one motor step
 } MotorSettings;
 
+typedef struct RoundingErrorData{
+	double roundingMoveError;
+	double roundingSpeedError;
+} RoundingErrorData;
+
 extern MotorSettings motor1;
 
 
@@ -87,7 +92,7 @@ void  motorInit(MotorSettings* settings);
 
 bool motorUpdate(MotorSettings* settings);
 
-void motorSetMove(MotorSettings* settings, double move, double speed);
+RoundingErrorData motorSetMove(MotorSettings* settings, double move, double speed);
 
 void motorStart(MotorSettings* settings);
 
