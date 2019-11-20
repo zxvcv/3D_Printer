@@ -5,10 +5,11 @@
  *      Author: zxvcv
  */
 
+#include <math.h>
 #include "menu.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
-#include <math.h>
+#include "vectorOperations.h"
 
 #define LINE_HIGH 8
 
