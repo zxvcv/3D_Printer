@@ -17,12 +17,12 @@
 
 typedef struct GCodeCommand{
 	void (*execute)(struct GCodeCommand*) ;	//command pointer
-	int _x;				//X-axis move
-	int _y;				//Y-axis move
-	int _z;				//Z-axis move
-	int _e;				//extruder-axis move
-	int _f;				//speed of the movement
-	int _s;				//temperature
+	double _x;				//X-axis move
+	double _y;				//Y-axis move
+	double _z;				//Z-axis move
+	double _e;				//extruder-axis move
+	double _f;				//speed of the movement
+	double _s;				//temperature
 } GCodeCommand;
 
 void parseGCodeCommand(char* cmd, GCodeCommand* cpOUT);

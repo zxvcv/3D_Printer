@@ -1,15 +1,7 @@
 #include "parserGCode.h"
 #include <string.h>
 #include <stdlib.h>
-
-
-//dla testów
-#include <stdio.h>
-void printCommandParameters(GCodeCommand* cmdP) {
-	printf("x:%d, y:%d, z:%d, e:%d, f:%d, s:%d\n", cmdP->_x, cmdP->_y, cmdP->_z, cmdP->_e, cmdP->_f, cmdP->_s);
-}
-
-
+#include "vectorOperations.h"
 
 /*
  * COMMAND G1
@@ -21,10 +13,32 @@ void printCommandParameters(GCodeCommand* cmdP) {
  *	 Include an E value if you want to move the extruder as well.
  *	 Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
-void command_G1(GCodeCommand* cmd) {
-	printf("G1 ");
-	printCommandParameters(cmd);
+bool command_G1(GCodeCommand* cmd) {
+	if(motorGetReset(&motor1) == STOP)  //sprawdzanie czy silnik nie jest w stanie RESET
+		return false;
+	while(motorIsOn(&motor1));	//oczekiwanie na zakonczenie poprzedzniego dzialania
 	
+	if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
+		//obliczanie przesuniec
+		vect3D_d move = { .x = cmd->_x, .y = cmd->_y, .z = cmd->_z };
+		vect3D_d speed = getVelocity3D(move, cmd->_f);
+
+		//ustawienie ruchu osiX
+		//...
+		//ustawienie ruchu osiY
+		if(pos[1] <= printerSettings.maxPos[1]){
+			motorSetMove(&motor1, move.y, speed.y);
+			motorStart(&motor1);
+		}
+		//ustawienie ruchu osiY
+		//...
+
+		//ruch wszystkich osi razem
+		//...
+		while (motorIsOn(&motor1)); //czekaj az do koñca ruchu g³owicy
+		return true;
+	}else
+		return false;
 }
 
 /*
@@ -36,8 +50,7 @@ void command_G1(GCodeCommand* cmd) {
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
 void command_G28(GCodeCommand* cmd) {
-	printf("G28 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -49,8 +62,7 @@ void command_G28(GCodeCommand* cmd) {
  *	 None
  */
 void command_G90(GCodeCommand* cmd) {
-	printf("G90 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -62,8 +74,7 @@ void command_G90(GCodeCommand* cmd) {
  *	 None
  */
 void command_G91(GCodeCommand* cmd) {
-	printf("G91 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -76,8 +87,7 @@ void command_G91(GCodeCommand* cmd) {
  *   If you do not include one of these axes in the command, the position will remain unchanged.
  */
 void command_G92(GCodeCommand* cmd) {
-	printf("G92 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -90,8 +100,7 @@ void command_G92(GCodeCommand* cmd) {
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
 void command_M104(GCodeCommand* cmd) {
-	printf("M104 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -104,8 +113,7 @@ void command_M104(GCodeCommand* cmd) {
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
 void command_M109(GCodeCommand* cmd) {
-	printf("M109 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -118,8 +126,7 @@ void command_M109(GCodeCommand* cmd) {
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
 void command_M140(GCodeCommand* cmd) {
-	printf("M140 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -132,8 +139,7 @@ void command_M140(GCodeCommand* cmd) {
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
 void command_M190(GCodeCommand* cmd) {
-	printf("M190 ");
-	printCommandParameters(cmd);
+
 }
 
 /*
@@ -145,8 +151,7 @@ void command_M190(GCodeCommand* cmd) {
  *	 The S value sets the speed of the cooling fan in a range between 0 (off) and 255 (full power).
  */
 void command_M106(GCodeCommand* cmd) {
-	printf("M106 ");
-	printCommandParameters(cmd);
+
 }
 
 
@@ -170,8 +175,7 @@ const struct {
 void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 	char* token = NULL, * cmdName = NULL;
 	char* next_token = NULL;
-	int val;
-
+	double val;
 	token = strtok_s(cmd, " ", &next_token);
 	cmdName = token;
 	token = strtok_s(NULL, " ", &next_token);
