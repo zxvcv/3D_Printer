@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "vectorOperations.h"
+#include "a4988_stepstick.h"
+#include "Settings.h"
 
 /*
  * COMMAND G1
@@ -13,32 +15,8 @@
  *	 Include an E value if you want to move the extruder as well.
  *	 Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
-bool command_G1(GCodeCommand* cmd) {
-	if(motorGetReset(&motor1) == STOP)  //sprawdzanie czy silnik nie jest w stanie RESET
-		return false;
-	while(motorIsOn(&motor1));	//oczekiwanie na zakonczenie poprzedzniego dzialania
+void command_G1(GCodeCommand* cmd) {
 	
-	if (motorGetReset(&motor1) == START && !motorIsOn(&motor1)) {
-		//obliczanie przesuniec
-		vect3D_d move = { .x = cmd->_x, .y = cmd->_y, .z = cmd->_z };
-		vect3D_d speed = getVelocity3D(move, cmd->_f);
-
-		//ustawienie ruchu osiX
-		//...
-		//ustawienie ruchu osiY
-		if(pos[1] <= printerSettings.maxPos[1]){
-			motorSetMove(&motor1, move.y, speed.y);
-			motorStart(&motor1);
-		}
-		//ustawienie ruchu osiY
-		//...
-
-		//ruch wszystkich osi razem
-		//...
-		while (motorIsOn(&motor1)); //czekaj az do koñca ruchu g³owicy
-		return true;
-	}else
-		return false;
 }
 
 /*

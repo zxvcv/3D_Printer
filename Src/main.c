@@ -24,11 +24,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "interrupts.h"
-#include "ModKB4x4.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
 #include "../Drivers/FATFS/ff.h"
-#include "menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,10 +50,17 @@ SPI_HandleTypeDef hspi3;
 
 TIM_HandleTypeDef htim6;
 
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+List* Buff_Bt_IN = NULL;
+List* Buff_Bt_OUT = NULL;
+uint8_t recievedBT = 0;
+bool EOL_BT_recieved = false;
+bool transmissionBT = false;
 
+List* Buff_InputCommandsBT = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +70,7 @@ static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_SPI3_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -81,8 +87,9 @@ static void MX_SPI3_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	KeyboardButtons buttState = NONE;
+
   /* USER CODE END 1 */
+  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -106,36 +113,45 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM6_Init();
   MX_SPI3_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  ModKB4x4_initKeyboard(&keyboard);
   motorInit(&motor1);
   HAL_TIM_Base_Start_IT(&htim6);
+  List_Create(&Buff_Bt_IN);
+  List_Create(&Buff_Bt_OUT);
+  List_Create(&Buff_InputCommandsBT);
   ST7565_begin(0x08);
   ST7565_clear_display();
-  menu_init();
-  menu_run(buttState);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char data[50];
-  uint8_t size;
-  //size = sprintf(data, "%d\n", buttState);
-  //HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
 
   while (1)
   {
-	///get keyboard state
-	if(keyboard.stateChanged){
-		buttState = ModKB4x4_getButton(ModKB4x4_readKeyboard(&keyboard));
+	  if(List_GetSize(Buff_InputCommandsBT) != 0){
+		  //...
+		  // pobieranie i wykonanaie polecen przes³anych z bluetooth
+		  //...
+	  }
 
-		size = sprintf(data, "%d\n", buttState);
-		HAL_UART_Transmit(&huart2, (uint8_t*)data, size, 1000);
+	  if(EOL_BT_recieved){
+		  uint8_t sizeTemp = 0;
+		  uint8_t temp[25];
+		  do{
+			  temp[sizeTemp++] = *((uint8_t*)List_Front(Buff_Bt_IN));
+		  }while(temp[sizeTemp - 1] != '\n');
+		  temp[sizeTemp-1] = '\0';
+		  __disable_irq();
+		  List_Push_C(Buff_InputCommandsBT, temp, sizeTemp);
+		  __enable_irq();
+	  }
 
-		menu_run(buttState);
-	}
-
-
+	  if(!transmissionBT && List_GetSize(Buff_Bt_OUT) != 0){
+		  transmissionBT = true;
+		  HAL_UART_Transmit_IT(&huart1, (uint8_t*)List_Front(Buff_Bt_OUT), List_GetDataSize(Buff_Bt_OUT));
+	  }
 
     /* USER CODE END WHILE */
 
@@ -180,7 +196,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART2;
+  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -307,6 +324,41 @@ static void MX_TIM6_Init(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 38400;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -361,8 +413,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, KEYBOARD_1O_Pin|KEYBOARD_2O_Pin|KEYBOARD_3O_Pin|LD2_Pin 
-                          |KEYBOARD_4O_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin, GPIO_PIN_RESET);
@@ -383,20 +434,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : KEYBOARD_1O_Pin KEYBOARD_2O_Pin KEYBOARD_3O_Pin LD2_Pin 
-                           KEYBOARD_4O_Pin */
-  GPIO_InitStruct.Pin = KEYBOARD_1O_Pin|KEYBOARD_2O_Pin|KEYBOARD_3O_Pin|LD2_Pin 
-                          |KEYBOARD_4O_Pin;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : KEYBOARD_1I_Pin KEYBOARD_2I_Pin KEYBOARD_3I_Pin KEYBOARD_4I_Pin */
-  GPIO_InitStruct.Pin = KEYBOARD_1I_Pin|KEYBOARD_2I_Pin|KEYBOARD_3I_Pin|KEYBOARD_4I_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ST7565R_CS_Pin ST7565R_RST_Pin ST7565R_A0_Pin */
   GPIO_InitStruct.Pin = ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin;

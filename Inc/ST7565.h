@@ -119,10 +119,10 @@ typedef struct DataToST7565{
 
 /*----------------------------END_data_types----------------------------*/
 
-#include "FIFO_struct.h"
+#include "FIFO_void.h"
 
 /*----------------------------externed_data----------------------------*/
-extern List_struct* Buff_SPI_ST7565R;
+extern List* Buff_SPI_ST7565R;
 extern ST7565R_Settings lcd;
 /*----------------------------END_externed_data----------------------------*/
 

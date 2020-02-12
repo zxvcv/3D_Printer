@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 #include <string.h>
 #include "ST7565.h"
-#include "FIFO_struct.h"
 
 #define ST7565_STARTBYTES 4
 
@@ -39,7 +38,7 @@ ST7565R_Settings lcd = { .IOcs = { .PORT = ST7565R_CS_GPIO_Port, .PIN = ST7565R_
 						 .IOa0 = { .PORT = ST7565R_A0_GPIO_Port, .PIN = ST7565R_A0_Pin },
 						 .spi = &hspi2 };
 
-List_struct* Buff_SPI_ST7565R = NULL;
+List* Buff_SPI_ST7565R = NULL;
 
 uint8_t is_reversed = 0;
 
@@ -405,7 +404,7 @@ void ST7565_setbuffunit(uint8_t x, uint8_t line, uint8_t data) {
 }
 
 void ST7565_begin(uint8_t contrast) {
-	ListStruct_Create(&Buff_SPI_ST7565R);
+	List_Create(&Buff_SPI_ST7565R);
 	ST7565_st7565_init();
 	ST7565_st7565_command(CMD_DISPLAY_ON);
 	ST7565_st7565_command(CMD_SET_ALLPTS_NORMAL);
@@ -473,7 +472,7 @@ inline void ST7565_spiwrite() {
   //shiftOut(sid, sclk, MSBFIRST, c);
   //while (SPI_GetFlagStatus(SPI2, SPI_FLAG_TXE) == RESET);
 
-	DataToST7565* data = (DataToST7565*)ListStruct_Front(Buff_SPI_ST7565R);
+	DataToST7565* data = (DataToST7565*)List_Front(Buff_SPI_ST7565R);
 	HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, data->state_a0);
 
 	HAL_SPI_Transmit_IT(lcd.spi, &(data->val), 1); //SPI_SendData(SPI2, c);
@@ -485,8 +484,8 @@ void ST7565_st7565_command(uint8_t c) {
 	__enable_irq();
 	data->state_a0 = false;
 	data->val = c;
-	ListStruct_Push_NC(Buff_SPI_ST7565R, data);
-	if(ListStruct_GetSize(Buff_SPI_ST7565R) <= 1)
+	List_Push_NC(Buff_SPI_ST7565R, data);
+	if(List_GetSize(Buff_SPI_ST7565R) <= 1)
 		ST7565_spiwrite();
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_RESET);
@@ -500,8 +499,8 @@ void ST7565_st7565_data(uint8_t c) {
 	__enable_irq();
 	data->state_a0 = true;
 	data->val = c;
-	ListStruct_Push_NC(Buff_SPI_ST7565R, data);
-	if(ListStruct_GetSize(Buff_SPI_ST7565R) <= 1)
+	List_Push_NC(Buff_SPI_ST7565R, data);
+	if(List_GetSize(Buff_SPI_ST7565R) <= 1)
 			ST7565_spiwrite();
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_SET);

@@ -21,22 +21,17 @@ w funkcji List_Pop()
 
 /*----------------------------data_types----------------------------*/
 
-typedef struct DataToST7565 structData;
+typedef struct List_memb {
+	struct List_memb* next;
+	void* data;
+	uint8_t dataSize;
+}List_memb;
 
-
-typedef struct List_memb_struct {
-	struct List_memb_struct* next;
-	structData* data;
-}List_memb_struct;
-
-typedef struct List_struct {
-	List_memb_struct* begin;
+typedef struct List {
+	List_memb* begin;
 	int size;
-}List_struct;
+}List;
 
-/*----------------------------END_data_types----------------------------*/
-
-#include "ST7565.h"
 
 /*----------------------------function_declarations----------------------------*/
 
@@ -47,7 +42,7 @@ funkcja tworz¹ca listê FIFO na wskaŸniku do struktury List
 @param lista wskaznik na wskaznik do struktury do pracy na liœcie
 @return (true) gdy inicjalizacja sie powiod³a (false) w przeciwnym wypadku
 */
-bool ListStruct_Create(List_struct** lista);
+bool List_Create(List** lista);
 
 /*
 funkcja dodajaca element na koniec listy FIFO
@@ -57,7 +52,7 @@ funkcja typu C(COPY) - przy inicjalizacji elementu listy tworzy kopie wartosci s
 @param val wskaznik na wartosc która zostanie przekopiowania i przechowywana na liscie
 @return (true) gdy dodanie sie powiod³o (false) w przeciwnym wypadku
 */
-bool ListStruct_Push_C(List_struct* lista, const structData* val);
+bool List_Push_C(List* lista, void* val, int valSize);
 
 /*
 funkcja dodajaca element na koniec listy FIFO
@@ -68,7 +63,7 @@ funkcja typu NC(NO COPY) - przy inicjalizacji elementu listy tylko wykorzystujac
 @param val wskaznik na wartosc który zostanie umieszczony na liscie
 @return (true) gdy dodanie sie powiod³o (false) w przeciwnym wypadku
 */
-bool ListStruct_Push_NC(List_struct* lista, structData* val);
+bool List_Push_NC(List* lista, void* val);
 
 /*
 funkcja zwracaj¹ca wskaznik na strukture na pocz¹tku listy
@@ -76,7 +71,7 @@ funkcja zwracaj¹ca wskaznik na strukture na pocz¹tku listy
 @param lista wskaznik na listê elementów na której pracujemy
 @return wskaznik na pierwszy element na liscie lub NULL gdy takeigo nie ma lub wystapi³ blad
 */
-const structData* const ListStruct_Front(List_struct* lista);
+const void* const List_Front(List* lista);
 
 /*
 funkcja usuwaj¹ca element z pocz¹tku listy FIFO
@@ -86,7 +81,7 @@ common use -> je¿eli wczeœniej element zosta³ zainicjalizowany funkcj¹ List_Pusc
 @param lista wskaznik na listê elementów na której pracujemy
 @return (true) gdy usuniecie sie powiod³o (false) w przeciwnym wypadku
 */
-bool ListStruct_Pop_C(List_struct* lista);
+bool List_Pop_C(List* lista);
 
 /*
 funkcja usuwaj¹ca element z pocz¹tku listy FIFO
@@ -96,7 +91,7 @@ common use -> nale¿y uzywaæ je¿eli wczeœniej element zosta³ zainicjalizowany fun
 @param lista wskaznik na listê elementów na której pracujemy
 @return (true) gdy usuniecie sie powiod³o (false) w przeciwnym wypadku
 */
-bool ListStruct_Pop_NC(List_struct* lista);
+bool List_Pop_NC(List* lista);
 
 /*
 funkcja usuwaj¹ca wszystkie elementy z listy FIFO
@@ -105,7 +100,7 @@ funkcja typu C(COPY) - nale¿y uzywaæ je¿eli wczeœniej elementy zosta³y zainicjal
 
 @param lista wskaznik na listê elementów na której pracujemy
 */
-void ListStruct_Clear_C(List_struct* lista);
+void List_Clear_C(List* lista);
 
 /*
 funkcja usuwaj¹ca wszystkie elementy z listy FIFO
@@ -114,7 +109,7 @@ funkcja typu NC(NO COPY) - nale¿y uzywaæ je¿eli wczeœniej elementy zosta³y zaini
 
 @param lista wskaznik na listê elementów na której pracujemy
 */
-void ListStruct_Clear_NC(List_struct* lista);
+void List_Clear_NC(List* lista);
 
 /*
 funkcja usuwaj¹ca listê FIFO
@@ -124,7 +119,7 @@ funkcja typu C(COPY) - nale¿y uzywaæ je¿eli wczeœniej elementy zosta³y zainicjal
 @param lista wskaznik na listê elementów na której pracujemy
 @return (true) jezeli udalo sie wykonac operacje usuwania listy (false) w przeciwnym przypadku
 */
-bool ListStruct_Delete_C(List_struct** lista);
+bool List_Delete_C(List** lista);
 
 /*
 funkcja usuwaj¹ca listê FIFO
@@ -134,7 +129,7 @@ funkcja typu NC(NO COPY) - nale¿y uzywaæ je¿eli wczeœniej elementy zosta³y zaini
 @param lista wskaznik na listê elementów na której pracujemy
 @return (true) jezeli udalo sie wykonac operacje usuwania listy (false) w przeciwnym przypadku
 */
-bool ListStruct_Delete_NC(List_struct** lista);
+bool List_Delete_NC(List** lista);
 
 /*
 funkcja zwracaj¹ca aktualn¹ wielkoœc listy list
@@ -142,7 +137,16 @@ funkcja zwracaj¹ca aktualn¹ wielkoœc listy list
 @param lista wskaznik na listê elementów na której pracujemy
 @return aktualna wielkoœæ listy
 */
-int ListStruct_GetSize(List_struct* lista);
+int List_GetSize(List* lista);
+
+/*
+funkcja zwracaj¹ca wielkoœæ elementu zapisanego na pocz¹tku listy (w przypadku listy C)
+w przeciwnym wypadku zwraca 0. Tak¿e 0 jest zwracane gdy lista C jest pusta.
+
+@param lista wskaznik na listê elementów na której pracujemy
+@return wielkoœæ elementu na poczatku listy
+*/
+uint8_t List_GetDataSize(List* lista);
 
 /*----------------------------END_function_declarations----------------------------*/
 
