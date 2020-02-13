@@ -98,10 +98,10 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move, double spee
 	RoundingErrorData roundingError;
 	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
 	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize) / (settings->changeTime * 2));
-	char data2[30];
-	uint8_t sizeData2 = sprintf(data2, "%d | %d | %f | %f\n", settings->changeTime, settings->stepLeftCounter, roundingError.roundingMoveError, roundingError.roundingSpeedError);
-	extern UART_HandleTypeDef huart2;
-	HAL_UART_Transmit(&huart2, (uint8_t*)data2, sizeData2, 1000);
+	//char data2[30];
+	//uint8_t sizeData2 = sprintf(data2, "%d | %d | %f | %f\n", settings->changeTime, settings->stepLeftCounter, roundingError.roundingMoveError, roundingError.roundingSpeedError);
+	//extern UART_HandleTypeDef huart2;
+	//HAL_UART_Transmit(&huart2, (uint8_t*)data2, sizeData2, 1000);
 	return roundingError;
 }
 

@@ -26,6 +26,7 @@
 #include "interrupts.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
+#include "parserCommand.h"
 #include "../Drivers/FATFS/ff.h"
 /* USER CODE END Includes */
 
@@ -61,6 +62,8 @@ bool EOL_BT_recieved = false;
 bool transmissionBT = false;
 
 List* Buff_InputCommandsBT = NULL;
+
+SystemCommand sysCmd;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,9 +134,8 @@ int main(void)
   while (1)
   {
 	  if(List_GetSize(Buff_InputCommandsBT) != 0){
-		  //...
-		  // pobieranie i wykonanaie polecen przes³anych z bluetooth
-		  //...
+		  parseSystemCommand((char*)List_Front(Buff_InputCommandsBT), &sysCmd);
+		  executeSystemCommand(&sysCmd);
 	  }
 
 	  if(EOL_BT_recieved){
@@ -143,6 +145,7 @@ int main(void)
 			  temp[sizeTemp++] = *((uint8_t*)List_Front(Buff_Bt_IN));
 		  }while(temp[sizeTemp - 1] != '\n');
 		  temp[sizeTemp-1] = '\0';
+
 		  __disable_irq();
 		  List_Push_C(Buff_InputCommandsBT, temp, sizeTemp);
 		  __enable_irq();
