@@ -27,6 +27,7 @@
 #include "ST7565.h"
 #include "a4988_stepstick.h"
 #include "parserCommand.h"
+#include "LEDdisplay_operations.h"
 #include "../Drivers/FATFS/ff.h"
 /* USER CODE END Includes */
 
@@ -131,6 +132,20 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  /*
+  ST7565_clear();
+  drawInterface();
+  InterfaceValues val = { .instruction = 0,
+		  	  	  	  	  .numOfInstructions = 0,
+						  .posX = 0.0,
+						  .posY = 0.0,
+						  .posZ = 0.0,
+						  .tmpH = 0.0,
+						  .tmpB = 0.0
+  };
+  updateValues(&val);
+  */
 
   while (1)
   {
