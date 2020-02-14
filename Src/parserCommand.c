@@ -8,26 +8,40 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "main.h"
+extern UART_HandleTypeDef huart2; //test
 
-void systemCmd_1(SystemCommand* cmd){
+void systemCmd_Motor1(SystemCommand* cmd){
+	char *wsk = "systemCmd_Motor1";
+	HAL_UART_Transmit(&huart2, (uint8_t*)wsk, strlen(wsk), 1000);
+}
 
+void systemCmd_Motor2(SystemCommand* cmd){
+	char *wsk = "systemCmd_Motor2";
+	HAL_UART_Transmit(&huart2, (uint8_t*)wsk, strlen(wsk), 1000);
+}
+
+void systemCmd_Motor3(SystemCommand* cmd){
+	char *wsk = "systemCmd_Motor3";
+	HAL_UART_Transmit(&huart2, (uint8_t*)wsk, strlen(wsk), 1000);
 }
 
 const struct {
 	char* name;
 	void (*execute)(SystemCommand*);
-} commands[SYSTEM_COMMANDS_NUM] = {
-		{	"C1",	systemCmd_1		}
+} systemCommands[SYSTEM_COMMANDS_NUM] = {
+		{	"M1",	systemCmd_Motor1		},
+		{	"M2",	systemCmd_Motor2		},
+		{	"M3",	systemCmd_Motor3		}
 };
 
 
 void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 	char *token = NULL, *cmdName = NULL;
-	char *next_token = NULL;
 	double val;
-	token = strtok_s(cmd, " ", &next_token);
+	token = strtok(cmd, " ");
 	cmdName = token;
-	token = strtok_s(NULL, " ", &next_token);
+	token = strtok(NULL, " ");
 	memset(cmdOUT, 0, sizeof(SystemCommand));
 	while (token != NULL) {
 		val = atoi(token + 1);
@@ -41,12 +55,12 @@ void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 		//case 'S': cmdOUT->_s = val; break;
 		default: break;
 		}
-		token = strtok_s(NULL, " ", &next_token);
+		token = strtok(NULL, " ");
 	}
 
 	for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i) {
-		if (strcmp(cmdName, commands[i].name) == 0) {
-			cmdOUT->execute = commands[i].execute;
+		if (strcmp(cmdName, systemCommands[i].name) == 0) {
+			cmdOUT->execute = systemCommands[i].execute;
 			break;
 		}
 	}

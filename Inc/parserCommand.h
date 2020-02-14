@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define SYSTEM_COMMANDS_NUM 1
+#define SYSTEM_COMMANDS_NUM 3
 
 typedef struct SystemCommand{
 	void (*execute)(struct SystemCommand*) ;	//command pointer

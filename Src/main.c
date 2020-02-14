@@ -126,6 +126,7 @@ int main(void)
   ST7565_begin(0x08);
   ST7565_clear_display();
 
+  HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,22 +134,28 @@ int main(void)
 
   while (1)
   {
+
 	  if(List_GetSize(Buff_InputCommandsBT) != 0){
 		  parseSystemCommand((char*)List_Front(Buff_InputCommandsBT), &sysCmd);
 		  executeSystemCommand(&sysCmd);
+		  List_Pop_C(Buff_InputCommandsBT);
 	  }
 
 	  if(EOL_BT_recieved){
+		  EOL_BT_recieved = false;
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 		  uint8_t sizeTemp = 0;
 		  uint8_t temp[25];
 		  do{
 			  temp[sizeTemp++] = *((uint8_t*)List_Front(Buff_Bt_IN));
+			  List_Pop_C(Buff_Bt_IN);
 		  }while(temp[sizeTemp - 1] != '\n');
-		  temp[sizeTemp-1] = '\0';
+		  temp[sizeTemp - 1] = '\0';
 
 		  __disable_irq();
 		  List_Push_C(Buff_InputCommandsBT, temp, sizeTemp);
 		  __enable_irq();
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	  }
 
 	  if(!transmissionBT && List_GetSize(Buff_Bt_OUT) != 0){
