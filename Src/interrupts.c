@@ -47,20 +47,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if(huart == &huart1){
-		__disable_irq();
-		List_Pop_C(Buff_Bt_OUT);
-		__enable_irq();
+	__disable_irq();
+	List_Pop_C(Buff_Bt_OUT);
+	__enable_irq();
 
-		if(List_GetSize(Buff_Bt_OUT) == 0)
-		{
-			transmissionBT = false;
-		}
-		else
-		{
-			transmissionBT = true;
-			HAL_UART_Transmit_IT(&huart1, (uint8_t*)List_Front(Buff_Bt_OUT), List_GetDataSize(Buff_Bt_OUT));
-		}
+	if(List_GetSize(Buff_Bt_OUT) == 0)
+	{
+		transmissionBT = false;
+	}
+	else
+	{
+		transmissionBT = true;
+		HAL_UART_Transmit_IT(&huart1, (uint8_t*)List_Front(Buff_Bt_OUT), List_GetDataSize(Buff_Bt_OUT));
 	}
 }
 

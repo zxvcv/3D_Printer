@@ -28,12 +28,19 @@ void  motorInit(MotorSettings* settings) {
 	settings->stateReset = START;
 	settings->stateSleep = SLEEP;
 	settings->stateDirection = CLOCK;
-	settings->stateStep = LOW;
+	settings->stateStep = HIGH; //test zmienilem na HIGH z LOW
 
 	settings->isOn = false;
 
 	settings->changeTime = 0;
 	settings->stepLeftCounter = 0;
+
+	settings->data.positionZero = 0;
+	settings->data.positionEnd = 20;
+	settings->data.maxSpeed = 200;
+
+	settings->data.position = 0;
+	settings->data.speed = 0;
 
 	motorUpdatePins(settings);
 }
@@ -48,6 +55,13 @@ bool motorUpdate(MotorSettings* settings) {
 			settings->stateStep = HIGH;
 			settings->isOn = false;
 			settings->stateSleep = SLEEP;
+			returnVal = true;
+
+			if(settings->IOdirection == RCLOCK)
+				settings->data.position += settings->stepSize;
+			else
+				settings->data.position -= settings->stepSize;
+			break;
 		}
 
 
@@ -57,6 +71,10 @@ bool motorUpdate(MotorSettings* settings) {
 				break;
 			case LOW:
 				settings->stateStep = HIGH;
+				if(settings->IOdirection == RCLOCK)
+					settings->data.position += settings->stepSize;
+				else
+					settings->data.position -= settings->stepSize;
 				returnVal = true;
 				break;
 			default:
@@ -79,7 +97,8 @@ void motorUpdatePins(MotorSettings* settings) {
 		HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN, settings->stateStep);
 }
 
-RoundingErrorData motorSetMove(MotorSettings* settings, double move, double speed){
+RoundingErrorData motorSetMove(MotorSettings* settings, double move){
+	double speed = settings->data.speed;
 	speed /= 10; //[mm/s]
 	double absMove = fabs(move);
 	double stepsNum = absMove / settings->stepSize;
@@ -122,26 +141,30 @@ void motorStop(MotorSettings* settings){
 	motorUpdatePins(settings);
 }
 
-bool motorIsOn(MotorSettings* settigns){
-	return settigns->isOn;
+bool motorIsOn(MotorSettings* settings){
+	return settings->isOn;
 }
 
-MOTOR_RESET_FAZE motorGetReset(MotorSettings* settigns){
-	return settigns->stateReset;
+MOTOR_RESET_FAZE motorGetReset(MotorSettings* settings){
+	return settings->stateReset;
 }
 
-MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settigns){
-	return settigns->stateDirection;
+MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settings){
+	return settings->stateDirection;
 }
 
-MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settigns){
-	return settigns->stateSleep;
+MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settings){
+	return settings->stateSleep;
 }
 
-double motorGetTimerFreq(MotorSettings* settigns){
-	return settigns->timerFrequency;
+double motorGetTimerFreq(MotorSettings* settings){
+	return settings->timerFrequency;
 }
 
-double motorGetStepSize(MotorSettings* settigns){
-	return settigns->stepSize;
+double motorGetStepSize(MotorSettings* settings){
+	return settings->stepSize;
+}
+
+MotorData* motorGetData(MotorSettings* settings){
+	return &(settings->data);
 }

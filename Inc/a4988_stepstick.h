@@ -60,6 +60,15 @@ typedef enum MOTOR_RESET_FAZE{
 	STOP = GPIO_PIN_RESET
 }MOTOR_RESET_FAZE;
 
+typedef struct MotorData{
+	double position;
+	double speed;
+
+	double maxSpeed;
+	double positionZero;
+	double positionEnd;
+} MotorData;
+
 typedef struct MotorSettings{
 	IO_Pin IOreset;
 	IO_Pin IOsleep;
@@ -78,6 +87,8 @@ typedef struct MotorSettings{
 
 	double timerFrequency;	//[Hz] timer frequency
 	double stepSize;		//[mm] length of move with one motor step
+
+	MotorData data;
 } MotorSettings;
 
 typedef struct RoundingErrorData{
@@ -92,22 +103,24 @@ void  motorInit(MotorSettings* settings);
 
 bool motorUpdate(MotorSettings* settings);
 
-RoundingErrorData motorSetMove(MotorSettings* settings, double move, double speed);
+RoundingErrorData motorSetMove(MotorSettings* settings, double move);
 
 void motorStart(MotorSettings* settings);
 
 void motorStop(MotorSettings* settings);
 
-bool motorIsOn(MotorSettings* settigns);
+bool motorIsOn(MotorSettings* settings);
 
-MOTOR_RESET_FAZE motorGetReset(MotorSettings* settigns);
+MOTOR_RESET_FAZE motorGetReset(MotorSettings* settings);
 
-MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settigns);
+MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settings);
 
-MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settigns);
+MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settings);
 
-double motorGetTimerFreq(MotorSettings* settigns);
+double motorGetTimerFreq(MotorSettings* settings);
 
-double motorGetStepSize(MotorSettings* settigns);
+double motorGetStepSize(MotorSettings* settings);
+
+MotorData* motorGetData(MotorSettings* settings);
 
 #endif /* A4988_STEPSTICK_H_ */
