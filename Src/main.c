@@ -146,7 +146,6 @@ int main(void)
   };
   updateValues(&val);
   */
-
   while (1)
   {
 
@@ -171,9 +170,11 @@ int main(void)
 		  __enable_irq();
 	  }
 
-	  if(!transmissionBT && List_GetSize(Buff_Bt_OUT) != 0){
+	  if(!transmissionBT && List_GetSize(Buff_Bt_OUT) > 0){
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 		  transmissionBT = true;
 		  HAL_UART_Transmit_IT(&huart1, (uint8_t*)List_Front(Buff_Bt_OUT), List_GetDataSize(Buff_Bt_OUT));
+		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	  }
 
     /* USER CODE END WHILE */

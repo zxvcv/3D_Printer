@@ -12,12 +12,11 @@
 MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
 						.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
 						.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
-						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
-						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
+						.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
+						//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
 						.timerFrequency = 1000,
 						.stepSize = 0.203
 };
-
 
 /* PRIVATE FUNCTIONS DECLARATIONS */
 void motorUpdatePins(MotorSettings* settings);
@@ -57,11 +56,10 @@ bool motorUpdate(MotorSettings* settings) {
 			settings->stateSleep = SLEEP;
 			returnVal = true;
 
-			if(settings->IOdirection == RCLOCK)
+			if(settings->stateDirection == RCLOCK)
 				settings->data.position += settings->stepSize;
 			else
 				settings->data.position -= settings->stepSize;
-			break;
 		}
 
 
@@ -71,7 +69,7 @@ bool motorUpdate(MotorSettings* settings) {
 				break;
 			case LOW:
 				settings->stateStep = HIGH;
-				if(settings->IOdirection == RCLOCK)
+				if(settings->stateDirection == RCLOCK)
 					settings->data.position += settings->stepSize;
 				else
 					settings->data.position -= settings->stepSize;

@@ -8,9 +8,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "a4988_stepstick.h"
+#include "FIFO_void.h"
 
 #include "main.h"
 extern UART_HandleTypeDef huart2; //test
+extern List* Buff_Bt_OUT;
 
 void systemCmd_Motor1PositionMove(SystemCommand* cmd){
 	double move = motorGetData(&motor1)->position - cmd->arg[0];
@@ -56,32 +58,54 @@ void systemCmd_Motor1DataRequest(SystemCommand* cmd){
 
 	char data[100];
 	int sizeData = sprintf(data, "M1D %f %f %f %f %f", motor1.data.position, motor1.data.positionZero, motor1.data.positionEnd, motor1.data.speed, motor1.data.maxSpeed);
-	List_Push_C(&Buff_Bt_OUT, (char*)data, sizeData);
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 
 void systemCmd_Motor2PositionMove(SystemCommand* cmd){
+	char data[100];
 
+	int sizeDataI = sprintf(data, "buff_BT_OUT_size1: %d\n", List_GetSize(Buff_Bt_OUT));
+	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeDataI, 1000);
+
+	uint8_t sizeData = sprintf(data, "systemCmd_Motor2PositionMove\n");
+	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeData, 1000);
+
+	sizeData = sprintf(data, "systemCmd_Motor2PositionMove");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+
+	sizeDataI = sprintf(data, "buff_BT_OUT_size2: %d\n", List_GetSize(Buff_Bt_OUT));
+	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeDataI, 1000);
 }
 
 void systemCmd_Motor2PositionZero(SystemCommand* cmd){
-
+	char data[100];
+	int sizeData = sprintf(data, "systemCmd_Motor2PositionZero");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 void systemCmd_Motor2PositionEnd(SystemCommand* cmd){
-
+	char data[100];
+	int sizeData = sprintf(data, "systemCmd_Motor2PositionEnd");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 void systemCmd_Motor2DistanceMove(SystemCommand* cmd){
-
+	char data[100];
+	int sizeData = sprintf(data, "systemCmd_Motor2DistanceMove");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 void systemCmd_Motor2SpeedSet(SystemCommand* cmd){
-
+	char data[100];
+	int sizeData = sprintf(data, "systemCmd_Motor2SpeedSet");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 void systemCmd_Motor2SpeedMax(SystemCommand* cmd){
-
+	char data[100];
+	int sizeData = sprintf(data, "systemCmd_Motor2SpeedMax");
+	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
 

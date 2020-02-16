@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define SYSTEM_COMMANDS_NUM 3
+#define SYSTEM_COMMANDS_NUM 19
 #define SYSTEM_COMMANDS_ARGS_MAX_NUM 2
 
 typedef struct SystemCommand{
