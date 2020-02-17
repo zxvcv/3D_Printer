@@ -57,7 +57,7 @@ void systemCmd_Motor1SpeedMax(SystemCommand* cmd){
 void systemCmd_Motor1DataRequest(SystemCommand* cmd){
 
 	char data[100];
-	int sizeData = sprintf(data, "M1D %f %f %f %f %f", motor1.data.position, motor1.data.positionZero, motor1.data.positionEnd, motor1.data.speed, motor1.data.maxSpeed);
+	int sizeData = sprintf(data, "M1D %f %f %f %f %f\n", motor1.data.position, motor1.data.positionZero, motor1.data.positionEnd, motor1.data.speed, motor1.data.maxSpeed);
 	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
 }
 
