@@ -38,7 +38,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 			else
 				printerSettings.position[1] -= motorGetStepSize(&motor1);
 		}
-
 	}
 
 	//ModKB4x4_readButtons(&keyboard);

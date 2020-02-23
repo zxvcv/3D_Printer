@@ -7,6 +7,7 @@
 #include "parserCommand.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "a4988_stepstick.h"
 #include "FIFO_void.h"
 
@@ -14,25 +15,36 @@
 extern UART_HandleTypeDef huart2; //test
 extern List* Buff_Bt_OUT;
 
+char buffMsg[100];
+uint8_t msgSize;
+
+
+void systemCmd_Motor1DataRequest(SystemCommand* cmd){
+	msgSize = sprintf(buffMsg, "M1D %f %f %f %f %f\n", motor1.data.position, motor1.data.positionZero, motor1.data.positionEnd, motor1.data.speed, motor1.data.maxSpeed);
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
+}
+
 void systemCmd_Motor1PositionMove(SystemCommand* cmd){
 	double move = motorGetData(&motor1)->position - cmd->arg[0];
 	motorSetMove(&motor1, move);
 	motorStart(&motor1);
 
 	while(motorIsOn(&motor1));
+	systemCmd_Motor1DataRequest(cmd);
 
 	//test
-	char data[20];
-	uint8_t sizeData = sprintf(data, "DONE_PosMove\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeData, 1000);
+	msgSize = sprintf(buffMsg, "DONE_PosMove\n");
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor1PositionZero(SystemCommand* cmd){
 	motorGetData(&motor1)->positionZero = cmd->arg[0];
+	systemCmd_Motor1DataRequest(cmd);
 }
 
 void systemCmd_Motor1PositionEnd(SystemCommand* cmd){
 	motorGetData(&motor1)->positionEnd = cmd->arg[0];
+	systemCmd_Motor1DataRequest(cmd);
 }
 
 void systemCmd_Motor1DistanceMove(SystemCommand* cmd){
@@ -40,72 +52,66 @@ void systemCmd_Motor1DistanceMove(SystemCommand* cmd){
 	motorStart(&motor1);
 
 	while(motorIsOn(&motor1));
+	systemCmd_Motor1DataRequest(cmd);
 
-	char data[20];
-	uint8_t sizeData = sprintf(data, "DONE_DistMove\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeData, 1000);
+	//test
+	msgSize = sprintf(buffMsg, "DONE_DistMove\n");
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor1SpeedSet(SystemCommand* cmd){
 	motorGetData(&motor1)->speed = cmd->arg[0];
+	systemCmd_Motor1DataRequest(cmd);
+
+	//test
+	msgSize = sprintf(buffMsg, "NewSpeed: %f %f\n", motorGetData(&motor1)->speed, cmd->arg[0]);
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor1SpeedMax(SystemCommand* cmd){
 	motorGetData(&motor1)->maxSpeed = cmd->arg[0];
+	systemCmd_Motor1DataRequest(cmd);
 }
 
-void systemCmd_Motor1DataRequest(SystemCommand* cmd){
-
-	char data[100];
-	int sizeData = sprintf(data, "M1D %f %f %f %f %f\n", motor1.data.position, motor1.data.positionZero, motor1.data.positionEnd, motor1.data.speed, motor1.data.maxSpeed);
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
-}
 
 
 void systemCmd_Motor2PositionMove(SystemCommand* cmd){
-	char data[100];
+	msgSize = sprintf(buffMsg, "buff_BT_OUT_size1: %d\n", List_GetSize(Buff_Bt_OUT));
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 
-	int sizeDataI = sprintf(data, "buff_BT_OUT_size1: %d\n", List_GetSize(Buff_Bt_OUT));
-	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeDataI, 1000);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2PositionMove\n");
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 
-	uint8_t sizeData = sprintf(data, "systemCmd_Motor2PositionMove\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeData, 1000);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2PositionMove");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 
-	sizeData = sprintf(data, "systemCmd_Motor2PositionMove");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
-
-	sizeDataI = sprintf(data, "buff_BT_OUT_size2: %d\n", List_GetSize(Buff_Bt_OUT));
-	HAL_UART_Transmit(&huart2, (uint8_t*)data, sizeDataI, 1000);
+	msgSize = sprintf(buffMsg, "buff_BT_OUT_size2: %d\n", List_GetSize(Buff_Bt_OUT));
+	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor2PositionZero(SystemCommand* cmd){
-	char data[100];
-	int sizeData = sprintf(data, "systemCmd_Motor2PositionZero");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2PositionZero");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 void systemCmd_Motor2PositionEnd(SystemCommand* cmd){
-	char data[100];
-	int sizeData = sprintf(data, "systemCmd_Motor2PositionEnd");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2PositionEnd");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 void systemCmd_Motor2DistanceMove(SystemCommand* cmd){
-	char data[100];
-	int sizeData = sprintf(data, "systemCmd_Motor2DistanceMove");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2DistanceMove");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 void systemCmd_Motor2SpeedSet(SystemCommand* cmd){
-	char data[100];
-	int sizeData = sprintf(data, "systemCmd_Motor2SpeedSet");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2SpeedSet");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 void systemCmd_Motor2SpeedMax(SystemCommand* cmd){
-	char data[100];
-	int sizeData = sprintf(data, "systemCmd_Motor2SpeedMax");
-	List_Push_C(Buff_Bt_OUT, (char*)data, sizeData);
+	msgSize = sprintf(buffMsg, "systemCmd_Motor2SpeedMax");
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 
@@ -174,8 +180,9 @@ void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 	token = strtok(NULL, " ");
 	memset(cmdOUT, 0, sizeof(SystemCommand));
 	while (token != NULL || argNum >= SYSTEM_COMMANDS_ARGS_MAX_NUM) {
-		num = token + 1;
+		num = token;
 		cmdOUT->arg[argNum++] = strtod (num, NULL);
+
 		token = strtok(NULL, " ");
 	}
 

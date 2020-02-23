@@ -96,8 +96,7 @@ void motorUpdatePins(MotorSettings* settings) {
 }
 
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){
-	double speed = settings->data.speed;
-	speed /= 10; //[mm/s]
+	double speed = settings->data.speed; //w [mm/s]
 	double absMove = fabs(move);
 	double stepsNum = absMove / settings->stepSize;
 	//double time = absMove / speed;
