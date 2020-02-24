@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "vectorOperations.h"
 #include "a4988_stepstick.h"
-#include "Settings.h"
 
 /*
  * COMMAND G1

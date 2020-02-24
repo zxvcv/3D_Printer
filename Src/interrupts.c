@@ -9,7 +9,6 @@
 #include "FIFO_void.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
-#include "Settings.h"
 
 extern UART_HandleTypeDef huart1;
 extern List* Buff_Bt_IN;
@@ -30,18 +29,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(motorIsOn(&motor1)){
-		//os Y
-		if(motorUpdate(&motor1)){
-			if(motorGetDirection(&motor1) == CLOCK)
-				printerSettings.position[1] += motorGetStepSize(&motor1);
-			else
-				printerSettings.position[1] -= motorGetStepSize(&motor1);
-		}
-	}
-
-	//ModKB4x4_readButtons(&keyboard);
-	//ModKB4x4_checkKeyboard(&keyboard);
+	if(motorIsOn(&motor1))
+		motorUpdate(&motor1);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)

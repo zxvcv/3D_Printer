@@ -12,8 +12,8 @@
 MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
 						.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
 						.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
-						.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
-						//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
+						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
+						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
 						.timerFrequency = 1000,
 						.stepSize = 0.203
 };
@@ -27,7 +27,7 @@ void  motorInit(MotorSettings* settings) {
 	settings->stateReset = START;
 	settings->stateSleep = SLEEP;
 	settings->stateDirection = CLOCK;
-	settings->stateStep = HIGH; //test zmienilem na HIGH z LOW
+	settings->stateStep = LOW;
 
 	settings->isOn = false;
 
@@ -36,7 +36,7 @@ void  motorInit(MotorSettings* settings) {
 
 	settings->data.positionZero = 0;
 	settings->data.positionEnd = 20;
-	settings->data.maxSpeed = 200;
+	settings->data.maxSpeed = 50;
 
 	settings->data.position = 0;
 	settings->data.speed = 0;
@@ -51,15 +51,8 @@ bool motorUpdate(MotorSettings* settings) {
 		settings->changeTimeCounter = settings->changeTime;
 		--settings->stepLeftCounter;
 		if(settings->stepLeftCounter <= 0){
-			settings->stateStep = HIGH;
 			settings->isOn = false;
 			settings->stateSleep = SLEEP;
-			returnVal = true;
-
-			if(settings->stateDirection == RCLOCK)
-				settings->data.position += settings->stepSize;
-			else
-				settings->data.position -= settings->stepSize;
 		}
 
 
@@ -70,14 +63,15 @@ bool motorUpdate(MotorSettings* settings) {
 			case LOW:
 				settings->stateStep = HIGH;
 				if(settings->stateDirection == RCLOCK)
-					settings->data.position += settings->stepSize;
-				else
 					settings->data.position -= settings->stepSize;
+				else
+					settings->data.position += settings->stepSize;
 				returnVal = true;
 				break;
 			default:
 				break;
 		}
+
 		motorUpdatePins(settings);
 		return returnVal;
 	}else
@@ -96,6 +90,16 @@ void motorUpdatePins(MotorSettings* settings) {
 }
 
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){
+	RoundingErrorData roundingError;
+
+	if(settings->data.position + move < settings->data.positionZero ||
+	   settings->data.position + move > settings->data.positionEnd){
+		settings->stepLeftCounter = 0;
+		roundingError.roundingMoveError = 0;
+		roundingError.roundingSpeedError = 0;
+		return roundingError;
+	}
+
 	double speed = settings->data.speed; //w [mm/s]
 	double absMove = fabs(move);
 	double stepsNum = absMove / settings->stepSize;
@@ -111,13 +115,9 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	settings->stepLeftCounter *= 2;
 	settings->changeTimeCounter = settings->changeTime;
 
-	RoundingErrorData roundingError;
 	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
 	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize) / (settings->changeTime * 2));
-	//char data2[30];
-	//uint8_t sizeData2 = sprintf(data2, "%d | %d | %f | %f\n", settings->changeTime, settings->stepLeftCounter, roundingError.roundingMoveError, roundingError.roundingSpeedError);
-	//extern UART_HandleTypeDef huart2;
-	//HAL_UART_Transmit(&huart2, (uint8_t*)data2, sizeData2, 1000);
+
 	return roundingError;
 }
 

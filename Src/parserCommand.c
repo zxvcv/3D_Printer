@@ -25,16 +25,12 @@ void systemCmd_Motor1DataRequest(SystemCommand* cmd){
 }
 
 void systemCmd_Motor1PositionMove(SystemCommand* cmd){
-	double move = motorGetData(&motor1)->position - cmd->arg[0];
+	double move = cmd->arg[0] - motorGetData(&motor1)->position;
 	motorSetMove(&motor1, move);
 	motorStart(&motor1);
 
 	while(motorIsOn(&motor1));
 	systemCmd_Motor1DataRequest(cmd);
-
-	//test
-	msgSize = sprintf(buffMsg, "DONE_PosMove\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor1PositionZero(SystemCommand* cmd){
@@ -53,23 +49,21 @@ void systemCmd_Motor1DistanceMove(SystemCommand* cmd){
 
 	while(motorIsOn(&motor1));
 	systemCmd_Motor1DataRequest(cmd);
-
-	//test
-	msgSize = sprintf(buffMsg, "DONE_DistMove\n");
-	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
 }
 
 void systemCmd_Motor1SpeedSet(SystemCommand* cmd){
-	motorGetData(&motor1)->speed = cmd->arg[0];
-	systemCmd_Motor1DataRequest(cmd);
+	if(cmd->arg[0] <= motorGetData(&motor1)->maxSpeed &&
+	   cmd->arg[0] >= 0){
+		motorGetData(&motor1)->speed = cmd->arg[0];
+	}
 
-	//test
-	msgSize = sprintf(buffMsg, "NewSpeed: %f %f\n", motorGetData(&motor1)->speed, cmd->arg[0]);
-	HAL_UART_Transmit(&huart2, (uint8_t*)buffMsg, msgSize, 1000);
+	systemCmd_Motor1DataRequest(cmd);
 }
 
 void systemCmd_Motor1SpeedMax(SystemCommand* cmd){
-	motorGetData(&motor1)->maxSpeed = cmd->arg[0];
+	if(cmd->arg[0] >= 0)
+		motorGetData(&motor1)->maxSpeed = cmd->arg[0];
+
 	systemCmd_Motor1DataRequest(cmd);
 }
 
