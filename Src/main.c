@@ -120,6 +120,7 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   motorInit(&motor1);
+  motorInit(&motor2);
   HAL_TIM_Base_Start_IT(&htim6);
   List_Create(&Buff_Bt_IN);
   List_Create(&Buff_Bt_OUT);
@@ -129,6 +130,8 @@ int main(void)
 
   HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
   /* USER CODE END 2 */
+ 
+ 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -440,7 +443,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin 
+                          |MOT2_RESET_Pin|MOT2_DIRECTION_Pin|MOT2_STEP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_RESET);
@@ -465,8 +469,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ST7565R_CS_Pin ST7565R_RST_Pin ST7565R_A0_Pin */
-  GPIO_InitStruct.Pin = ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin;
+  /*Configure GPIO pins : ST7565R_CS_Pin ST7565R_RST_Pin ST7565R_A0_Pin MOT2_SLEEP_Pin 
+                           MOT2_RESET_Pin MOT2_DIRECTION_Pin MOT2_STEP_Pin */
+  GPIO_InitStruct.Pin = ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin 
+                          |MOT2_RESET_Pin|MOT2_DIRECTION_Pin|MOT2_STEP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

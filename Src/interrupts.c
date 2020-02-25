@@ -31,6 +31,8 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(motorIsOn(&motor1))
 		motorUpdate(&motor1);
+	if(motorIsOn(&motor2))
+		motorUpdate(&motor2);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)

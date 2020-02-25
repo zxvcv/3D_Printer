@@ -18,6 +18,15 @@ MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_R
 						.stepSize = 0.203
 };
 
+MotorSettings motor2 = {.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin },
+						.IOsleep = { .PORT = MOT2_SLEEP_GPIO_Port, .PIN = MOT2_SLEEP_Pin },
+						.IOdirection = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin },
+						.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
+						.timerFrequency = 1000,
+						.stepSize = 0.203
+};
+
+
 /* PRIVATE FUNCTIONS DECLARATIONS */
 void motorUpdatePins(MotorSettings* settings);
 

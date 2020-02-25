@@ -97,7 +97,7 @@ typedef struct RoundingErrorData{
 } RoundingErrorData;
 
 extern MotorSettings motor1;
-
+extern MotorSettings motor2;
 
 void  motorInit(MotorSettings* settings);
 
