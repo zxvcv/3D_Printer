@@ -5,11 +5,13 @@
 #include "a4988_stepstick.h"
 
 #define SYSTEM_COMMANDS_NUM 7
+#define SYSTEM_COMMANDS_MOTORS_MAX_NUM 2
 #define SYSTEM_COMMANDS_ARGS_MAX_NUM 2
 
 typedef struct SystemCommand{
 	void (*execute)(struct SystemCommand*) ;	//command pointer
-	MotorSettings *motor;
+	uint8_t motorsNum;
+	MotorSettings *motor[SYSTEM_COMMANDS_MOTORS_MAX_NUM];
 	double arg[SYSTEM_COMMANDS_ARGS_MAX_NUM];
 } SystemCommand;
 

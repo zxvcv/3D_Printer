@@ -15,7 +15,8 @@ MotorSettings motor1 = {.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_R
 						//.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
 						.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
 						.timerFrequency = 1000,
-						.stepSize = 0.203
+						.stepSize = 0.203,
+						.data.motorNum = 1
 };
 
 MotorSettings motor2 = {.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin },
@@ -23,8 +24,28 @@ MotorSettings motor2 = {.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_R
 						.IOdirection = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin },
 						.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
 						.timerFrequency = 1000,
-						.stepSize = 0.203
+						.stepSize = 0.203,
+						.data.motorNum = 2
 };
+
+MotorSettings motor3 = {.IOreset = { .PORT = MOT3_RESET_GPIO_Port, .PIN = MOT3_RESET_Pin },
+						.IOsleep = { .PORT = MOT3_SLEEP_GPIO_Port, .PIN = MOT3_SLEEP_Pin },
+						.IOdirection = { .PORT = MOT3_DIRECTION_GPIO_Port, .PIN = MOT3_DIRECTION_Pin },
+						.IOstep = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin },
+						.timerFrequency = 1000,
+						.stepSize = 0.203,
+						.data.motorNum = 3
+};
+
+MotorSettings motor4 = {.IOreset = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_RESET_Pin },
+						.IOsleep = { .PORT = MOT4_SLEEP_GPIO_Port, .PIN = MOT4_SLEEP_Pin },
+						.IOdirection = { .PORT = MOT4_DIRECTION_GPIO_Port, .PIN = MOT4_DIRECTION_Pin },
+						.IOstep = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin },
+						.timerFrequency = 1000,
+						.stepSize = 0.203,
+						.data.motorNum = 4
+};
+
 
 
 /* PRIVATE FUNCTIONS DECLARATIONS */

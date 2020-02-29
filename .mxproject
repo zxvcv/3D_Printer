@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/ppisk/OneDrive/Dokumenty/ProjectsSTM/3D_Printer/Inc
+HeaderPath=C:/Users/ppisk/Documents/STMprojects/3D_Printer/Inc
 HeaderFiles=stm32f3xx_it.h;stm32f3xx_hal_conf.h;main.h;
-SourcePath=C:/Users/ppisk/OneDrive/Dokumenty/ProjectsSTM/3D_Printer/Src
+SourcePath=C:/Users/ppisk/Documents/STMprojects/3D_Printer/Src
 SourceFiles=stm32f3xx_it.c;stm32f3xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]

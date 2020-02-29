@@ -61,6 +61,8 @@ typedef enum MOTOR_RESET_FAZE{
 }MOTOR_RESET_FAZE;
 
 typedef struct MotorData{
+	uint8_t motorNum;
+
 	double position;
 	double speed;
 
@@ -98,6 +100,8 @@ typedef struct RoundingErrorData{
 
 extern MotorSettings motor1;
 extern MotorSettings motor2;
+extern MotorSettings motor3;
+extern MotorSettings motor4;
 
 void  motorInit(MotorSettings* settings);
 

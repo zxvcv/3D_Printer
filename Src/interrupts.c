@@ -33,6 +33,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		motorUpdate(&motor1);
 	if(motorIsOn(&motor2))
 		motorUpdate(&motor2);
+	if(motorIsOn(&motor3))
+		motorUpdate(&motor3);
+	if(motorIsOn(&motor4))
+		motorUpdate(&motor4);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
