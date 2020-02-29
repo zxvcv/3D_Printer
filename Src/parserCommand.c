@@ -24,16 +24,23 @@ void systemCmd_MotorDataRequest(SystemCommand* cmd){
 		msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", cmd->motor[i]->data.motorNum, cmd->motor[i]->data.position, cmd->motor[i]->data.positionZero,
 				cmd->motor[i]->data.positionEnd, cmd->motor[i]->data.speed, cmd->motor[i]->data.maxSpeed);
 		List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
-		HAL_UART_Transmit(&huart2, buffMsg, msgSize, 1000);
 	}
 }
 
 void systemCmd_MotorPositionMove(SystemCommand* cmd){
 	double move = cmd->arg[0] - cmd->motor[0]->data.position;
-	motorSetMove(cmd->motor[0], move);
-	motorStart(cmd->motor[0]);
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		motorSetMove(cmd->motor[i], move);
+	__disable_irq();
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		motorStart(cmd->motor[i]);
+	__enable_irq();
 
-	while(motorIsOn(cmd->motor[0]));
+	bool state = true;
+	do{
+		for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+			state &= motorIsOn(cmd->motor[i]);
+	}while(state);
 	systemCmd_MotorDataRequest(cmd);
 }
 
@@ -48,29 +55,48 @@ void systemCmd_MotorPositionEnd(SystemCommand* cmd){
 }
 
 void systemCmd_MotorDistanceMove(SystemCommand* cmd){
-	motorSetMove(cmd->motor[0], cmd->arg[0]);
-	motorStart(cmd->motor[0]);
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		motorSetMove(cmd->motor[i], cmd->arg[0]);
+	__disable_irq();
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		motorStart(cmd->motor[i]);
+	__enable_irq();
 
-	while(motorIsOn(cmd->motor[0]));
+	bool state;
+	do{
+		state = false;
+		for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+			state |= motorIsOn(cmd->motor[i]);
+	}while(state);
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorSpeedSet(SystemCommand* cmd){
-	if(cmd->arg[0] <= cmd->motor[0]->data.maxSpeed &&
-	   cmd->arg[0] >= 0){
-		cmd->motor[0]->data.speed = cmd->arg[0];
-	}
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		if(cmd->arg[0] <= cmd->motor[i]->data.maxSpeed && cmd->arg[0] >= 0)
+			cmd->motor[i]->data.speed = cmd->arg[0];
 
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorSpeedMax(SystemCommand* cmd){
-	if(cmd->arg[0] >= 0)
-		cmd->motor[0]->data.maxSpeed = cmd->arg[0];
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+		if(cmd->arg[0] >= 0)
+			cmd->motor[i]->data.maxSpeed = cmd->arg[0];
 
 	systemCmd_MotorDataRequest(cmd);
 }
 
+void systemCmd_MotorsStepSizeRequest(SystemCommand* cmd){
+	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", motor1.stepSize, motor2.stepSize, motor3.stepSize, motor4.stepSize, 0.0);
+	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
+}
+
+void systemCmd_MotorsStepSizeSet(SystemCommand* cmd){
+	cmd->motor[0]->stepSize = cmd->arg[0];
+
+	systemCmd_MotorsStepSizeRequest(cmd);
+}
 
 
 
@@ -86,7 +112,9 @@ const struct {
 		{	"PE",	systemCmd_MotorPositionEnd		},
 		{	"DM",	systemCmd_MotorDistanceMove		},
 		{	"SS",	systemCmd_MotorSpeedSet			},
-		{	"SM",	systemCmd_MotorSpeedMax			}
+		{	"SM",	systemCmd_MotorSpeedMax			},
+		{	"SR",	systemCmd_MotorsStepSizeRequest	},
+		{	"SP",	systemCmd_MotorsStepSizeSet		}
 };
 
 
@@ -109,7 +137,7 @@ void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 	//command subtype
 	motorNum = strtok(NULL, " ");
 
-	if(motorNum[0] == 'M'){
+	if(motorNum != NULL && motorNum[0] == 'M'){
 		//motor(s) number
 		uint8_t val = 0;
 		for(int i=0; motorNum[i + 1] != '\0' && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i, ++val){
@@ -125,7 +153,7 @@ void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 
 		//motor command arguments
 		token = strtok(NULL, " ");
-		while (token != NULL || argNum >= SYSTEM_COMMANDS_ARGS_MAX_NUM) {
+		while (token != NULL && argNum < SYSTEM_COMMANDS_ARGS_MAX_NUM) {
 			num = token;
 			cmdOUT->arg[argNum++] = strtod (num, NULL);
 

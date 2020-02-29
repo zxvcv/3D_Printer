@@ -39,6 +39,7 @@
 #include "stdint.h"
 #include "pin_struct.h"
 
+#define MOTORS_NUM 4
 
 typedef enum MOTOR_STEP_FAZE{
 	HIGH = GPIO_PIN_SET,
