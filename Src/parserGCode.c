@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "vectorOperations.h"
 #include "a4988_stepstick.h"
+#include "settings.h"
 
 /*
  * COMMAND G1
@@ -15,7 +16,46 @@
  *	 Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
 void command_G1(GCodeCommand* cmd) {
-	
+	vect3D_d move;
+
+	if(printerSettings.posMode){
+		move.x = cmd->x - motor1.data.position;
+		move.y = cmd->y - motor2.data.position;
+		move.z = cmd->z - motor3.data.position;
+	}else{
+		move.x = cmd->x;
+		move.y = cmd->y;
+		move.z = cmd->z;
+	}
+
+	if(cmd->usedFields._f == 1)
+		printerSettings.speed = cmd->f;
+
+	vect3D_d velocity = getVelocity3D(move, printerSettings.speed);
+
+	motor1.data.speed = velocity.x;
+	motor2.data.speed = velocity.y;
+	motor3.data.speed = velocity.z;
+	motor4.data.speed = velocity.z;
+
+	motorSetMove(&motor1, move.x);
+	motorSetMove(&motor2, move.y);
+	motorSetMove(&motor3, move.z);
+	motorSetMove(&motor4, move.z);
+
+	__disable_irq();
+	motorStart(&motor1);
+	motorStart(&motor2);
+	motorStart(&motor3);
+	motorStart(&motor4);
+	__enable_irq();
+
+	bool state;
+	do{
+		state = false;
+		for(int i=0; i < MOTORS_NUM; ++i)
+			state |= motorIsOn(&motors[i]);
+	}while(state);
 }
 
 /*
@@ -28,18 +68,27 @@ void command_G1(GCodeCommand* cmd) {
  */
 void command_G28(GCodeCommand* cmd) {
 	double move;
-	move = cmd->_x - motors[0].data.position;
-	motorSetMove(&motors[0], move);
-	move = cmd->_y - motors[1].data.position;
-	motorSetMove(&motors[1], move);
-	move = cmd->_z - motors[2].data.position;
-	motorSetMove(&motors[2], move);
-	move = cmd->_z - motors[3].data.position;
-	motorSetMove(&motors[3], move);
+
+	//temporarty, in final version it could be maxSpeed of exry axis
+	motor1.data.speed = printerSettings.speed;
+	motor2.data.speed = printerSettings.speed;
+	motor3.data.speed = printerSettings.speed;
+	motor4.data.speed = printerSettings.speed;
+
+	if(cmd->usedFields._x == 1)
+		motorSetMove(&motor1, -motor1.data.position);
+	if(cmd->usedFields._y == 1)
+			motorSetMove(&motor2, -motor2.data.position);
+	if(cmd->usedFields._z == 1){
+		motorSetMove(&motor3, -motor3.data.position);
+		motorSetMove(&motor4, -motor4.data.position);
+	}
 
 	__disable_irq();
-	for(int i=0; i<MOTORS_NUM; ++i)
-		motorStart(&motors[i]);
+	motorStart(&motor1);
+	motorStart(&motor2);
+	motorStart(&motor3);
+	motorStart(&motor4);
 	__enable_irq();
 
 	bool state;
@@ -48,6 +97,7 @@ void command_G28(GCodeCommand* cmd) {
 		for(int i=0; i < MOTORS_NUM; ++i)
 			state |= motorIsOn(&motors[i]);
 	}while(state);
+
 }
 
 /*
@@ -59,7 +109,7 @@ void command_G28(GCodeCommand* cmd) {
  *	 None
  */
 void command_G90(GCodeCommand* cmd) {
-
+	printerSettings.posMode = true;
 }
 
 /*
@@ -71,7 +121,7 @@ void command_G90(GCodeCommand* cmd) {
  *	 None
  */
 void command_G91(GCodeCommand* cmd) {
-
+	printerSettings.posMode = false;
 }
 
 /*
@@ -84,7 +134,14 @@ void command_G91(GCodeCommand* cmd) {
  *   If you do not include one of these axes in the command, the position will remain unchanged.
  */
 void command_G92(GCodeCommand* cmd) {
-
+	if(cmd->usedFields._x == 1)
+		motor1.data.position = cmd->x;
+	if(cmd->usedFields._y == 1)
+		motor2.data.position = cmd->y;
+	if(cmd->usedFields._z == 1)
+		motor3.data.position = cmd->z;
+	//if(cmd->usedFields._e == 1)
+		//set extruder positoin
 }
 
 /*
@@ -181,12 +238,12 @@ void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 		val = atoi(token + 1);
 		switch (token[0])
 		{
-		case 'X': cmdOUT->_x = val; break;
-		case 'Y': cmdOUT->_y = val; break;
-		case 'Z': cmdOUT->_z = val; break;
-		case 'E': cmdOUT->_e = val; break;
-		case 'F': cmdOUT->_f = val; break;
-		case 'S': cmdOUT->_s = val; break;
+		case 'X': cmdOUT->x = val; cmdOUT->usedFields._x = 1; break;
+		case 'Y': cmdOUT->y = val; cmdOUT->usedFields._y = 1; break;
+		case 'Z': cmdOUT->z = val; cmdOUT->usedFields._z = 1; break;
+		case 'E': cmdOUT->e = val; cmdOUT->usedFields._e = 1; break;
+		case 'F': cmdOUT->f = val; cmdOUT->usedFields._f = 1; break;
+		case 'S': cmdOUT->s = val; cmdOUT->usedFields._s = 1; break;
 		default: break;
 		}
 		token = strtok_s(NULL, " ", &next_token);
