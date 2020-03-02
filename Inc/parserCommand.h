@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "a4988_stepstick.h"
 
-#define SYSTEM_COMMANDS_NUM 9
+#define SYSTEM_COMMANDS_NUM 10
 #define SYSTEM_COMMANDS_MOTORS_MAX_NUM 2
 #define SYSTEM_COMMANDS_ARGS_MAX_NUM 2
 

@@ -44,6 +44,14 @@ void systemCmd_MotorPositionMove(SystemCommand* cmd){
 	systemCmd_MotorDataRequest(cmd);
 }
 
+void systemCmd_MotorPositionValueSet(SystemCommand* cmd){
+	if(cmd->arg[0] >= cmd->motor[0]->data.positionZero &&
+	   cmd->arg[0] <= cmd->motor[0]->data.positionEnd ){
+		cmd->motor[0]->data.position = cmd->arg[0];
+	}
+	systemCmd_MotorDataRequest(cmd);
+}
+
 void systemCmd_MotorPositionZero(SystemCommand* cmd){
 	cmd->motor[0]->data.positionZero = cmd->arg[0];
 	systemCmd_MotorDataRequest(cmd);
@@ -108,6 +116,7 @@ const struct {
 } systemCommands[SYSTEM_COMMANDS_NUM] = {
 		{	"DR",	systemCmd_MotorDataRequest		},
 		{	"PM",	systemCmd_MotorPositionMove		},
+		{	"PV",	systemCmd_MotorPositionValueSet	},
 		{	"PZ",	systemCmd_MotorPositionZero		},
 		{	"PE",	systemCmd_MotorPositionEnd		},
 		{	"DM",	systemCmd_MotorDistanceMove		},
