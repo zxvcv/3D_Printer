@@ -27,7 +27,27 @@ void command_G1(GCodeCommand* cmd) {
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
 void command_G28(GCodeCommand* cmd) {
+	double move;
+	move = cmd->_x - motors[0].data.position;
+	motorSetMove(&motors[0], move);
+	move = cmd->_y - motors[1].data.position;
+	motorSetMove(&motors[1], move);
+	move = cmd->_z - motors[2].data.position;
+	motorSetMove(&motors[2], move);
+	move = cmd->_z - motors[3].data.position;
+	motorSetMove(&motors[3], move);
 
+	__disable_irq();
+	for(int i=0; i<MOTORS_NUM; ++i)
+		motorStart(&motors[i]);
+	__enable_irq();
+
+	bool state;
+	do{
+		state = false;
+		for(int i=0; i < MOTORS_NUM; ++i)
+			state |= motorIsOn(&motors[i]);
+	}while(state);
 }
 
 /*

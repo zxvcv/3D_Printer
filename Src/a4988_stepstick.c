@@ -46,6 +46,8 @@ MotorSettings motor4 = {.IOreset = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_R
 						.data.motorNum = 4
 };
 
+MotorSettings motors[MOTORS_NUM] = {motor1, motor2, motor3, motor4};
+
 
 
 /* PRIVATE FUNCTIONS DECLARATIONS */

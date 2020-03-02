@@ -103,6 +103,8 @@ extern MotorSettings motor1;
 extern MotorSettings motor2;
 extern MotorSettings motor3;
 extern MotorSettings motor4;
+extern MotorSettings motors[MOTORS_NUM];
+
 
 void  motorInit(MotorSettings* settings);
 
