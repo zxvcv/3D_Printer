@@ -52,9 +52,7 @@ void command_G1(GCodeCommand* cmd) {
 
 	bool state;
 	do{
-		state = false;
-		for(int i=0; i < MOTORS_NUM; ++i)
-			state |= motorIsOn(&motors[i]);
+		state = motorIsOn(&motor1) | motorIsOn(&motor2) | motorIsOn(&motor3) | motorIsOn(&motor4);
 	}while(state);
 }
 
@@ -67,8 +65,6 @@ void command_G1(GCodeCommand* cmd) {
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
 void command_G28(GCodeCommand* cmd) {
-	double move;
-
 	//temporarty, in final version it could be maxSpeed of exry axis
 	motor1.data.speed = printerSettings.speed;
 	motor2.data.speed = printerSettings.speed;
@@ -93,9 +89,7 @@ void command_G28(GCodeCommand* cmd) {
 
 	bool state;
 	do{
-		state = false;
-		for(int i=0; i < MOTORS_NUM; ++i)
-			state |= motorIsOn(&motors[i]);
+		state = motorIsOn(&motor1) | motorIsOn(&motor2) | motorIsOn(&motor3) | motorIsOn(&motor4);
 	}while(state);
 
 }
@@ -228,11 +222,10 @@ const struct {
 
 void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 	char* token = NULL, * cmdName = NULL;
-	char* next_token = NULL;
 	double val;
-	token = strtok_s(cmd, " ", &next_token);
-	cmdName = token;
-	token = strtok_s(NULL, " ", &next_token);
+
+	cmdName = strtok(cmd, " ");
+	token = strtok(NULL, " ");
 	memset(cmdOUT, 0, sizeof(GCodeCommand));
 	while (token != NULL) {
 		val = atoi(token + 1);
@@ -246,7 +239,7 @@ void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 		case 'S': cmdOUT->s = val; cmdOUT->usedFields._s = 1; break;
 		default: break;
 		}
-		token = strtok_s(NULL, " ", &next_token);
+		token = strtok(NULL, " ");
 	}
 
 	for (int i = 0; i < GCODE_COMMANDS_NUM; ++i) {

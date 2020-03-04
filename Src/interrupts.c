@@ -13,6 +13,9 @@
 extern UART_HandleTypeDef huart1;
 extern List* Buff_Bt_IN;
 extern List* Buff_Bt_OUT;
+extern List* TestList;
+extern uint8_t recievedTest;
+extern bool EOL_Test_recieved;
 extern uint8_t recievedBT;
 extern bool EOL_BT_recieved;
 extern bool transmissionBT;
@@ -59,9 +62,19 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	List_Push_C(Buff_Bt_IN, &recievedBT, 1);
+	if(huart == &huart1){
+		List_Push_C(Buff_Bt_IN, &recievedBT, 1);
 
-	if(recievedBT == '\n')
-		EOL_BT_recieved = true;
-	HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
+		if(recievedBT == '\n')
+			EOL_BT_recieved = true;
+		HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
+	}
+	extern UART_HandleTypeDef huart2;
+	if(huart == &huart2){
+		List_Push_C(TestList, &recievedTest, 1);
+
+		if(recievedTest == '\n')
+			EOL_Test_recieved = true;
+		HAL_UART_Receive_IT(&huart2, &recievedTest, 1);
+	}
 }

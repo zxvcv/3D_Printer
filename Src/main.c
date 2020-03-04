@@ -27,6 +27,7 @@
 #include "ST7565.h"
 #include "a4988_stepstick.h"
 #include "parserCommand.h"
+#include "parserGCode.h"
 #include "LEDdisplay_operations.h"
 #include "../Drivers/FATFS/ff.h"
 /* USER CODE END Includes */
@@ -65,6 +66,12 @@ bool transmissionBT = false;
 List* Buff_InputCommandsBT = NULL;
 
 SystemCommand sysCmd;
+
+
+//test
+List* TestList = NULL;
+uint8_t recievedTest = 0;
+bool EOL_Test_recieved = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,10 +133,12 @@ int main(void)
   List_Create(&Buff_Bt_IN);
   List_Create(&Buff_Bt_OUT);
   List_Create(&Buff_InputCommandsBT);
+  List_Create(&TestList);
   ST7565_begin(0x08);
   ST7565_clear_display();
 
   HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
+  HAL_UART_Receive_IT(&huart2, &recievedTest, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -179,6 +188,23 @@ int main(void)
 		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	  }
 
+
+	  //test
+	  if(EOL_Test_recieved){
+		  HAL_UART_Transmit(&huart2, (uint8_t*)"EOL\n", 4, 1000);
+		  EOL_Test_recieved = false;
+		  uint8_t sizeTemp = 0;
+		  uint8_t temp[50];
+		  do{
+			  temp[sizeTemp++] = *((uint8_t*)List_Front(TestList));
+			  List_Pop_C(TestList);
+		  }while(temp[sizeTemp - 1] != '\n');
+		  temp[sizeTemp - 1] = '\0';
+
+		  GCodeCommand cmd;
+		  parseGCodeCommand((char*)temp, &cmd);
+		  executeGCodeCommand(&cmd);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

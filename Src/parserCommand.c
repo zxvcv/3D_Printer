@@ -12,7 +12,6 @@
 #include "FIFO_void.h"
 
 #include "main.h"
-extern UART_HandleTypeDef huart2; //test
 extern List* Buff_Bt_OUT;
 
 char buffMsg[100];
