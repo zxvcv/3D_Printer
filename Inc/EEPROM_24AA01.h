@@ -15,6 +15,7 @@
 #ifndef EEPROM_24AA01_H_
 #define EEPROM_24AA01_H_
 
+#include "main.h"
 #include <stdbool.h>
 
 typedef struct EEPROMSettings{
@@ -28,8 +29,8 @@ extern EEPROMSettings eeprom;
 
 void EEPROM_clear(EEPROMSettings *settings);
 
-void EEPROM_writeData(EEPROMSettings *settings, uint16_t address, uint8_t *data, int size);
+void EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size);
 
-void EEPROM_readData(EEPROMSettings *settings, uint16_t address, uint8_t *dataOUT, int size);
+void EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *dataOUT, int size);
 
 #endif //EEPROM_24AA01_H_

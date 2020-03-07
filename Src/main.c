@@ -163,6 +163,11 @@ int main(void)
   updateValues(&val);
   */
 
+  getMotorData_EEPROM(&motor1, &eeprom);
+  getMotorData_EEPROM(&motor2, &eeprom);
+  getMotorData_EEPROM(&motor3, &eeprom);
+  getMotorData_EEPROM(&motor4, &eeprom);
+
   while (1)
   {
 

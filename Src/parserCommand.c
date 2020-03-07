@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "a4988_stepstick.h"
+#include "EEPROM_24AA01.h"
+#include "settings.h"
 #include "FIFO_void.h"
 
 #include "main.h"
@@ -53,11 +55,13 @@ void systemCmd_MotorPositionValueSet(SystemCommand* cmd){
 
 void systemCmd_MotorPositionZero(SystemCommand* cmd){
 	cmd->motor[0]->data.positionZero = cmd->arg[0];
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONZERO, (uint8_t*)(cmd->arg), sizeof(double));
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorPositionEnd(SystemCommand* cmd){
 	cmd->motor[0]->data.positionEnd = cmd->arg[0];
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONEND, (uint8_t*)(cmd->arg), sizeof(double));
 	systemCmd_MotorDataRequest(cmd);
 }
 
@@ -87,10 +91,11 @@ void systemCmd_MotorSpeedSet(SystemCommand* cmd){
 }
 
 void systemCmd_MotorSpeedMax(SystemCommand* cmd){
-	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i){
 		if(cmd->arg[0] >= 0)
 			cmd->motor[i]->data.maxSpeed = cmd->arg[0];
-
+		EEPROM_writeData(&eeprom, cmd->motor[i]->eepromDataAddress + _OFFSET_MAXSPEED, (uint8_t*)(cmd->arg), sizeof(double));
+	}
 	systemCmd_MotorDataRequest(cmd);
 }
 
@@ -101,7 +106,7 @@ void systemCmd_MotorsStepSizeRequest(SystemCommand* cmd){
 
 void systemCmd_MotorsStepSizeSet(SystemCommand* cmd){
 	cmd->motor[0]->stepSize = cmd->arg[0];
-
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_STEPSIZE, (uint8_t*)(cmd->arg), sizeof(double));
 	systemCmd_MotorsStepSizeRequest(cmd);
 }
 

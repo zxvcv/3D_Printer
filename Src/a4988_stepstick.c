@@ -6,6 +6,7 @@
  */
 
 #include "a4988_stepstick.h"
+#include "settings.h"
 #include <stdlib.h>
 #include <math.h>
 
@@ -17,7 +18,8 @@ MotorSettings motor1 = {
 		//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
 		.timerFrequency = 1000,
 		.stepSize = 0.203,
-		.data.motorNum = 1
+		.data.motorNum = 1,
+		.eepromDataAddress = 0x00
 };
 
 MotorSettings motor2 = {
@@ -27,7 +29,8 @@ MotorSettings motor2 = {
 		.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
 		.timerFrequency = 1000,
 		.stepSize = 0.203,
-		.data.motorNum = 2
+		.data.motorNum = 2,
+		.eepromDataAddress = 0x00 + sizeof(MotorData_EEPROM)
 };
 
 MotorSettings motor3 = {
@@ -37,7 +40,8 @@ MotorSettings motor3 = {
 		.IOstep = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin },
 		.timerFrequency = 1000,
 		.stepSize = 0.203,
-		.data.motorNum = 3
+		.data.motorNum = 3,
+		.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
 };
 
 MotorSettings motor4 = {
@@ -47,7 +51,8 @@ MotorSettings motor4 = {
 		.IOstep = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin },
 		.timerFrequency = 1000,
 		.stepSize = 0.203,
-		.data.motorNum = 4
+		.data.motorNum = 4,
+		.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
 };
 
 

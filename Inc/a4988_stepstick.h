@@ -91,6 +91,8 @@ typedef struct MotorSettings{
 	double timerFrequency;	//[Hz] timer frequency
 	double stepSize;		//[mm] length of move with one motor step
 
+	uint8_t eepromDataAddress;
+
 	MotorData data;
 } MotorSettings;
 

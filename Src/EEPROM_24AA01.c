@@ -35,7 +35,7 @@ void EEPROM_clear(EEPROMSettings *settings){
 	}
 }
 
-void EEPROM_writeData(EEPROMSettings *settings, uint16_t address, uint8_t *data, int size){
+void EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size){
 	if(size <= 0) return;
 	if(address + size > _24AA01_MEM_SIZE) size = _24AA01_MEM_SIZE - address;
 
@@ -54,7 +54,7 @@ void EEPROM_writeData(EEPROMSettings *settings, uint16_t address, uint8_t *data,
 	}
 }
 
-void EEPROM_readData(EEPROMSettings *settings, uint16_t address, uint8_t *data, int size){
+void EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size){
 	if(size <= 0) return;
 	if(address + size > _24AA01_MEM_SIZE) size = _24AA01_MEM_SIZE - address;
 	HAL_I2C_Mem_Read(settings->i2c, _24AA01_ADDRESS, address, 1, data, size, HAL_MAX_DELAY);
