@@ -33,10 +33,18 @@ void command_G1(GCodeCommand* cmd) {
 
 	vect3D_d velocity = getVelocity3D(move, printerSettings.speed);
 
-	motor1.data.speed = velocity.x;
-	motor2.data.speed = velocity.y;
-	motor3.data.speed = velocity.z;
-	motor4.data.speed = velocity.z;
+	motor1.data.speed = fabs(velocity.x);
+	motor2.data.speed = fabs(velocity.y);
+	motor3.data.speed = fabs(velocity.z);
+	motor4.data.speed = fabs(velocity.z);
+
+	  //test
+	extern UART_HandleTypeDef huart2;
+	  uint8_t data2[100];
+	  uint8_t size = sprintf(data2, "\nCNT_VEL: %15.10f, %15.10f, %15.10f, %15.10f", velocity.x, velocity.y, velocity.z, velocity.z);
+	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+	  size = sprintf(data2, "\nCNT_MOV: %15.10f, %15.10f, %15.10f, %15.10f", move.x, move.y, move.z, move.z);
+	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 	motorSetMove(&motor1, move.x);
 	motorSetMove(&motor2, move.y);

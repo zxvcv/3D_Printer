@@ -233,15 +233,21 @@ int main(void)
 				  cmdData[cmdLen - 1] = '\0';
 
 				  //test
-				  uint8_t data2[25];
-				  uint8_t size = sprintf(data2, "\nCMD:");
+				  uint8_t data2[100];
+				  uint8_t size = sprintf(data2, "\n\nCMD:");
 				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 				  HAL_UART_Transmit(&huart2, (uint8_t*)cmdData, cmdLen, 1000);
+
+				  size = sprintf(data2, "\nPOS_BEFORE: %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
+				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 				  //endTest
 
 				  GCodeCommand cmd;
 				  parseGCodeCommand((char*)cmdData, &cmd);
 				  executeGCodeCommand(&cmd);
+
+				  size = sprintf(data2, "\nPOS_AFTER : %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
+				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 				  ++cnt;
 			  }

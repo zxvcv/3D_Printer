@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+
 MotorSettings motor1 = {
 		.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
 		.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
@@ -131,9 +132,9 @@ void motorUpdatePins(MotorSettings* settings) {
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	RoundingErrorData roundingError;
 
-	if(settings->data.position + move < settings->data.positionZero ||
-	   settings->data.position + move > settings->data.positionEnd ||
-	   settings->data.speed == 0){
+	if(settings->data.position + move < settings->data.positionZero - 0.00000000001 ||
+	   settings->data.position + move > settings->data.positionEnd + 0.00000000001 ||
+	   settings->data.speed <= 0){
 		settings->stepLeftCounter = 0;
 		roundingError.roundingMoveError = 0;
 		roundingError.roundingSpeedError = 0;
@@ -141,17 +142,15 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	}
 
 	double speed = settings->data.speed; //w [mm/s]
-	double absMove = fabs(move);
-	double stepsNum = absMove / settings->stepSize;
-	//double time = absMove / speed;
+	double absMove = fabs(move) + 0.00000000001;
+	int stepsNum = absMove / settings->stepSize;
 	double changeFreq = speed / settings->stepSize;
 
 	double changeTimeD = settings->timerFrequency / (changeFreq * 2);
-	double stepLeftCounterD = stepsNum;
 
 	settings->stateDirection = move > 0 ? CLOCK : RCLOCK;
 	settings->changeTime = changeTimeD;
-	settings->stepLeftCounter = stepLeftCounterD;
+	settings->stepLeftCounter = stepsNum;
 	settings->stepLeftCounter *= 2;
 	settings->changeTimeCounter = settings->changeTime;
 
