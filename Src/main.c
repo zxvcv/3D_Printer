@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "settings.h"
 #include "interrupts.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
@@ -30,7 +31,6 @@
 #include "parserGCode.h"
 #include "LEDdisplay_operations.h"
 #include "EEPROM_24AA01.h"
-#include "../Drivers/FATFS/ff.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define BYTES_TO_READ 50 //SD_Card
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,11 +70,12 @@ List* Buff_InputCommandsBT = NULL;
 
 SystemCommand sysCmd;
 
-
-//test
-List* TestList = NULL;
-uint8_t recievedTest = 0;
-bool EOL_Test_recieved = false;
+FATFS fatfs;
+FIL file;
+uint8_t dataSDin[2][BYTES_TO_READ];
+uint8_t activeTab = 0;
+uint8_t counterTab[2] = { BYTES_TO_READ , BYTES_TO_READ };
+bool SDcardProgramm_Started = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -138,12 +139,10 @@ int main(void)
   List_Create(&Buff_Bt_IN);
   List_Create(&Buff_Bt_OUT);
   List_Create(&Buff_InputCommandsBT);
-  List_Create(&TestList);
   ST7565_begin(0x08);
   ST7565_clear_display();
 
   HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
-  HAL_UART_Receive_IT(&huart2, &recievedTest, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,10 +162,14 @@ int main(void)
   updateValues(&val);
   */
 
+  //reading data form EEPROM
   getMotorData_EEPROM(&motor1, &eeprom);
   getMotorData_EEPROM(&motor2, &eeprom);
   getMotorData_EEPROM(&motor3, &eeprom);
   getMotorData_EEPROM(&motor4, &eeprom);
+
+  //Initialize SD Card
+  HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
 
   while (1)
   {
@@ -199,22 +202,60 @@ int main(void)
 		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	  }
 
+	  if(SDcardProgramm_Started){
+		  bool eofRecieved = false;
+		  UINT bytesRead;
+		  uint8_t unactiveTab = activeTab == 0 ? 1 : 0;
+		  f_read(&file, dataSDin[activeTab], BYTES_TO_READ, &bytesRead);
 
-	  //test
-	  if(EOL_Test_recieved){
-		  HAL_UART_Transmit(&huart2, (uint8_t*)"EOL\n", 4, 1000);
-		  EOL_Test_recieved = false;
-		  uint8_t sizeTemp = 0;
-		  uint8_t temp[50];
-		  do{
-			  temp[sizeTemp++] = *((uint8_t*)List_Front(TestList));
-			  List_Pop_C(TestList);
-		  }while(temp[sizeTemp - 1] != '\n');
-		  temp[sizeTemp - 1] = '\0';
+		  if(BYTES_TO_READ > bytesRead) eofRecieved = true;
+		  counterTab[activeTab] = 0;
 
-		  GCodeCommand cmd;
-		  parseGCodeCommand((char*)temp, &cmd);
-		  executeGCodeCommand(&cmd);
+		  uint8_t cnt = 0;
+		  while(1){
+			  while(cnt < bytesRead && dataSDin[activeTab][cnt] != '\n')
+				  ++cnt;
+
+			  if(cnt >= bytesRead)
+				  break;
+
+			  if(dataSDin[activeTab][cnt] == '\n'){
+				  uint8_t cmdData[BYTES_TO_READ];
+				  uint8_t cmdLen = 0;
+				  if(counterTab[unactiveTab] < 50){
+					  cmdLen = BYTES_TO_READ - counterTab[unactiveTab];
+					  memcpy(cmdData, dataSDin[unactiveTab] + counterTab[unactiveTab], cmdLen);
+					  counterTab[unactiveTab] += cmdLen;
+				  }
+				  memcpy(cmdData + cmdLen, dataSDin[activeTab] + counterTab[activeTab], cnt - 1);
+				  cmdLen += cnt - counterTab[activeTab];
+				  counterTab[activeTab] = cnt + 1;
+				  cmdData[cmdLen - 1] = '\0';
+
+				  //test
+				  uint8_t data2[25];
+				  uint8_t size = sprintf(data2, "\nCMD:");
+				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+				  HAL_UART_Transmit(&huart2, (uint8_t*)cmdData, cmdLen, 1000);
+				  //endTest
+
+				  GCodeCommand cmd;
+				  parseGCodeCommand((char*)cmdData, &cmd);
+				  executeGCodeCommand(&cmd);
+
+				  ++cnt;
+			  }
+		  }
+
+		  if(eofRecieved){
+			  SDcardProgramm_Started = false;
+			  activeTab = 0;
+			  counterTab[0] = BYTES_TO_READ;
+			  counterTab[1] = BYTES_TO_READ;
+			  f_close(&file);
+		  }
+
+		  activeTab = unactiveTab;
 	  }
     /* USER CODE END WHILE */
 

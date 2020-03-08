@@ -29,7 +29,8 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-
+#include "../Drivers/FATFS/ff.h"
+#include <stdbool.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -37,7 +38,9 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+extern FATFS fatfs;
+extern FIL file;
+extern bool SDcardProgramm_Started;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

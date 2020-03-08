@@ -12,6 +12,7 @@
 #include "EEPROM_24AA01.h"
 #include "settings.h"
 #include "FIFO_void.h"
+#include "../Drivers/FATFS/ff.h"
 
 #include "main.h"
 extern List* Buff_Bt_OUT;
@@ -110,7 +111,11 @@ void systemCmd_MotorsStepSizeSet(SystemCommand* cmd){
 	systemCmd_MotorsStepSizeRequest(cmd);
 }
 
-
+void systemCmd_SDCardProgramRun(SystemCommand* cmd){
+	f_mount(&fatfs, "", 0);
+	f_open(&file, "fl.txt", FA_READ);
+	SDcardProgramm_Started = true;
+}
 
 
 
@@ -127,7 +132,8 @@ const struct {
 		{	"SS",	systemCmd_MotorSpeedSet			},
 		{	"SM",	systemCmd_MotorSpeedMax			},
 		{	"SR",	systemCmd_MotorsStepSizeRequest	},
-		{	"SP",	systemCmd_MotorsStepSizeSet		}
+		{	"SP",	systemCmd_MotorsStepSizeSet		},
+		{	"CR",	systemCmd_SDCardProgramRun		}
 };
 
 
