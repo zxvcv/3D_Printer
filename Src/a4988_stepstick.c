@@ -136,8 +136,8 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	   settings->data.position + move > settings->data.positionEnd + 0.00000000001 ||
 	   settings->data.speed <= 0){
 		settings->stepLeftCounter = 0;
-		roundingError.roundingMoveError = 0;
-		roundingError.roundingSpeedError = 0;
+		//roundingError.roundingMoveError = 0;
+		//roundingError.roundingSpeedError = 0;
 		return roundingError;
 	}
 
@@ -155,6 +155,7 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	settings->changeTimeCounter = settings->changeTime;
 
 	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
+	if(settings->stateDirection == RCLOCK) roundingError.roundingMoveError *= -1;
 	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize) / (settings->changeTime * 2));
 
 	return roundingError;

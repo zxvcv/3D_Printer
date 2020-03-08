@@ -9,6 +9,12 @@ typedef struct PrinterSettings{
 	//Positioning Mode:  Absolute-true, Relative-false
 	bool posMode;
 
+	//errors
+	RoundingErrorData errMotor1;
+	RoundingErrorData errMotor2;
+	RoundingErrorData errMotor3;
+	RoundingErrorData errMotor4;
+
 	//Speed Value
 	double speed;
 } PrinterSettings;
@@ -29,6 +35,7 @@ typedef struct MotorData_EEPROM{
 extern PrinterSettings printerSettings;
 
 
+void clearAllMotorsRoundingErrors(PrinterSettings *printerSettings);
 
 void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
 

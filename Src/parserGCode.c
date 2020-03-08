@@ -22,10 +22,11 @@ void command_G1(GCodeCommand* cmd) {
 		move.x = cmd->x - motor1.data.position;
 		move.y = cmd->y - motor2.data.position;
 		move.z = cmd->z - motor3.data.position;
+		clearAllMotorsRoundingErrors(&printerSettings);
 	}else{
-		move.x = cmd->x;
-		move.y = cmd->y;
-		move.z = cmd->z;
+		move.x = cmd->x + printerSettings.errMotor1.roundingMoveError;
+		move.y = cmd->y + printerSettings.errMotor2.roundingMoveError;
+		move.z = cmd->z + printerSettings.errMotor3.roundingMoveError;
 	}
 
 	if(cmd->usedFields._f == 1)
@@ -46,10 +47,17 @@ void command_G1(GCodeCommand* cmd) {
 	  size = sprintf(data2, "\nCNT_MOV: %15.10f, %15.10f, %15.10f, %15.10f", move.x, move.y, move.z, move.z);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
-	motorSetMove(&motor1, move.x);
-	motorSetMove(&motor2, move.y);
-	motorSetMove(&motor3, move.z);
-	motorSetMove(&motor4, move.z);
+	printerSettings.errMotor1 = motorSetMove(&motor1, move.x);
+	printerSettings.errMotor2 = motorSetMove(&motor2, move.y);
+	printerSettings.errMotor3 = motorSetMove(&motor3, move.z);
+	printerSettings.errMotor4 = motorSetMove(&motor4, move.z);
+
+	  size = sprintf(data2, "\nERR_MOV: %15.10f, %15.10f, %15.10f, %15.10f", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
+			  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
+	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+	  size = sprintf(data2, "\nERR_SPD: %15.10f, %15.10f, %15.10f, %15.10f", printerSettings.errMotor1.roundingSpeedError, printerSettings.errMotor2.roundingSpeedError,
+			  printerSettings.errMotor3.roundingSpeedError, printerSettings.errMotor4.roundingSpeedError);
+	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 	__disable_irq();
 	motorStart(&motor1);

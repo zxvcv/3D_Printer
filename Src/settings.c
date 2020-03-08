@@ -2,9 +2,25 @@
 
 PrinterSettings printerSettings = {
 		.posMode = false,
-		.speed = 0.0
+		.speed = 0.0,
 
+		.errMotor1 = { 0.0, 0.0 },
+		.errMotor2 = { 0.0, 0.0 },
+		.errMotor3 = { 0.0, 0.0 },
+		.errMotor4 = { 0.0, 0.0 }
 };
+
+
+void clearAllMotorsRoundingErrors(PrinterSettings *printerSettings){
+	printerSettings->errMotor1.roundingMoveError = 0.0;
+	printerSettings->errMotor1.roundingSpeedError = 0.0;
+	printerSettings->errMotor2.roundingMoveError = 0.0;
+	printerSettings->errMotor2.roundingSpeedError = 0.0;
+	printerSettings->errMotor3.roundingMoveError = 0.0;
+	printerSettings->errMotor3.roundingSpeedError = 0.0;
+	printerSettings->errMotor4.roundingMoveError = 0.0;
+	printerSettings->errMotor4.roundingSpeedError = 0.0;
+}
 
 void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns){
 	MotorData_EEPROM data;

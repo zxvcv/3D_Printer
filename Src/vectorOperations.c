@@ -13,8 +13,8 @@ vect2D_d getVelocity2D(vect2D_d move, double v){
 	vect2D_d vel = {1.,1.};
 
 	if(move.x == 0 || move.y == 0){
-		vel.x = move.x * v;
-		vel.y = move.y * v;
+		vel.x = v;
+		vel.y = v;
 	}else{
 		alfa = atan(move.y / move.x);
 		vel.x = cos(alfa) * v;
