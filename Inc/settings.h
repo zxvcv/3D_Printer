@@ -14,6 +14,7 @@ typedef struct PrinterSettings{
 	RoundingErrorData errMotor2;
 	RoundingErrorData errMotor3;
 	RoundingErrorData errMotor4;
+	bool errMove;
 
 	//Speed Value
 	double speed;

@@ -52,6 +52,12 @@ void command_G1(GCodeCommand* cmd) {
 	printerSettings.errMotor3 = motorSetMove(&motor3, move.z);
 	printerSettings.errMotor4 = motorSetMove(&motor4, move.z);
 
+	if(printerSettings.errMotor1.errMove || printerSettings.errMotor2.errMove ||
+		printerSettings.errMotor3.errMove || printerSettings.errMotor4.errMove){
+		printerSettings.errMove = true;
+		return;
+	}
+
 	  size = sprintf(data2, "\nERR_MOV: %15.10f, %15.10f, %15.10f, %15.10f", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
 			  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);

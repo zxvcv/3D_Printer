@@ -7,19 +7,25 @@ PrinterSettings printerSettings = {
 		.errMotor1 = { 0.0, 0.0 },
 		.errMotor2 = { 0.0, 0.0 },
 		.errMotor3 = { 0.0, 0.0 },
-		.errMotor4 = { 0.0, 0.0 }
+		.errMotor4 = { 0.0, 0.0 },
+		.errMove = false
 };
 
 
 void clearAllMotorsRoundingErrors(PrinterSettings *printerSettings){
 	printerSettings->errMotor1.roundingMoveError = 0.0;
 	printerSettings->errMotor1.roundingSpeedError = 0.0;
+	printerSettings->errMotor1.errMove = false;
 	printerSettings->errMotor2.roundingMoveError = 0.0;
 	printerSettings->errMotor2.roundingSpeedError = 0.0;
+	printerSettings->errMotor2.errMove = false;
 	printerSettings->errMotor3.roundingMoveError = 0.0;
 	printerSettings->errMotor3.roundingSpeedError = 0.0;
+	printerSettings->errMotor3.errMove = false;
 	printerSettings->errMotor4.roundingMoveError = 0.0;
 	printerSettings->errMotor4.roundingSpeedError = 0.0;
+	printerSettings->errMotor4.errMove = false;
+
 }
 
 void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns){

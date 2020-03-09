@@ -246,6 +246,19 @@ int main(void)
 				  parseGCodeCommand((char*)cmdData, &cmd);
 				  executeGCodeCommand(&cmd);
 
+				  if(printerSettings.errMove){
+					  printerSettings.errMove = false;
+					  SDcardProgramm_Started = false;
+					  activeTab = 0;
+					  counterTab[0] = BYTES_TO_READ;
+					  counterTab[1] = BYTES_TO_READ;
+					  f_close(&file);
+					  //some information about errors
+					  //maybe save status in logs
+					  break;
+				  }
+
+
 				  size = sprintf(data2, "\nPOS_AFTER : %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
 				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 

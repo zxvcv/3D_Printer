@@ -35,8 +35,8 @@
 #define A4988_STEPSTICK_H_
 
 #include "main.h"
-#include "stdbool.h"
-#include "stdint.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include "pin_struct.h"
 
 #define MOTORS_NUM 4
@@ -99,6 +99,7 @@ typedef struct MotorSettings{
 typedef struct RoundingErrorData{
 	double roundingMoveError;
 	double roundingSpeedError;
+	bool errMove;
 } RoundingErrorData;
 
 extern MotorSettings motor1;
