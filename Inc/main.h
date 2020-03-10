@@ -33,13 +33,14 @@ extern "C" {
 #include <stdbool.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define LOG_ENABLE
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern FATFS fatfs;
 extern FIL file;
+extern FIL logFile;
 extern bool SDcardProgramm_Started;
 /* USER CODE END ET */
 

@@ -72,6 +72,7 @@ SystemCommand sysCmd;
 
 FATFS fatfs;
 FIL file;
+FIL logFile;
 uint8_t dataSDin[2][BYTES_TO_READ];
 uint8_t activeTab = 0;
 uint8_t counterTab[2] = { BYTES_TO_READ , BYTES_TO_READ };
@@ -237,9 +238,16 @@ int main(void)
 				  uint8_t size = sprintf(data2, "\n\nCMD:");
 				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 				  HAL_UART_Transmit(&huart2, (uint8_t*)cmdData, cmdLen, 1000);
-
 				  size = sprintf(data2, "\nPOS_BEFORE: %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
 				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+#ifdef LOG_ENABLE
+				  uint8_t data[100];
+				  UINT writeSize;
+				  size = sprintf(data, "[CMD]\r\n$PosBef: %15.10f, %15.10f, %15.10f, %15.10f\r\n", motor1.data.position, motor2.data.position,
+						motor3.data.position, motor4.data.position);
+				  f_write(&logFile, data, size, &writeSize);
+				  f_sync(&logFile);
+#endif
 				  //endTest
 
 				  GCodeCommand cmd;
@@ -253,13 +261,23 @@ int main(void)
 					  counterTab[0] = BYTES_TO_READ;
 					  counterTab[1] = BYTES_TO_READ;
 					  f_close(&file);
-					  //some information about errors
-					  //maybe save status in logs
+#ifdef LOG_ENABLE
+					  size = sprintf(data, "[ERR]ERROR OCCURED WHILE MOVING HEAD\r\n[STOP]\r\n");
+					  f_write(&logFile, data, size, &writeSize);
+					  f_close(&logFile);
+#endif
 					  break;
 				  }
-
-
-				  size = sprintf(data2, "\nPOS_AFTER : %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
+#ifdef LOG_ENABLE
+				  size = sprintf(data, "$MovErr: % 15.10f, % 15.10f, % 15.10f, % 15.10f\r\n", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
+						  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
+				  f_write(&logFile, data, size, &writeSize);
+				  size = sprintf(data, "$PosAft: % 15.10f, % 15.10f, % 15.10f, % 15.10f\r\n", motor1.data.position, motor2.data.position,
+				  		motor3.data.position, motor4.data.position);
+				  f_write(&logFile, data, size, &writeSize);
+				  f_sync(&logFile);
+#endif
+				  size = sprintf(data2, "\nPOS_AFTER : % 15.10f, % 15.10f, % 15.10f, % 15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
 				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 				  ++cnt;
@@ -272,6 +290,11 @@ int main(void)
 			  counterTab[0] = BYTES_TO_READ;
 			  counterTab[1] = BYTES_TO_READ;
 			  f_close(&file);
+#ifdef LOG_ENABLE
+			  UINT writeSize;
+			  f_write(&logFile, "[STOP]\r\n", 9, &writeSize);
+			  f_close(&logFile);
+#endif
 		  }
 
 		  activeTab = unactiveTab;

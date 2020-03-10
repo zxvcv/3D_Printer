@@ -19,9 +19,9 @@ void command_G1(GCodeCommand* cmd) {
 	vect3D_d move;
 
 	if(printerSettings.posMode){
-		move.x = cmd->x - motor1.data.position;
-		move.y = cmd->y - motor2.data.position;
-		move.z = cmd->z - motor3.data.position;
+		move.x = cmd->usedFields._x == 1 ? cmd->x - motor1.data.position : 0.0;
+		move.y = cmd->usedFields._y == 1 ? cmd->y - motor2.data.position : 0.0;
+		move.z = cmd->usedFields._z == 1 ? cmd->z - motor3.data.position : 0.0;
 		clearAllMotorsRoundingErrors(&printerSettings);
 	}else{
 		move.x = cmd->x + printerSettings.errMotor1.roundingMoveError;
@@ -39,13 +39,23 @@ void command_G1(GCodeCommand* cmd) {
 	motor3.data.speed = fabs(velocity.z);
 	motor4.data.speed = fabs(velocity.z);
 
-	  //test
+	//test
 	extern UART_HandleTypeDef huart2;
-	  uint8_t data2[100];
-	  uint8_t size = sprintf(data2, "\nCNT_VEL: %15.10f, %15.10f, %15.10f, %15.10f", velocity.x, velocity.y, velocity.z, velocity.z);
-	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-	  size = sprintf(data2, "\nCNT_MOV: %15.10f, %15.10f, %15.10f, %15.10f", move.x, move.y, move.z, move.z);
-	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+	uint8_t data2[100];
+	uint8_t size = sprintf(data2, "\nCNT_VEL: %15.10f, %15.10f, %15.10f, %15.10f", velocity.x, velocity.y, velocity.z, velocity.z);
+	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+	size = sprintf(data2, "\nCNT_MOV: %15.10f, %15.10f, %15.10f, %15.10f", move.x, move.y, move.z, move.z);
+	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+
+#ifdef LOG_ENABLE
+	uint8_t data[100];
+	UINT writeSize;
+	size = sprintf(data, "$CntVel: %15.10f, %15.10f, %15.10f, %15.10f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
+	f_write(&logFile, data, size, &writeSize);
+	size = sprintf(data, "$CntMov: %15.10f, %15.10f, %15.10f, %15.10f\r\n", move.x, move.y, move.z, move.z);
+	f_write(&logFile, data, size, &writeSize);
+	f_sync(&logFile);
+#endif
 
 	printerSettings.errMotor1 = motorSetMove(&motor1, move.x);
 	printerSettings.errMotor2 = motorSetMove(&motor2, move.y);
@@ -58,10 +68,10 @@ void command_G1(GCodeCommand* cmd) {
 		return;
 	}
 
-	  size = sprintf(data2, "\nERR_MOV: %15.10f, %15.10f, %15.10f, %15.10f", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
+	  size = sprintf(data2, "\nERR_MOV: % 15.10f, % 15.10f, % 15.10f, % 15.10f", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
 			  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-	  size = sprintf(data2, "\nERR_SPD: %15.10f, %15.10f, %15.10f, %15.10f", printerSettings.errMotor1.roundingSpeedError, printerSettings.errMotor2.roundingSpeedError,
+	  size = sprintf(data2, "\nERR_SPD: % 15.10f, % 15.10f, % 15.10f, % 15.10f", printerSettings.errMotor1.roundingSpeedError, printerSettings.errMotor2.roundingSpeedError,
 			  printerSettings.errMotor3.roundingSpeedError, printerSettings.errMotor4.roundingSpeedError);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 

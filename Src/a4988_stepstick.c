@@ -133,8 +133,7 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	RoundingErrorData roundingError;
 
 	if(settings->data.position + move < settings->data.positionZero - 0.00000000001 ||
-	   settings->data.position + move > settings->data.positionEnd + 0.00000000001 ||
-	   settings->data.speed <= 0){
+	   settings->data.position + move > settings->data.positionEnd + 0.00000000001){
 		settings->stepLeftCounter = 0;
 		roundingError.roundingMoveError = 0;
 		roundingError.roundingSpeedError = 0;
