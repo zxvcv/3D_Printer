@@ -17,6 +17,8 @@
 
 typedef struct GCodeCommand{
 	void (*execute)(struct GCodeCommand*) ;	//command pointer
+	int cmdNum;
+
 	double x;				//X-axis move
 	double y;				//Y-axis move
 	double z;				//Z-axis move

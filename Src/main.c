@@ -23,14 +23,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "settings.h"
-#include "interrupts.h"
-#include "ST7565.h"
+#include "manager.h"
+
+#include "EEPROM_24AA01.h"
 #include "a4988_stepstick.h"
 #include "parserCommand.h"
-#include "parserGCode.h"
-#include "LEDdisplay_operations.h"
-#include "EEPROM_24AA01.h"
+#include "ST7565.h"
+#include "settings.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BYTES_TO_READ 50 //SD_Card
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,23 +60,13 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-List* Buff_Bt_IN = NULL;
-List* Buff_Bt_OUT = NULL;
 uint8_t recievedBT = 0;
 bool EOL_BT_recieved = false;
 bool transmissionBT = false;
 
-List* Buff_InputCommandsBT = NULL;
-
 SystemCommand sysCmd;
 
 FATFS fatfs;
-FIL file;
-FIL logFile;
-uint8_t dataSDin[2][BYTES_TO_READ];
-uint8_t activeTab = 0;
-uint8_t counterTab[2] = { BYTES_TO_READ , BYTES_TO_READ };
-bool SDcardProgramm_Started = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -137,13 +127,10 @@ int main(void)
   motorInit(&motor3);
   motorInit(&motor4);
   HAL_TIM_Base_Start_IT(&htim6);
-  List_Create(&Buff_Bt_IN);
-  List_Create(&Buff_Bt_OUT);
-  List_Create(&Buff_InputCommandsBT);
   ST7565_begin(0x08);
   ST7565_clear_display();
 
-  HAL_UART_Receive_IT(&huart1, &recievedBT, 1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,136 +156,27 @@ int main(void)
   getMotorData_EEPROM(&motor3, &eeprom);
   getMotorData_EEPROM(&motor4, &eeprom);
 
-  //Initialize SD Card
-  HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
+  init_manager();
 
   while (1)
   {
+	  //System Commands
+	  parse_data_BT();
+	  execute_command_BT();
+	  send_command_BT();
 
-	  if(List_GetSize(Buff_InputCommandsBT) != 0){
-		  parseSystemCommand((char*)List_Front(Buff_InputCommandsBT), &sysCmd);
-		  executeSystemCommand(&sysCmd);
-		  List_Pop_C(Buff_InputCommandsBT);
-	  }
 
-	  if(EOL_BT_recieved){
-		  EOL_BT_recieved = false;
-		  uint8_t sizeTemp = 0;
-		  uint8_t temp[25];
-		  do{
-			  temp[sizeTemp++] = *((uint8_t*)List_Front(Buff_Bt_IN));
-			  List_Pop_C(Buff_Bt_IN);
-		  }while(temp[sizeTemp - 1] != '\n');
-		  temp[sizeTemp - 1] = '\0';
+	  //SDcard Commands
+	  parse_data_SDcard();
+	  execute_command_SDcard();
 
-		  __disable_irq();
-		  List_Push_C(Buff_InputCommandsBT, temp, sizeTemp);
-		  __enable_irq();
-	  }
-
-	  if(!transmissionBT && List_GetSize(Buff_Bt_OUT) > 0){
-		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-		  transmissionBT = true;
-		  HAL_UART_Transmit_IT(&huart1, (uint8_t*)List_Front(Buff_Bt_OUT), List_GetDataSize(Buff_Bt_OUT));
-		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-	  }
-
-	  if(SDcardProgramm_Started){
-		  bool eofRecieved = false;
-		  UINT bytesRead;
-		  uint8_t unactiveTab = activeTab == 0 ? 1 : 0;
-		  f_read(&file, dataSDin[activeTab], BYTES_TO_READ, &bytesRead);
-
-		  if(BYTES_TO_READ > bytesRead) eofRecieved = true;
-		  counterTab[activeTab] = 0;
-
-		  uint8_t cnt = 0;
-		  while(1){
-			  while(cnt < bytesRead && dataSDin[activeTab][cnt] != '\n')
-				  ++cnt;
-
-			  if(cnt >= bytesRead)
-				  break;
-
-			  if(dataSDin[activeTab][cnt] == '\n'){
-				  uint8_t cmdData[BYTES_TO_READ];
-				  uint8_t cmdLen = 0;
-				  if(counterTab[unactiveTab] < 50){
-					  cmdLen = BYTES_TO_READ - counterTab[unactiveTab];
-					  memcpy(cmdData, dataSDin[unactiveTab] + counterTab[unactiveTab], cmdLen);
-					  counterTab[unactiveTab] += cmdLen;
-				  }
-				  memcpy(cmdData + cmdLen, dataSDin[activeTab] + counterTab[activeTab], cnt - 1);
-				  cmdLen += cnt - counterTab[activeTab];
-				  counterTab[activeTab] = cnt + 1;
-				  cmdData[cmdLen - 1] = '\0';
-
-				  //test
-				  uint8_t data2[100];
-				  uint8_t size = sprintf(data2, "\n\nCMD:");
-				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-				  HAL_UART_Transmit(&huart2, (uint8_t*)cmdData, cmdLen, 1000);
-				  size = sprintf(data2, "\nPOS_BEFORE: %15.10f, %15.10f, %15.10f, %15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
-				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 #ifdef LOG_ENABLE
-				  uint8_t data[100];
-				  UINT writeSize;
-				  size = sprintf(data, "[CMD]\r\n$PosBef: %15.10f, %15.10f, %15.10f, %15.10f\r\n", motor1.data.position, motor2.data.position,
-						motor3.data.position, motor4.data.position);
-				  f_write(&logFile, data, size, &writeSize);
-				  f_sync(&logFile);
+	  send_logs_SDcard();
 #endif
-				  //endTest
 
-				  GCodeCommand cmd;
-				  parseGCodeCommand((char*)cmdData, &cmd);
-				  executeGCodeCommand(&cmd);
+	  reset_commands_SDcard();
 
-				  if(printerSettings.errMove){
-					  printerSettings.errMove = false;
-					  SDcardProgramm_Started = false;
-					  activeTab = 0;
-					  counterTab[0] = BYTES_TO_READ;
-					  counterTab[1] = BYTES_TO_READ;
-					  f_close(&file);
-#ifdef LOG_ENABLE
-					  size = sprintf(data, "[ERR]ERROR OCCURED WHILE MOVING HEAD\r\n[STOP]\r\n");
-					  f_write(&logFile, data, size, &writeSize);
-					  f_close(&logFile);
-#endif
-					  break;
-				  }
-#ifdef LOG_ENABLE
-				  size = sprintf(data, "$MovErr: % 15.10f, % 15.10f, % 15.10f, % 15.10f\r\n", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
-						  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
-				  f_write(&logFile, data, size, &writeSize);
-				  size = sprintf(data, "$PosAft: % 15.10f, % 15.10f, % 15.10f, % 15.10f\r\n", motor1.data.position, motor2.data.position,
-				  		motor3.data.position, motor4.data.position);
-				  f_write(&logFile, data, size, &writeSize);
-				  f_sync(&logFile);
-#endif
-				  size = sprintf(data2, "\nPOS_AFTER : % 15.10f, % 15.10f, % 15.10f, % 15.10f", motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
-				  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
-				  ++cnt;
-			  }
-		  }
-
-		  if(eofRecieved){
-			  SDcardProgramm_Started = false;
-			  activeTab = 0;
-			  counterTab[0] = BYTES_TO_READ;
-			  counterTab[1] = BYTES_TO_READ;
-			  f_close(&file);
-#ifdef LOG_ENABLE
-			  UINT writeSize;
-			  f_write(&logFile, "[STOP]\r\n", 9, &writeSize);
-			  f_close(&logFile);
-#endif
-		  }
-
-		  activeTab = unactiveTab;
-	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

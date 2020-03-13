@@ -132,8 +132,8 @@ void motorUpdatePins(MotorSettings* settings) {
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	RoundingErrorData roundingError;
 
-	if(settings->data.position + move < settings->data.positionZero - 0.00000000001 ||
-	   settings->data.position + move > settings->data.positionEnd + 0.00000000001){
+	if(settings->data.position + move < settings->data.positionZero - 0.0000000001 ||
+	   settings->data.position + move > settings->data.positionEnd + 0.0000000001){
 		settings->stepLeftCounter = 0;
 		roundingError.roundingMoveError = 0;
 		roundingError.roundingSpeedError = 0;
@@ -142,7 +142,7 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	}
 
 	double speed = settings->data.speed; //w [mm/s]
-	double absMove = fabs(move) + 0.00000000001;
+	double absMove = fabs(move);
 	int stepsNum = absMove / settings->stepSize;
 	double changeFreq = speed / settings->stepSize;
 

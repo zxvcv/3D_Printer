@@ -48,13 +48,11 @@ void command_G1(GCodeCommand* cmd) {
 	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 #ifdef LOG_ENABLE
-	uint8_t data[100];
-	UINT writeSize;
-	size = sprintf(data, "$CntVel: %15.10f, %15.10f, %15.10f, %15.10f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
-	f_write(&logFile, data, size, &writeSize);
-	size = sprintf(data, "$CntMov: %15.10f, %15.10f, %15.10f, %15.10f\r\n", move.x, move.y, move.z, move.z);
-	f_write(&logFile, data, size, &writeSize);
-	f_sync(&logFile);
+	uint8_t data[100], size;
+	size = sprintf(data, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
+	List_Push_C(BuffOUT_logs, data, size);
+	size = sprintf(data, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\r\n", move.x, move.y, move.z, move.z);
+	List_Push_C(BuffOUT_logs, data, size);
 #endif
 
 	printerSettings.errMotor1 = motorSetMove(&motor1, move.x);

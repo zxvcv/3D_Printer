@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "a4988_stepstick.h"
+#include "projectDefines.h"
 
 #define SYSTEM_COMMANDS_NUM 11
 #define SYSTEM_COMMANDS_MOTORS_MAX_NUM 2

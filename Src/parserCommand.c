@@ -113,6 +113,7 @@ void systemCmd_MotorsStepSizeSet(SystemCommand* cmd){
 
 void systemCmd_SDCardProgramRun(SystemCommand* cmd){
 	f_mount(&fatfs, "", 0);
+	extern FIL file;
 	f_open(&file, "fl.txt", FA_READ);
 #ifdef LOG_ENABLE
 	f_open(&logFile, "logs.txt", FA_CREATE_ALWAYS | FA_WRITE);
@@ -120,7 +121,8 @@ void systemCmd_SDCardProgramRun(SystemCommand* cmd){
 	f_write(&logFile, "[START]\r\n", 9, &writeSize);
 	f_sync(&logFile);
 #endif
-	SDcardProgramm_Started = true;
+	extern bool executing_SDprogram;
+	executing_SDprogram = true;
 }
 
 
