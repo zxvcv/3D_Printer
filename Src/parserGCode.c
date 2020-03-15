@@ -4,6 +4,7 @@
 #include "vectorOperations.h"
 #include "a4988_stepstick.h"
 #include "settings.h"
+#include "projectDefines.h"
 
 /*
  * COMMAND G1
@@ -19,14 +20,14 @@ void command_G1(GCodeCommand* cmd) {
 	vect3D_d move;
 
 	if(printerSettings.posMode){
-		move.x = cmd->usedFields._x == 1 ? cmd->x - motor1.data.position : 0.0;
-		move.y = cmd->usedFields._y == 1 ? cmd->y - motor2.data.position : 0.0;
-		move.z = cmd->usedFields._z == 1 ? cmd->z - motor3.data.position : 0.0;
-		clearAllMotorsRoundingErrors(&printerSettings);
+		move.x = cmd->usedFields._x == 1 ? cmd->x - motors[0].data.position / ACCURACY + motors[0].data.err.roundingMoveError : motors[0].data.err.roundingMoveError;
+		move.y = cmd->usedFields._y == 1 ? cmd->y - motors[1].data.position / ACCURACY + motors[1].data.err.roundingMoveError : motors[1].data.err.roundingMoveError;
+		move.z = cmd->usedFields._z == 1 ? cmd->z - motors[2].data.position / ACCURACY + motors[2].data.err.roundingMoveError : motors[2].data.err.roundingMoveError;
+		//clearAllMotorsRoundingErrors(&printerSettings);
 	}else{
-		move.x = cmd->x + printerSettings.errMotor1.roundingMoveError;
-		move.y = cmd->y + printerSettings.errMotor2.roundingMoveError;
-		move.z = cmd->z + printerSettings.errMotor3.roundingMoveError;
+		move.x = cmd->x + motors[0].data.err.roundingMoveError;
+		move.y = cmd->y + motors[1].data.err.roundingMoveError;
+		move.z = cmd->z + motors[2].data.err.roundingMoveError;
 	}
 
 	if(cmd->usedFields._f == 1)
@@ -34,10 +35,10 @@ void command_G1(GCodeCommand* cmd) {
 
 	vect3D_d velocity = getVelocity3D(move, printerSettings.speed);
 
-	motor1.data.speed = fabs(velocity.x);
-	motor2.data.speed = fabs(velocity.y);
-	motor3.data.speed = fabs(velocity.z);
-	motor4.data.speed = fabs(velocity.z);
+	motors[0].data.speed = fabs(velocity.x);
+	motors[1].data.speed = fabs(velocity.y);
+	motors[2].data.speed = fabs(velocity.z);
+	motors[3].data.speed = fabs(velocity.z);
 
 	//test
 	extern UART_HandleTypeDef huart2;
@@ -48,42 +49,47 @@ void command_G1(GCodeCommand* cmd) {
 	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 #ifdef LOG_ENABLE
-	uint8_t data[100], size;
-	size = sprintf(data, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
-	List_Push_C(BuffOUT_logs, data, size);
-	size = sprintf(data, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\r\n", move.x, move.y, move.z, move.z);
-	List_Push_C(BuffOUT_logs, data, size);
+#include "FIFO_void.h"
+	extern List* BuffOUT_logs;
+	uint8_t data[100], sizee;
+	sizee = sprintf(data, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
+	List_Push_C(BuffOUT_logs, data, sizee);
+	sizee = sprintf(data, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\r\n", move.x, move.y, move.z, move.z);
+	List_Push_C(BuffOUT_logs, data, sizee);
 #endif
 
-	printerSettings.errMotor1 = motorSetMove(&motor1, move.x);
-	printerSettings.errMotor2 = motorSetMove(&motor2, move.y);
-	printerSettings.errMotor3 = motorSetMove(&motor3, move.z);
-	printerSettings.errMotor4 = motorSetMove(&motor4, move.z);
+	motors[0].data.err = motorSetMove(&(motors[0]), move.x);
+	motors[1].data.err = motorSetMove(&(motors[1]), move.y);
+	motors[2].data.err = motorSetMove(&(motors[2]), move.z);
+	motors[3].data.err = motorSetMove(&(motors[3]), move.z);
 
-	if(printerSettings.errMotor1.errMove || printerSettings.errMotor2.errMove ||
-		printerSettings.errMotor3.errMove || printerSettings.errMotor4.errMove){
+	if(motors[0].data.err.errMove || motors[1].data.err.errMove || motors[2].data.err.errMove || motors[3].data.err.errMove){
 		printerSettings.errMove = true;
 		return;
 	}
 
-	  size = sprintf(data2, "\nERR_MOV: % 15.10f, % 15.10f, % 15.10f, % 15.10f", printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
-			  printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
+	  size = sprintf(data2, "\nERR_MOV: % 15.10f, % 15.10f, % 15.10f, % 15.10f", motors[0].data.err.roundingMoveError, motors[1].data.err.roundingMoveError,
+			  motors[2].data.err.roundingMoveError, motors[3].data.err.roundingMoveError);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-	  size = sprintf(data2, "\nERR_SPD: % 15.10f, % 15.10f, % 15.10f, % 15.10f", printerSettings.errMotor1.roundingSpeedError, printerSettings.errMotor2.roundingSpeedError,
-			  printerSettings.errMotor3.roundingSpeedError, printerSettings.errMotor4.roundingSpeedError);
+	  size = sprintf(data2, "\nERR_SPD: % 15.10f, % 15.10f, % 15.10f, % 15.10f", motors[0].data.err.roundingSpeedError, motors[1].data.err.roundingSpeedError,
+			  motors[2].data.err.roundingSpeedError, motors[3].data.err.roundingSpeedError);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 	__disable_irq();
-	motorStart(&motor1);
-	motorStart(&motor2);
-	motorStart(&motor3);
-	motorStart(&motor4);
+	motorStart(&(motors[0]));
+	motorStart(&(motors[1]));
+	motorStart(&(motors[2]));
+	motorStart(&(motors[3]));
 	__enable_irq();
 
+	extern bool executing_SDcommand;
+	executing_SDcommand = true;
+	/*
 	bool state;
 	do{
-		state = motorIsOn(&motor1) | motorIsOn(&motor2) | motorIsOn(&motor3) | motorIsOn(&motor4);
+		state = motorIsOn(&(motors[0])) | motorIsOn(&(motors[1])) | motorIsOn(&(motors[2])) | motorIsOn(&(motors[3]));
 	}while(state);
+	*/
 }
 
 /*
@@ -96,32 +102,35 @@ void command_G1(GCodeCommand* cmd) {
  */
 void command_G28(GCodeCommand* cmd) {
 	//temporarty, in final version it could be maxSpeed of exry axis
-	motor1.data.speed = printerSettings.speed;
-	motor2.data.speed = printerSettings.speed;
-	motor3.data.speed = printerSettings.speed;
-	motor4.data.speed = printerSettings.speed;
+	motors[0].data.speed = printerSettings.speed;
+	motors[1].data.speed = printerSettings.speed;
+	motors[2].data.speed = printerSettings.speed;
+	motors[3].data.speed = printerSettings.speed;
 
 	if(cmd->usedFields._x == 1)
-		motorSetMove(&motor1, -motor1.data.position);
+		motorSetMove(&(motors[0]), -((double)motors[0].data.position/ACCURACY));
 	if(cmd->usedFields._y == 1)
-			motorSetMove(&motor2, -motor2.data.position);
+		motorSetMove(&(motors[1]), -((double)motors[1].data.position/ACCURACY));
 	if(cmd->usedFields._z == 1){
-		motorSetMove(&motor3, -motor3.data.position);
-		motorSetMove(&motor4, -motor4.data.position);
+		motorSetMove(&(motors[2]), -((double)motors[2].data.position/ACCURACY));
+		motorSetMove(&(motors[3]), -((double)motors[3].data.position/ACCURACY));
 	}
 
 	__disable_irq();
-	motorStart(&motor1);
-	motorStart(&motor2);
-	motorStart(&motor3);
-	motorStart(&motor4);
+	motorStart(&(motors[0]));
+	motorStart(&(motors[1]));
+	motorStart(&(motors[2]));
+	motorStart(&(motors[3]));
 	__enable_irq();
 
+	extern bool executing_SDcommand;
+	executing_SDcommand = true;
+	/*
 	bool state;
 	do{
-		state = motorIsOn(&motor1) | motorIsOn(&motor2) | motorIsOn(&motor3) | motorIsOn(&motor4);
+		state = motorIsOn(&(motors[0])) | motorIsOn(&(motors[1])) | motorIsOn(&(motors[2])) | motorIsOn(&(motors[3]));
 	}while(state);
-
+	*/
 }
 
 /*
@@ -159,11 +168,11 @@ void command_G91(GCodeCommand* cmd) {
  */
 void command_G92(GCodeCommand* cmd) {
 	if(cmd->usedFields._x == 1)
-		motor1.data.position = cmd->x;
+		motors[0].data.position = cmd->x; //poprawic (ACCURACY)
 	if(cmd->usedFields._y == 1)
-		motor2.data.position = cmd->y;
+		motors[1].data.position = cmd->y; //poprawic (ACCURACY)
 	if(cmd->usedFields._z == 1)
-		motor3.data.position = cmd->z;
+		motors[2].data.position = cmd->z; //poprawic (ACCURACY)
 	//if(cmd->usedFields._e == 1)
 		//set extruder positoin
 }

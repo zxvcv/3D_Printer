@@ -10,50 +10,52 @@
 #include <stdlib.h>
 #include <math.h>
 
-
-MotorSettings motor1 = {
-		.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
-		.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
-		.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
-		.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
-		//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
-		.timerFrequency = 1000,
-		.stepSize = 0.203,
-		.data.motorNum = 1,
-		.eepromDataAddress = 0x00
-};
-
-MotorSettings motor2 = {
-		.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin },
-		.IOsleep = { .PORT = MOT2_SLEEP_GPIO_Port, .PIN = MOT2_SLEEP_Pin },
-		.IOdirection = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin },
-		.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
-		.timerFrequency = 1000,
-		.stepSize = 0.203,
-		.data.motorNum = 2,
-		.eepromDataAddress = 0x00 + sizeof(MotorData_EEPROM)
-};
-
-MotorSettings motor3 = {
-		.IOreset = { .PORT = MOT3_RESET_GPIO_Port, .PIN = MOT3_RESET_Pin },
-		.IOsleep = { .PORT = MOT3_SLEEP_GPIO_Port, .PIN = MOT3_SLEEP_Pin },
-		.IOdirection = { .PORT = MOT3_DIRECTION_GPIO_Port, .PIN = MOT3_DIRECTION_Pin },
-		.IOstep = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin },
-		.timerFrequency = 1000,
-		.stepSize = 0.203,
-		.data.motorNum = 3,
-		.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
-};
-
-MotorSettings motor4 = {
-		.IOreset = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_RESET_Pin },
-		.IOsleep = { .PORT = MOT4_SLEEP_GPIO_Port, .PIN = MOT4_SLEEP_Pin },
-		.IOdirection = { .PORT = MOT4_DIRECTION_GPIO_Port, .PIN = MOT4_DIRECTION_Pin },
-		.IOstep = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin },
-		.timerFrequency = 1000,
-		.stepSize = 0.203,
-		.data.motorNum = 4,
-		.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
+MotorSettings motors[MOTORS_NUM] = {
+		{
+				.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
+				.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
+				.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
+				.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
+				//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
+				.isReversed = false,
+				.timerFrequency = 1000,
+				.stepSize = 203,
+				.data.motorNum = 1,
+				.eepromDataAddress = 0x00
+		},
+		{
+				.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin },
+				.IOsleep = { .PORT = MOT2_SLEEP_GPIO_Port, .PIN = MOT2_SLEEP_Pin },
+				.IOdirection = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin },
+				.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
+				.isReversed = false,
+				.timerFrequency = 1000,
+				.stepSize = 203,
+				.data.motorNum = 2,
+				.eepromDataAddress = 0x00 + sizeof(MotorData_EEPROM)
+		},
+		{
+				.IOreset = { .PORT = MOT3_RESET_GPIO_Port, .PIN = MOT3_RESET_Pin },
+				.IOsleep = { .PORT = MOT3_SLEEP_GPIO_Port, .PIN = MOT3_SLEEP_Pin },
+				.IOdirection = { .PORT = MOT3_DIRECTION_GPIO_Port, .PIN = MOT3_DIRECTION_Pin },
+				.IOstep = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin },
+				.isReversed = false,
+				.timerFrequency = 1000,
+				.stepSize = 203,
+				.data.motorNum = 3,
+				.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
+		},
+		{
+				.IOreset = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_RESET_Pin },
+				.IOsleep = { .PORT = MOT4_SLEEP_GPIO_Port, .PIN = MOT4_SLEEP_Pin },
+				.IOdirection = { .PORT = MOT4_DIRECTION_GPIO_Port, .PIN = MOT4_DIRECTION_Pin },
+				.IOstep = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin },
+				.isReversed = false,
+				.timerFrequency = 1000,
+				.stepSize = 203,
+				.data.motorNum = 4,
+				.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
+		}
 };
 
 
@@ -131,9 +133,9 @@ void motorUpdatePins(MotorSettings* settings) {
 
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	RoundingErrorData roundingError;
+	int moveInt = (int)round(move * 1000);
 
-	if(settings->data.position + move < settings->data.positionZero - 0.0000000001 ||
-	   settings->data.position + move > settings->data.positionEnd + 0.0000000001){
+	if(settings->data.position + moveInt < settings->data.positionZero || settings->data.position + moveInt > settings->data.positionEnd){
 		settings->stepLeftCounter = 0;
 		roundingError.roundingMoveError = 0;
 		roundingError.roundingSpeedError = 0;
@@ -142,23 +144,27 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	}
 
 	double speed = settings->data.speed; //w [mm/s]
-	double absMove = fabs(move);
+	int absMove = abs(moveInt);
+	int absMove2 = absMove + settings->stepSize;
+
 	int stepsNum = absMove / settings->stepSize;
-	double changeFreq = speed / settings->stepSize;
+	double changeFreq = speed / ((double)settings->stepSize / ACCURACY);
+
 
 	double changeTimeD = settings->timerFrequency / (changeFreq * 2);
 
 	settings->stateDirection = move > 0 ? CLOCK : RCLOCK;
-	settings->changeTime = changeTimeD;
+	settings->changeTime = (uint16_t)changeTimeD;
 	settings->stepLeftCounter = stepsNum;
 	settings->stepLeftCounter *= 2;
 	settings->changeTimeCounter = settings->changeTime;
 
-	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
+	roundingError.roundingMoveError = fabs(move) - (settings->stepLeftCounter / 2 * ((double)settings->stepSize / ACCURACY));
 	if(settings->stateDirection == RCLOCK) roundingError.roundingMoveError *= -1;
-	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize) / (settings->changeTime * 2));
+	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize / ACCURACY) / (settings->changeTime * 2));
 	roundingError.errMove = false;
 
+	if(settings->isReversed) settings->stateDirection = settings->stateDirection == CLOCK ? RCLOCK : CLOCK;
 	return roundingError;
 }
 

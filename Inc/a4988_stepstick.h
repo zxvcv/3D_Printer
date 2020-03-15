@@ -40,6 +40,7 @@
 #include "pin_struct.h"
 
 #define MOTORS_NUM 4
+#define ACCURACY 1000
 
 typedef enum MOTOR_STEP_FAZE{
 	HIGH = GPIO_PIN_SET,
@@ -61,15 +62,22 @@ typedef enum MOTOR_RESET_FAZE{
 	STOP = GPIO_PIN_RESET
 }MOTOR_RESET_FAZE;
 
+typedef struct RoundingErrorData{
+	double roundingMoveError;
+	double roundingSpeedError;
+	bool errMove;
+} RoundingErrorData;
+
 typedef struct MotorData{
 	uint8_t motorNum;
 
-	double position;
+	int position; //pos * ACCURACY
+	RoundingErrorData err;
 	double speed;
 
 	double maxSpeed;
-	double positionZero;
-	double positionEnd;
+	int positionZero; //posZero * ACCURACY
+	int positionEnd; //posEnd * ACCURACY
 } MotorData;
 
 typedef struct MotorSettings{
@@ -80,6 +88,7 @@ typedef struct MotorSettings{
 
 	bool isOn;
 	MOTOR_STEP_FAZE stateStep;
+	bool isReversed;
 	MOTOR_DIRECTION_FAZE stateDirection;
 	MOTOR_SLEEP_FAZE stateSleep;
 	MOTOR_RESET_FAZE stateReset;
@@ -89,23 +98,13 @@ typedef struct MotorSettings{
 	uint16_t stepLeftCounter;
 
 	double timerFrequency;	//[Hz] timer frequency
-	double stepSize;		//[mm] length of move with one motor step
+	int stepSize;			//[mm] length of move with one motor step (stepSize * ACCURACY)
 
 	uint8_t eepromDataAddress;
 
 	MotorData data;
 } MotorSettings;
 
-typedef struct RoundingErrorData{
-	double roundingMoveError;
-	double roundingSpeedError;
-	bool errMove;
-} RoundingErrorData;
-
-extern MotorSettings motor1;
-extern MotorSettings motor2;
-extern MotorSettings motor3;
-extern MotorSettings motor4;
 extern MotorSettings motors[MOTORS_NUM];
 
 

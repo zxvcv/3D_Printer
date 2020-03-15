@@ -17,7 +17,7 @@ void execute_command_SDcard();
 void send_logs_SDcard();
 #endif
 void reset_commands_SDcard();
-
+void detecting_endCommand_SDcard();
 
 /********** Manager **********/
 void init_manager();

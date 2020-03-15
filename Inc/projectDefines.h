@@ -1,6 +1,6 @@
 #ifndef PROJECT_DEFINES_H_
 #define PROJECT_DEFINES_H_
 
-//#define LOG_ENABLE
+#define LOG_ENABLE
 
 #endif //PROJECT_DEFINES_H_

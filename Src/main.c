@@ -122,10 +122,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  motorInit(&motor1);
-  motorInit(&motor2);
-  motorInit(&motor3);
-  motorInit(&motor4);
+  for(int i=0; i<MOTORS_NUM; ++i)
+	  motorInit(&(motors[i]));
   HAL_TIM_Base_Start_IT(&htim6);
   ST7565_begin(0x08);
   ST7565_clear_display();
@@ -151,10 +149,8 @@ int main(void)
   */
 
   //reading data form EEPROM
-  getMotorData_EEPROM(&motor1, &eeprom);
-  getMotorData_EEPROM(&motor2, &eeprom);
-  getMotorData_EEPROM(&motor3, &eeprom);
-  getMotorData_EEPROM(&motor4, &eeprom);
+  for(int i=0; i<MOTORS_NUM; ++i)
+	  getMotorData_EEPROM(&(motors[i]), &eeprom);
 
   init_manager();
 
@@ -175,7 +171,7 @@ int main(void)
 #endif
 
 	  reset_commands_SDcard();
-
+	  detecting_endCommand_SDcard();
 
     /* USER CODE END WHILE */
 

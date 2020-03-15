@@ -23,16 +23,17 @@ uint8_t msgSize;
 
 void systemCmd_MotorDataRequest(SystemCommand* cmd){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i){
-		msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", cmd->motor[i]->data.motorNum, cmd->motor[i]->data.position, cmd->motor[i]->data.positionZero,
-				cmd->motor[i]->data.positionEnd, cmd->motor[i]->data.speed, cmd->motor[i]->data.maxSpeed);
+		msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", cmd->motor[i]->data.motorNum, (double)cmd->motor[i]->data.position / ACCURACY, (double)cmd->motor[i]->data.positionZero / ACCURACY,
+				(double)cmd->motor[i]->data.positionEnd / ACCURACY, cmd->motor[i]->data.speed, cmd->motor[i]->data.maxSpeed);
 		List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 	}
 }
 
 void systemCmd_MotorPositionMove(SystemCommand* cmd){
-	double move = cmd->arg[0] - cmd->motor[0]->data.position;
+	double move = cmd->arg[0] - ((double)cmd->motor[0]->data.position / ACCURACY);
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		motorSetMove(cmd->motor[i], move);
+		motors[i].data.err = motorSetMove(cmd->motor[i], move);
+
 	__disable_irq();
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 		motorStart(cmd->motor[i]);
@@ -47,28 +48,31 @@ void systemCmd_MotorPositionMove(SystemCommand* cmd){
 }
 
 void systemCmd_MotorPositionValueSet(SystemCommand* cmd){
-	if(cmd->arg[0] >= cmd->motor[0]->data.positionZero &&
-	   cmd->arg[0] <= cmd->motor[0]->data.positionEnd ){
-		cmd->motor[0]->data.position = cmd->arg[0];
+	int argInt = (int)(cmd->arg[0] * ACCURACY);
+	if(argInt >= cmd->motor[0]->data.positionZero &&
+	   argInt <= cmd->motor[0]->data.positionEnd ){
+		cmd->motor[0]->data.position = argInt;
 	}
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorPositionZero(SystemCommand* cmd){
-	cmd->motor[0]->data.positionZero = cmd->arg[0];
-	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONZERO, (uint8_t*)(cmd->arg), sizeof(double));
+	int argInt = (int)(cmd->arg[0] * ACCURACY);
+	cmd->motor[0]->data.positionZero = argInt;
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONZERO, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorPositionEnd(SystemCommand* cmd){
-	cmd->motor[0]->data.positionEnd = cmd->arg[0];
-	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONEND, (uint8_t*)(cmd->arg), sizeof(double));
+	int argInt = (int)(cmd->arg[0] * ACCURACY);
+	cmd->motor[0]->data.positionEnd = argInt;
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONEND, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorDataRequest(cmd);
 }
 
 void systemCmd_MotorDistanceMove(SystemCommand* cmd){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		motorSetMove(cmd->motor[i], cmd->arg[0]);
+		motors[i].data.err = motorSetMove(cmd->motor[i], cmd->arg[0] + motors[i].data.err.roundingMoveError);
 	__disable_irq();
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 		motorStart(cmd->motor[i]);
@@ -101,13 +105,15 @@ void systemCmd_MotorSpeedMax(SystemCommand* cmd){
 }
 
 void systemCmd_MotorsStepSizeRequest(SystemCommand* cmd){
-	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", motor1.stepSize, motor2.stepSize, motor3.stepSize, motor4.stepSize, 0.0);
+	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", (double)(motors[0].stepSize) / ACCURACY, (double)(motors[1].stepSize) / ACCURACY,
+			(double)(motors[2].stepSize) / ACCURACY, (double)(motors[3].stepSize) / ACCURACY, 0);
 	List_Push_C(Buff_Bt_OUT, (char*)buffMsg, msgSize);
 }
 
 void systemCmd_MotorsStepSizeSet(SystemCommand* cmd){
-	cmd->motor[0]->stepSize = cmd->arg[0];
-	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_STEPSIZE, (uint8_t*)(cmd->arg), sizeof(double));
+	int argInt = (int)(cmd->arg[0] * ACCURACY);
+	cmd->motor[0]->stepSize = argInt;
+	EEPROM_writeData(&eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_STEPSIZE, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorsStepSizeRequest(cmd);
 }
 
@@ -116,6 +122,8 @@ void systemCmd_SDCardProgramRun(SystemCommand* cmd){
 	extern FIL file;
 	f_open(&file, "fl.txt", FA_READ);
 #ifdef LOG_ENABLE
+#include "manager.h"
+	extern FIL logFile;
 	f_open(&logFile, "logs.txt", FA_CREATE_ALWAYS | FA_WRITE);
 	UINT writeSize;
 	f_write(&logFile, "[START]\r\n", 9, &writeSize);
@@ -166,16 +174,19 @@ void parseSystemCommand(char* cmd, SystemCommand* cmdOUT) {
 
 	if(motorNum != NULL && motorNum[0] == 'M'){
 		//motor(s) number
+
+
 		uint8_t val = 0;
 		for(int i=0; motorNum[i + 1] != '\0' && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i, ++val){
 			switch(motorNum[i + 1]){
-			case '1': cmdOUT->motor[i] = &motor1; break;
-			case '2': cmdOUT->motor[i] = &motor2; break;
-			case '3': cmdOUT->motor[i] = &motor3; break;
-			case '4': cmdOUT->motor[i] = &motor4; break;
+			case '1': cmdOUT->motor[i] = &(motors[0]); break;
+			case '2': cmdOUT->motor[i] = &(motors[1]); break;
+			case '3': cmdOUT->motor[i] = &(motors[2]); break;
+			case '4': cmdOUT->motor[i] = &(motors[3]); break;
 			default: cmdOUT->motor[i] = NULL; break;
 			}
 		}
+
 		cmdOUT->motorsNum = val;
 
 		//motor command arguments

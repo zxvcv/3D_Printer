@@ -10,28 +10,29 @@ typedef struct PrinterSettings{
 	bool posMode;
 
 	//errors
-	RoundingErrorData errMotor1;
-	RoundingErrorData errMotor2;
-	RoundingErrorData errMotor3;
-	RoundingErrorData errMotor4;
+	//RoundingErrorData errMotor1;
+	//RoundingErrorData errMotor2;
+	//RoundingErrorData errMotor3;
+	//RoundingErrorData errMotor4;
 	bool errMove;
 
 	//Speed Value
 	double speed;
 } PrinterSettings;
 
-#define _OFFSET_STEPSIZE 0
-#define _OFFSET_MAXSPEED 8
-#define _OFFSET_POSITIONZERO 16
-#define _OFFSET_POSITIONEND 24
-
 typedef struct MotorData_EEPROM{
-	double stepSize;
-
 	double maxSpeed;
-	double positionZero;
-	double positionEnd;
+
+	int stepSize;
+
+	int positionZero;
+	int positionEnd;
 }MotorData_EEPROM;
+
+#define _OFFSET_MAXSPEED 0
+#define _OFFSET_STEPSIZE _OFFSET_MAXSPEED+sizeof(double)
+#define _OFFSET_POSITIONZERO _OFFSET_STEPSIZE+sizeof(int)
+#define _OFFSET_POSITIONEND _OFFSET_POSITIONZERO+sizeof(int)
 
 extern PrinterSettings printerSettings;
 

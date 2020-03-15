@@ -6,6 +6,7 @@
 #include "parserCommand.h"
 #include "../Drivers/FATFS/ff.h"
 
+#include "settings.h"
 
 /********** Handling Bluetooth System Commands **********/
 List* Buff_InputCommandsBT = NULL;
@@ -154,14 +155,35 @@ void execute_command_SDcard(){
 		data[--size] = '\r'; data[++size] = '\n'; ++size;
 		List_Push_C(BuffOUT_logs, data, size);
 		size = sprintf(data, "$MovErr: % 10.5f, % 10.5f, % 10.5f, % 10.5f\r\n",
-				printerSettings.errMotor1.roundingMoveError, printerSettings.errMotor2.roundingMoveError,
-				printerSettings.errMotor3.roundingMoveError, printerSettings.errMotor4.roundingMoveError);
+				motors[0].data.err.roundingMoveError, motors[1].data.err.roundingMoveError,
+				motors[2].data.err.roundingMoveError, motors[3].data.err.roundingMoveError);
 		List_Push_C(BuffOUT_logs, data, size);
-		size = sprintf(data, "$PosBef: %10.5f, %10.5f, %10.5f, %10.5f\r\n",
-				motor1.data.position, motor2.data.position, motor3.data.position, motor4.data.position);
+		size = sprintf(data, "$PosBef: %10d, %10d, %10d, %10d\r\n",
+				motors[0].data.position, motors[1].data.position, motors[2].data.position, motors[3].data.position);
 		List_Push_C(BuffOUT_logs, data, size);
 #endif
 		executeGCodeCommand(&executingCmd);
+	}
+
+	if(printerSettings.errMove){
+		printerSettings.errMove = false;
+		end_SDprogram = false;
+		executing_SDprogram = false;
+		executing_SDcommand = false;
+
+		activeTab = 1;
+		counterTab[0] = BYTES_TO_READ;
+		counterTab[1] = BYTES_TO_READ;
+
+		while(List_GetSize(BuffIN_SDcmd) > 0)
+			List_Pop_C(BuffIN_SDcmd);
+
+		f_close(&file);
+#ifdef LOG_ENABLE
+		uint8_t data[100], size = 0;
+		size = sprintf(data, "[ERR]ERROR OCCURED WHILE MOVING HEAD\r\n[STOP]\r\n");
+		List_Push_C(BuffOUT_logs, data, size);
+#endif
 	}
 }
 
@@ -183,9 +205,29 @@ void reset_commands_SDcard(){
 		end_SDprogram = false;
 		executing_SDprogram = false;
 		f_close(&file);
+#ifdef LOG_ENABLE
+		uint8_t data[100], size = 0;
+		size = sprintf(data, "[STOP]\r\n"); //command type
+		size += sprintf(data + size, "$PosBef: %10d, %10d, %10d, %10d\r\n",
+				motors[0].data.position, motors[1].data.position, motors[2].data.position, motors[3].data.position);
+		List_Push_C(BuffOUT_logs, data, size);
+
+		while(List_GetSize(BuffOUT_logs) > 0)
+			send_logs_SDcard();
+		f_close(&logFile);
+#endif
 	}
 }
 
+void detecting_endCommand_SDcard(){
+	if(executing_SDcommand){
+		bool flag = false;
+		for(int i=0; i<MOTORS_NUM; ++i)
+			flag |= motors[i].isOn;
+		if(!flag)
+			executing_SDcommand = false;
+	}
+}
 
 
 /********** Handling Manager **********/
