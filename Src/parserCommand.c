@@ -72,7 +72,7 @@ void systemCmd_MotorPositionEnd(SystemCommand* cmd){
 
 void systemCmd_MotorDistanceMove(SystemCommand* cmd){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		motors[i].data.err = motorSetMove(cmd->motor[i], cmd->arg[0] + motors[i].data.err.roundingMoveError);
+		motors[i].data.err = motorSetMove(cmd->motor[i], cmd->arg[0] + (double)motors[i].data.err.roundingMoveError / ACCURACY);
 	__disable_irq();
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 		motorStart(cmd->motor[i]);

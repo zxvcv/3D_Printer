@@ -20,14 +20,17 @@ void command_G1(GCodeCommand* cmd) {
 	vect3D_d move;
 
 	if(printerSettings.posMode){
-		move.x = cmd->usedFields._x == 1 ? cmd->x - motors[0].data.position / ACCURACY + motors[0].data.err.roundingMoveError : motors[0].data.err.roundingMoveError;
-		move.y = cmd->usedFields._y == 1 ? cmd->y - motors[1].data.position / ACCURACY + motors[1].data.err.roundingMoveError : motors[1].data.err.roundingMoveError;
-		move.z = cmd->usedFields._z == 1 ? cmd->z - motors[2].data.position / ACCURACY + motors[2].data.err.roundingMoveError : motors[2].data.err.roundingMoveError;
+		move.x = cmd->usedFields._x == 1 ? cmd->x - (double)motors[0].data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
+				: (double)motors[0].data.err.roundingMoveError / ACCURACY;
+		move.y = cmd->usedFields._y == 1 ? cmd->y - (double)motors[1].data.position / ACCURACY// + (double)motors[1].data.err.roundingMoveError / ACCURACY
+				: (double)motors[1].data.err.roundingMoveError / ACCURACY;
+		move.z = cmd->usedFields._z == 1 ? cmd->z - (double)motors[2].data.position / ACCURACY// + (double)motors[2].data.err.roundingMoveError / ACCURACY
+				: (double)motors[2].data.err.roundingMoveError / ACCURACY;
 		//clearAllMotorsRoundingErrors(&printerSettings);
 	}else{
-		move.x = cmd->x + motors[0].data.err.roundingMoveError;
-		move.y = cmd->y + motors[1].data.err.roundingMoveError;
-		move.z = cmd->z + motors[2].data.err.roundingMoveError;
+		move.x = cmd->x + (double)motors[0].data.err.roundingMoveError / ACCURACY;
+		move.y = cmd->y + (double)motors[1].data.err.roundingMoveError / ACCURACY;
+		move.z = cmd->z + (double)motors[2].data.err.roundingMoveError / ACCURACY;
 	}
 
 	if(cmd->usedFields._f == 1)
@@ -42,11 +45,12 @@ void command_G1(GCodeCommand* cmd) {
 
 	//test
 	extern UART_HandleTypeDef huart2;
-	uint8_t data2[100];
-	uint8_t size = sprintf(data2, "\nCNT_VEL: %15.10f, %15.10f, %15.10f, %15.10f", velocity.x, velocity.y, velocity.z, velocity.z);
-	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-	size = sprintf(data2, "\nCNT_MOV: %15.10f, %15.10f, %15.10f, %15.10f", move.x, move.y, move.z, move.z);
-	HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
+	uint8_t dt[100], siz;
+	siz = sprintf(dt, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\n", move.x, move.y, move.z, move.z);
+	HAL_UART_Transmit(&huart2, dt, siz, 1000);
+	siz = sprintf(dt, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\n\n", velocity.x, velocity.y, velocity.z, velocity.z);
+	HAL_UART_Transmit(&huart2, dt, siz, 1000);
+	//test end
 
 #ifdef LOG_ENABLE
 #include "FIFO_void.h"
@@ -67,13 +71,6 @@ void command_G1(GCodeCommand* cmd) {
 		printerSettings.errMove = true;
 		return;
 	}
-
-	  size = sprintf(data2, "\nERR_MOV: % 15.10f, % 15.10f, % 15.10f, % 15.10f", motors[0].data.err.roundingMoveError, motors[1].data.err.roundingMoveError,
-			  motors[2].data.err.roundingMoveError, motors[3].data.err.roundingMoveError);
-	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
-	  size = sprintf(data2, "\nERR_SPD: % 15.10f, % 15.10f, % 15.10f, % 15.10f", motors[0].data.err.roundingSpeedError, motors[1].data.err.roundingSpeedError,
-			  motors[2].data.err.roundingSpeedError, motors[3].data.err.roundingSpeedError);
-	  HAL_UART_Transmit(&huart2, (uint8_t*)data2, size, 1000);
 
 	__disable_irq();
 	motorStart(&(motors[0]));

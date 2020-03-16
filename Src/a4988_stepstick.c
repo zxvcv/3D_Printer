@@ -145,7 +145,7 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 
 	double speed = settings->data.speed; //w [mm/s]
 	int absMove = abs(moveInt);
-	int absMove2 = absMove + settings->stepSize;
+	//int absMove2 = absMove + settings->stepSize;
 
 	int stepsNum = absMove / settings->stepSize;
 	double changeFreq = speed / ((double)settings->stepSize / ACCURACY);
@@ -159,9 +159,9 @@ RoundingErrorData motorSetMove(MotorSettings* settings, double move){
 	settings->stepLeftCounter *= 2;
 	settings->changeTimeCounter = settings->changeTime;
 
-	roundingError.roundingMoveError = fabs(move) - (settings->stepLeftCounter / 2 * ((double)settings->stepSize / ACCURACY));
+	roundingError.roundingMoveError = absMove - (settings->stepLeftCounter / 2 * settings->stepSize);
 	if(settings->stateDirection == RCLOCK) roundingError.roundingMoveError *= -1;
-	roundingError.roundingSpeedError = speed - ((settings->timerFrequency * settings->stepSize / ACCURACY) / (settings->changeTime * 2));
+	roundingError.roundingSpeedError = speed - (((settings->timerFrequency * settings->stepSize) / ACCURACY) / (settings->changeTime * 2));
 	roundingError.errMove = false;
 
 	if(settings->isReversed) settings->stateDirection = settings->stateDirection == CLOCK ? RCLOCK : CLOCK;

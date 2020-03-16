@@ -63,7 +63,7 @@ typedef enum MOTOR_RESET_FAZE{
 }MOTOR_RESET_FAZE;
 
 typedef struct RoundingErrorData{
-	double roundingMoveError;
+	int roundingMoveError;
 	double roundingSpeedError;
 	bool errMove;
 } RoundingErrorData;

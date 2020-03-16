@@ -154,7 +154,7 @@ void execute_command_SDcard(){
 		if(executingCmd.usedFields._s) size += sprintf(data + size, " S% 10.5f,", executingCmd.s);
 		data[--size] = '\r'; data[++size] = '\n'; ++size;
 		List_Push_C(BuffOUT_logs, data, size);
-		size = sprintf(data, "$MovErr: % 10.5f, % 10.5f, % 10.5f, % 10.5f\r\n",
+		size = sprintf(data, "$MovErr: % 10d, % 10d, % 10d, % 10d\r\n",
 				motors[0].data.err.roundingMoveError, motors[1].data.err.roundingMoveError,
 				motors[2].data.err.roundingMoveError, motors[3].data.err.roundingMoveError);
 		List_Push_C(BuffOUT_logs, data, size);
