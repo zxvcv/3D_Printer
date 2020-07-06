@@ -11,10 +11,11 @@
 #include "a4988_stepstick.h"
 #include "EEPROM_24AA01.h"
 #include "settings.h"
-#include "FIFO_void.h"
 #include "../Drivers/FATFS/ff.h"
 
 #include "main.h"
+
+#include "../Source/FIFO_void/FIFO_void.h"
 extern List* Buff_Bt_OUT;
 
 char buffMsg[100];

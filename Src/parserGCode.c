@@ -53,7 +53,7 @@ void command_G1(GCodeCommand* cmd) {
 	//test end
 
 #ifdef LOG_ENABLE
-#include "FIFO_void.h"
+#include "../Source/FIFO_void/FIFO_void.h"
 	extern List* BuffOUT_logs;
 	uint8_t data[100], sizee;
 	sizee = sprintf(data, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\r\n", velocity.x, velocity.y, velocity.z, velocity.z);
@@ -228,7 +228,7 @@ void command_M190(GCodeCommand* cmd) {
 
 /*
  * COMMAND M106
- *  This command allows you to set the speed of your printer’s part cooling fan.
+ *  This command allows you to set the speed of your printerï¿½s part cooling fan.
  *	This is an external cooling fan that is pointed towards the part that you are printing.
  *
  *  Arguments:

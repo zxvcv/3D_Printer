@@ -6,9 +6,9 @@
  */
 
 #include "interrupts.h"
-#include "FIFO_void.h"
 #include "ST7565.h"
 #include "a4988_stepstick.h"
+#include "../Source/FIFO_void/FIFO_void.h"
 
 extern UART_HandleTypeDef huart1;
 extern List* Buff_Bt_IN;
