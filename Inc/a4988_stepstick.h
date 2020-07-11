@@ -1,46 +1,62 @@
-/*
- * a4988_stepstick.h
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
+ *  a4988_stepstick.h
  *
  *  Created on: 10.10.2019
  *      Author: zxvcv
+ * =======================================================================================================
+ * COMMENTS:
+ *
+ * =======================================================================================================
+ * EXAMPLE:
+ * 		motorInitSettings(&motor1);
+ *		motorUpdatePinoutState(&motor1);
+ *
+ *  	void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+ *		{
+ *			if(motor1.stateStep != OFF)
+ *			motorChangeState(&motor1);
+ *		}
  *
  *
- * ******************
- * 		EXAMPLE
- * ******************
+ *		motor1.stateDirection = CLOCK;
+ * 		motor1.stateReset = START;
+ * 		motor1.stateSleep = AWAKE;
+ *		motor1.changeTimeCounter = motor1.changeTime;
+ * 		motor1.stepLeftCounter *= 2;
  *
- *	motorInitSettings(&motor1);
- *	motorUpdatePinoutState(&motor1);
- *
- *  void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
- *	{
- *		if(motor1.stateStep != OFF)
- *		motorChangeState(&motor1);
- *	}
- *
- *
- *	motor1.stateDirection = CLOCK;
- * 	motor1.stateReset = START;
- * 	motor1.stateSleep = AWAKE;
- *	motor1.changeTimeCounter = motor1.changeTime;
- * 	motor1.stepLeftCounter *= 2;
- *
- * 	motor1.stateStep = LOW;
- * 	motorUpdatePinoutState(&motor1);
- *
- *
- */
+ * 		motor1.stateStep = LOW;
+ * 		motorUpdatePinoutState(&motor1);
+ ********************************************************************************************************** */
 
 #ifndef A4988_STEPSTICK_H_
 #define A4988_STEPSTICK_H_
 
-#include "main.h"
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
+
 #include <stdbool.h>
 #include <stdint.h>
-#include "pin_struct.h"
+#include "main.h"
+#include "ProjectTypes.h"
+//#include "manager.h"
 
-#define MOTORS_NUM 4
-#define ACCURACY 1000
+
+
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											DATA TYPES
+ * ####################################################################################################### */
 
 typedef enum MOTOR_STEP_FAZE{
 	HIGH = GPIO_PIN_SET,
@@ -48,7 +64,7 @@ typedef enum MOTOR_STEP_FAZE{
 }MOTOR_STEP_FAZE;
 
 typedef enum MOTOR_DIRECTION_FAZE{
-	CLOCK = GPIO_PIN_SET, //zgodnie ze wskazówkami zegara
+	CLOCK = GPIO_PIN_SET, //zgodnie ze wskazï¿½wkami zegara
 	RCLOCK = GPIO_PIN_RESET //przeciwnie do ruchu wskazowek zegara (reverse clock)
 }MOTOR_DIRECTION_FAZE;
 
@@ -80,7 +96,7 @@ typedef struct MotorData{
 	int positionEnd; //posEnd * ACCURACY
 } MotorData;
 
-typedef struct MotorSettings{
+typedef struct MotorSettings_Tag{
 	IO_Pin IOreset;
 	IO_Pin IOsleep;
 	IO_Pin IOdirection;
@@ -105,8 +121,17 @@ typedef struct MotorSettings{
 	MotorData data;
 } MotorSettings;
 
-extern MotorSettings motors[MOTORS_NUM];
 
+
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *										PUBLIC DECLARATIONS
+ * ####################################################################################################### */
 
 void  motorInit(MotorSettings* settings);
 
@@ -131,5 +156,7 @@ double motorGetTimerFreq(MotorSettings* settings);
 double motorGetStepSize(MotorSettings* settings);
 
 MotorData* motorGetData(MotorSettings* settings);
+
+
 
 #endif /* A4988_STEPSTICK_H_ */

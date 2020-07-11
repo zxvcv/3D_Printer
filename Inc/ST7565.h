@@ -102,7 +102,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CMD_TEST  0xF0
 
 #include "main.h"
-#include "pin_struct.h"
+#include "ProjectTypes.h"
+#include "FIFO_void.h"
 /*----------------------------data_types----------------------------*/
 
 typedef struct ST7565R_Settings{
@@ -110,6 +111,7 @@ typedef struct ST7565R_Settings{
 	IO_Pin IOrst;
 	IO_Pin IOa0;
 	SPI_HandleTypeDef* spi;
+	List* buffer;
 }ST7565R_Settings;
 
 typedef struct DataToST7565{
@@ -119,46 +121,45 @@ typedef struct DataToST7565{
 
 /*----------------------------END_data_types----------------------------*/
 
-#include "FIFO_void.h"
 
 /*----------------------------externed_data----------------------------*/
-extern List* Buff_SPI_ST7565R;
-extern ST7565R_Settings lcd;
+
+
 /*----------------------------END_externed_data----------------------------*/
 
 
 /*----------------------------function_declarations----------------------------*/
 
-void ST7565_st7565_init(void);
-void ST7565_begin(uint8_t contrast);
-void ST7565_st7565_command(uint8_t c);
-void ST7565_st7565_data(uint8_t c);
-void ST7565_st7565_set_brightness(uint8_t val);
-void ST7565_clear_display(void);
-void ST7565_clear();
-void ST7565_display();
+void ST7565_st7565_init(ST7565R_Settings* settings);
+void ST7565_begin(ST7565R_Settings* settings, uint8_t contrast);
+void ST7565_st7565_command(ST7565R_Settings* settings, uint8_t c);
+void ST7565_st7565_data(ST7565R_Settings* settings, uint8_t c);
+void ST7565_st7565_set_brightness(ST7565R_Settings* settings, uint8_t val);
+void ST7565_clear_display(ST7565R_Settings* settings);
+void ST7565_clear(ST7565R_Settings* settings);
+void ST7565_display(ST7565R_Settings* settings);
 
-void ST7565_setpixel(uint8_t x, uint8_t y, uint8_t color);
-uint8_t ST7565_getpixel(uint8_t x, uint8_t y);
-void ST7565_fillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
-void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
-void ST7565_drawrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
-void ST7565_fillrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
-void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color);
-void ST7565_drawchar_line(uint8_t x, uint8_t line, char c);
-void ST7565_drawchar_pixel(uint8_t x, uint8_t y, char c);
-void ST7565_drawstring_line(uint8_t x, uint8_t line, char *c);
-void ST7565_drawstring_pixel(uint8_t x, uint8_t y, char *c);
-void ST7565_drawstring_P_line(uint8_t x, uint8_t line, const char *c);
-void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *c);
+void ST7565_setpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t color);
+uint8_t ST7565_getpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y);
+void ST7565_fillcircle(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
+void ST7565_drawcircle(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
+void ST7565_drawrect(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
+void ST7565_fillrect(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
+void ST7565_drawline(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color);
+void ST7565_drawchar_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, char c);
+void ST7565_drawchar_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, char c);
+void ST7565_drawstring_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, char *c);
+void ST7565_drawstring_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, char *c);
+void ST7565_drawstring_P_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, const char *c);
+void ST7565_drawstring_P_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, const char *c);
 
-void ST7565_drawbitmap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color);
+void ST7565_drawbitmap(ST7565R_Settings* settings, uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color);
 
-void ST7565_spiwrite();
+void ST7565_spiwrite(ST7565R_Settings* settings);
 
-void ST7565_my_setpixel(uint8_t x, uint8_t y, uint8_t color);
-uint8_t ST7565_getbuffunit(uint8_t x, uint8_t line);
-void ST7565_setbuffunit(uint8_t x, uint8_t line, uint8_t data);
+void ST7565_my_setpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t color);
+uint8_t ST7565_getbuffunit(ST7565R_Settings* settings, uint8_t x, uint8_t line);
+void ST7565_setbuffunit(ST7565R_Settings* settings, uint8_t x, uint8_t line, uint8_t data);
 /*----------------------------END_function_declarations----------------------------*/
 
 #endif /* ST7565_H_ */

@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -23,13 +23,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "manager.h"
-
-#include "EEPROM_24AA01.h"
-#include "a4988_stepstick.h"
-#include "parserCommand.h"
-#include "ST7565.h"
-#include "settings.h"
 
 /* USER CODE END Includes */
 
@@ -40,7 +33,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,13 +52,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t recievedBT = 0;
-bool EOL_BT_recieved = false;
-bool transmissionBT = false;
 
-SystemCommand sysCmd;
-
-FATFS fatfs;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,57 +108,13 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  for(int i=0; i<MOTORS_NUM; ++i)
-	  motorInit(&(motors[i]));
-  HAL_TIM_Base_Start_IT(&htim6);
-  ST7565_begin(0x08);
-  ST7565_clear_display();
-
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  /*
-  ST7565_clear();
-  drawInterface();
-  InterfaceValues val = { .instruction = 0,
-		  	  	  	  	  .numOfInstructions = 0,
-						  .posX = 0.0,
-						  .posY = 0.0,
-						  .posZ = 0.0,
-						  .tmpH = 0.0,
-						  .tmpB = 0.0
-  };
-  updateValues(&val);
-  */
-
-  //reading data form EEPROM
-  for(int i=0; i<MOTORS_NUM; ++i)
-	  getMotorData_EEPROM(&(motors[i]), &eeprom);
-
-  init_manager();
-
   while (1)
   {
-	  //System Commands
-	  parse_data_BT();
-	  execute_command_BT();
-	  send_command_BT();
-
-
-	  //SDcard Commands
-	  parse_data_SDcard();
-	  execute_command_SDcard();
-
-#ifdef LOG_ENABLE
-	  send_logs_SDcard();
-#endif
-
-	  reset_commands_SDcard();
-	  detecting_endCommand_SDcard();
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

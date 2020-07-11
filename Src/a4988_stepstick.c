@@ -1,70 +1,74 @@
-/*
- * motor.c
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
  *
  *  Created on: 10.10.2019
  *      Author: zxvcv
- */
+ * =======================================================================================================
+ * COMMENTS:
+ *
+ * =======================================================================================================
+ * EXAMPLE:
+ *
+ ********************************************************************************************************** */
+
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
 
 #include "a4988_stepstick.h"
-#include "settings.h"
-#include <stdlib.h>
-#include <math.h>
-
-MotorSettings motors[MOTORS_NUM] = {
-		{
-				.IOreset = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin },
-				.IOsleep = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin },
-				.IOdirection = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin },
-				.IOstep = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin },
-				//.IOstep = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin },
-				.isReversed = false,
-				.timerFrequency = 1000,
-				.stepSize = 203,
-				.data.motorNum = 1,
-				.eepromDataAddress = 0x00
-		},
-		{
-				.IOreset = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin },
-				.IOsleep = { .PORT = MOT2_SLEEP_GPIO_Port, .PIN = MOT2_SLEEP_Pin },
-				.IOdirection = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin },
-				.IOstep = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin },
-				.isReversed = false,
-				.timerFrequency = 1000,
-				.stepSize = 203,
-				.data.motorNum = 2,
-				.eepromDataAddress = 0x00 + sizeof(MotorData_EEPROM)
-		},
-		{
-				.IOreset = { .PORT = MOT3_RESET_GPIO_Port, .PIN = MOT3_RESET_Pin },
-				.IOsleep = { .PORT = MOT3_SLEEP_GPIO_Port, .PIN = MOT3_SLEEP_Pin },
-				.IOdirection = { .PORT = MOT3_DIRECTION_GPIO_Port, .PIN = MOT3_DIRECTION_Pin },
-				.IOstep = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin },
-				.isReversed = false,
-				.timerFrequency = 1000,
-				.stepSize = 203,
-				.data.motorNum = 3,
-				.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
-		},
-		{
-				.IOreset = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_RESET_Pin },
-				.IOsleep = { .PORT = MOT4_SLEEP_GPIO_Port, .PIN = MOT4_SLEEP_Pin },
-				.IOdirection = { .PORT = MOT4_DIRECTION_GPIO_Port, .PIN = MOT4_DIRECTION_Pin },
-				.IOstep = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin },
-				.isReversed = false,
-				.timerFrequency = 1000,
-				.stepSize = 203,
-				.data.motorNum = 4,
-				.eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM)
-		}
-};
+#include "main.h"
 
 
 
-/* PRIVATE FUNCTIONS DECLARATIONS */
-void motorUpdatePins(MotorSettings* settings);
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
+
+#define ACCURACY 1000
 
 
-/* FUNCTIONS DEFINITIONS */
+
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											DATA TYPES
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											PUBLIC OBJECTS
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
+
+void motorUpdatePins(MotorSettings* settings) {
+	if(settings->IOreset.PORT != NULL)
+		HAL_GPIO_WritePin(settings->IOreset.PORT, settings->IOreset.PIN, settings->stateReset);
+	if(settings->IOsleep.PORT != NULL)
+		HAL_GPIO_WritePin(settings->IOsleep.PORT, settings->IOsleep.PIN, settings->stateSleep);
+	if(settings->IOdirection.PORT != NULL)
+		HAL_GPIO_WritePin(settings->IOdirection.PORT, settings->IOdirection.PIN, settings->stateDirection);
+	if(settings->IOstep.PORT != NULL)
+		HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN, settings->stateStep);
+}
+
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
+
 void  motorInit(MotorSettings* settings) {
 	settings->stateReset = START;
 	settings->stateSleep = SLEEP;
@@ -118,17 +122,6 @@ bool motorUpdate(MotorSettings* settings) {
 		return returnVal;
 	}else
 		return returnVal;
-}
-
-void motorUpdatePins(MotorSettings* settings) {
-	if(settings->IOreset.PORT != NULL)
-		HAL_GPIO_WritePin(settings->IOreset.PORT, settings->IOreset.PIN, settings->stateReset);
-	if(settings->IOsleep.PORT != NULL)
-		HAL_GPIO_WritePin(settings->IOsleep.PORT, settings->IOsleep.PIN, settings->stateSleep);
-	if(settings->IOdirection.PORT != NULL)
-		HAL_GPIO_WritePin(settings->IOdirection.PORT, settings->IOdirection.PIN, settings->stateDirection);
-	if(settings->IOstep.PORT != NULL)
-		HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN, settings->stateStep);
 }
 
 RoundingErrorData motorSetMove(MotorSettings* settings, double move){

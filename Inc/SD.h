@@ -10,7 +10,7 @@
 #define SD_H_
 
 #include <stdint.h>
-#include "pin_struct.h"
+#include "ProjectTypes.h"
 
 typedef struct SD_Card{
 	SPI_HandleTypeDef* spi;
@@ -42,11 +42,11 @@ typedef struct SD_Card{
 #define SD_R1_Idle				1   //Karta w stanie Idle
 #define SD_R1_EraseReset		2
 #define SD_R1_IllegaCommand		4	//Nierozpoznane polecenie
-#define SD_R1_CommandCRCError	8	//B³¹d CRC polecenia
+#define SD_R1_CommandCRCError	8	//Bï¿½ï¿½d CRC polecenia
 #define SD_R1_EraseSeqError		16
 #define SD_R1_AddressError		32
 #define SD_R1_ParameterError	64
-#define SD_R1_Response			128	//Bit odpowiedzi - zawsze równy 0
+#define SD_R1_Response			128	//Bit odpowiedzi - zawsze rï¿½wny 0
 
 #define SD_OCR_CCS              (1UL<<30) //Bit CCS rejestru OCR
 
@@ -57,7 +57,7 @@ typedef union
 	struct
 	{
 		uint8_t crc;
-		uint8_t MDT_Month : 4; //Miesi¹c produkcji
+		uint8_t MDT_Month : 4; //Miesiï¿½c produkcji
 		uint8_t MDT_Year2 : 4;
 		uint8_t MDT_Year1 : 4; //Rok produkcji od 2000
 		uint8_t reserved  : 4; //Same zera
@@ -151,19 +151,19 @@ typedef union
 
 } SD_CSDRegv2;
 
-extern uint8_t SD_Status;                     //Co aktualnie jest podpiête
+extern uint8_t SD_Status;                     //Co aktualnie jest podpiï¿½te
 extern uint8_t SD_Type;
 
 uint8_t SPI_RW_Byte(SD_Card* sd, uint8_t byte);            //Funkcja odczytu/zapisu SPI
 _Bool SD_CardInit(SD_Card* sd);                          //Inicjalizacja karty SD/SDHC/SDXC
-uint8_t SD_SendCMD(SD_Card* sd, uint8_t cmd, uint32_t arg); //Wysy³a polecenie do karty i zwraca kod R1
-_Bool SD_GetCID(SD_Card* sd, SD_CIDReg *cid);              //Zwróæ wartoœæ rejestru CID
-_Bool SD_WaitForReady(SD_Card* sd);                      //Czeka na gotowoœæ karty, max 500 ms
+uint8_t SD_SendCMD(SD_Card* sd, uint8_t cmd, uint32_t arg); //Wysyï¿½a polecenie do karty i zwraca kod R1
+_Bool SD_GetCID(SD_Card* sd, SD_CIDReg *cid);              //Zwrï¿½ï¿½ wartoï¿½ï¿½ rejestru CID
+_Bool SD_WaitForReady(SD_Card* sd);                      //Czeka na gotowoï¿½ï¿½ karty, max 500 ms
 uint32_t SD_GetR7(SD_Card* sd);                          //Pobierz 4 bajty odpowiedzi
-_Bool SD_GetResponse(SD_Card* sd, void *buf, uint8_t size); //Zapisz odpowied¿ w buforze
+_Bool SD_GetResponse(SD_Card* sd, void *buf, uint8_t size); //Zapisz odpowiedï¿½ w buforze
 void SD_CRC7(uint8_t *crc, uint8_t byte);     //Wylicza CRC7
-uint8_t SD_disk_read(SD_Card* sd, uint8_t *buff, uint32_t sector, uint8_t count); //Odczytaj count sektorów (1-255), pocz¹wszy od sector, wynik umieœæ w buff
-uint8_t SD_disk_write(SD_Card* sd, const uint8_t *buff, uint32_t sector, uint8_t count); //Zapisz count sektorów (1-255), pocz¹wszy od sector, dane z buff
-_Bool SD_Rec_Datablock(SD_Card* sd, uint8_t *buff, uint16_t size);   //Odczytaj blok danych z karty, false jeœli wyst¹pi³ b³¹d odczytu
+uint8_t SD_disk_read(SD_Card* sd, uint8_t *buff, uint32_t sector, uint8_t count); //Odczytaj count sektorï¿½w (1-255), poczï¿½wszy od sector, wynik umieï¿½ï¿½ w buff
+uint8_t SD_disk_write(SD_Card* sd, const uint8_t *buff, uint32_t sector, uint8_t count); //Zapisz count sektorï¿½w (1-255), poczï¿½wszy od sector, dane z buff
+_Bool SD_Rec_Datablock(SD_Card* sd, uint8_t *buff, uint16_t size);   //Odczytaj blok danych z karty, false jeï¿½li wystï¿½piï¿½ bï¿½ï¿½d odczytu
 
 #endif /* SD_H_ */

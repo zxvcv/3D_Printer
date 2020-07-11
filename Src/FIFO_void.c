@@ -1,214 +1,490 @@
-#include "FIFO_void.h"
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
+ * 2 types FIFO for void*:
+ * 		type 1 (C)  - passed value is copied and allocated in new memory space
+ * 		type 2 (NC) - passed pointer is assigned and stored in queue (no allocation is made)
+ * =======================================================================================================
+ * COMMENTS:
+ * 		Remember to use same Queue type to enqueue and dequeue.
+ * 		If the functions do not have a compatible type there, memory leaks will occur.
+ *
+ * 		Don't mix type 1 and type 2 FIFO in one queue or memory leaks will occur.
+ * =======================================================================================================
+ * EXAMPLE:
+ * 		None
+ ********************************************************************************************************** */
 
-#include "main.h"
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
+
+#include "FIFO_void.h"
+#include <string.h>
+
+
+
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
+
+#define USE_INTERRUPTS
+
+#ifdef USE_INTERRUPTS
 #define IRQ_ENABLE __enable_irq()
 #define IRQ_DISABLE __disable_irq()
+#endif /* USE_INTERRUPTS */
 
-/*----------------------------functions----------------------------*/
 
-bool List_Create(List** lista)
+
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
+
+void list_create(List** list, Fifo_Err* errors)
 {
-	if ((*lista) != NULL) //lista nie jest pusta
-		return false;
-	
-	IRQ_DISABLE;
-	*lista = (List*)malloc(sizeof(List));
-	IRQ_ENABLE;
-	(*lista)->begin = NULL;
-	(*lista)->size = 0;
-	return true;
-}
+	*errors = QUEUE_ERROR;
 
-
-bool List_Push_C(List* lista, void* val, int valSize)
-{
-	if (lista == NULL) //lista jest niezainicjalizowana
-		return false;
-
-	if (lista->size == 0)
+	if ((*list) == NULL)
 	{
+#ifdef USE_INTERRUPTS
 		IRQ_DISABLE;
-		lista->begin = (List_memb*)malloc(sizeof(List_memb));
-		lista->begin->next = NULL;
-		lista->begin->data = malloc(valSize);
+#endif /* USE_INTERRUPTS */
+
+		*list = (List*)malloc(sizeof(List));
+
+#ifdef USE_INTERRUPTS
 		IRQ_ENABLE;
-		memcpy(lista->begin->data, val, valSize);
-		lista->begin->dataSize = valSize;
-		lista->size += 1;
-	}
-	else
-	{
-		List_memb* prev = NULL;
-		List_memb* memb = lista->begin;
-		while (memb != NULL)
+#endif /* USE_INTERRUPTS */
+
+		if(*list == NULL)
 		{
-			prev = memb;
-			memb = memb->next;
+			*errors = QUEUE_ALLOC_ERR;
 		}
-		IRQ_DISABLE;
-		prev->next = (List_memb*)malloc(sizeof(List_memb));
-		prev->next->next = NULL;
-		prev->next->data = malloc(valSize);
-		IRQ_ENABLE;
-		memcpy(prev->next->data, val, valSize);
-		prev->next->dataSize = valSize;
-		lista->size += 1;
-	}
-	return true;
-}
-
-
-bool List_Push_NC(List* lista, void* val)
-{
-	if (lista == NULL) //lista jest niezainicjalizowana
-		return false;
-
-	if (lista->size == 0)
-	{
-		IRQ_DISABLE;
-		lista->begin = (List_memb*)malloc(sizeof(List_memb));
-		IRQ_ENABLE;
-		lista->begin->next = NULL;
-		lista->begin->data = val;
-		lista->begin->dataSize = 0;
-		lista->size += 1;
-	}
-	else
-	{
-		List_memb* prev = NULL;
-		List_memb* memb = lista->begin;
-		while (memb != NULL)
+		else
 		{
-			prev = memb;
-			memb = memb->next;
+			(*list)->begin = NULL;
+			(*list)->size = 0;
+			*errors = QUEUE_OK;
 		}
-		IRQ_DISABLE;
-		prev->next = (List_memb*)malloc(sizeof(List_memb));
-		IRQ_ENABLE;
-		prev->next->next = NULL;
-		prev->next->data = val;
-		prev->next->dataSize = 0;
-		lista->size += 1;
 	}
-	return true;
 }
 
 
-const void* const List_Front(List* lista)
+void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
 {
-	if (lista == NULL || lista->size == 0) //lista jest niezainicjalizowana
-		return NULL;
+	*errors = QUEUE_ERROR;
 
-	return lista->begin->data;
-}
-
-
-bool List_Pop_C(List* lista)
-{
-	if (lista == NULL || lista->size == 0) //lista jest niezainicjalizowana
-		return false;
-
-
-	if (lista->size == 1)
+	if (list != NULL)
 	{
-		IRQ_DISABLE;
-		free(lista->begin->data);
-		free(lista->begin);
-		IRQ_ENABLE;
-		lista->begin = NULL;
-		lista->size = 0;
+		if (list->size == 0)
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->begin = (List_memb*)malloc(sizeof(List_memb));
+			if(list->begin == NULL)
+			{
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+				*errors = QUEUE_ALLOC_ERR;
+			}
+			else
+			{
+				list->begin->next = NULL;
+				list->begin->data = malloc(valSize);
+
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+				memcpy(list->begin->data, val, valSize);
+				list->begin->dataSize = valSize;
+				list->size += 1;
+
+				*errors = QUEUE_OK;
+			}
+		}
+		else
+		{
+			List_memb* prev = NULL;
+			List_memb* memb = list->begin;
+			while (memb != NULL)
+			{
+				prev = memb;
+				memb = memb->next;
+			}
+
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			prev->next = (List_memb*)malloc(sizeof(List_memb));
+			if(list->begin == NULL)
+			{
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+				*errors = QUEUE_ALLOC_ERR;
+			}
+			else
+			{
+				prev->next->next = NULL;
+				prev->next->data = malloc(valSize);
+
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+				memcpy(prev->next->data, val, valSize);
+				prev->next->dataSize = valSize;
+				list->size += 1;
+
+				*errors = QUEUE_OK;
+			}
+		}
+	}
+}
+
+
+void list_push_NC(List* list, void* val, Fifo_Err* errors)
+{
+	*errors = QUEUE_ERROR;
+
+	if (list != NULL)
+	{
+		if (list->size == 0)
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->begin = (List_memb*)malloc(sizeof(List_memb));
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			if(list->begin == NULL)
+			{
+				*errors = QUEUE_ALLOC_ERR;
+			}
+			else
+			{
+				list->begin->next = NULL;
+				list->begin->data = val;
+				list->begin->dataSize = 0;
+				list->size += 1;
+
+				*errors = QUEUE_OK;
+			}
+		}
+		else
+		{
+			List_memb* prev = NULL;
+			List_memb* memb = list->begin;
+			while (memb != NULL)
+			{
+				prev = memb;
+				memb = memb->next;
+			}
+
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			prev->next = (List_memb*)malloc(sizeof(List_memb));
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			if(prev->next == NULL)
+			{
+				*errors = QUEUE_ALLOC_ERR;
+			}
+			else
+			{
+				list->begin->next = NULL;
+				list->begin->data = val;
+				list->begin->dataSize = 0;
+				list->size += 1;
+
+				*errors = QUEUE_OK;
+			}
+		}
+	}
+}
+
+
+void* list_front(List* list, Fifo_Err* errors)
+{
+	void* retVal = NULL;
+	*errors = QUEUE_ERROR;
+
+	if (list != NULL)
+	{
+		if(list->size == 0)
+		{
+			retVal = NULL;
+			*errors = QUEUE_REF_ERR;
+		}
+		else
+		{
+			retVal = list->begin->data;
+			*errors = QUEUE_OK;
+		}
+	}
+
+	return retVal;
+}
+
+
+void list_pop_C(List* list, Fifo_Err* errors)
+{
+	*errors = QUEUE_ERROR;
+
+	if (list != NULL)
+	{
+		if(list->size == 0)
+		{
+			*errors = QUEUE_REF_ERR;
+		}
+		else if(list->size == 1)
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(list->begin->data);
+			free(list->begin);
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->begin = NULL;
+			list->size = 0;
+
+			*errors = QUEUE_OK;
+		}
+		else
+		{
+			List_memb* del = list->begin;
+			list->begin = list->begin->next;
+
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(del->data);
+			free(del);
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->size -= 1;
+
+			*errors = QUEUE_OK;
+		}
+	}
+}
+
+
+void list_pop_NC(List* list, Fifo_Err* errors)
+{
+	*errors = QUEUE_ERROR;
+
+	if (list != NULL)
+	{
+		if(list->size == 0)
+		{
+			*errors = QUEUE_REF_ERR;
+		}
+		else if(list->size == 1)
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(list->begin);
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->begin = NULL;
+			list->size = 0;
+
+			*errors = QUEUE_OK;
+		}
+		else
+		{
+			List_memb* del = list->begin;
+			list->begin = list->begin->next;
+
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(del);
+
+#ifdef USE_INTERRUPTS
+			IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			list->size -= 1;
+
+			*errors = QUEUE_OK;
+		}
+	}
+}
+
+
+void list_clear_C(List* list, Fifo_Err* errors)
+{
+	*errors = QUEUE_OK;
+	Fifo_Err errCheck;
+
+	while (1)
+	{
+		list_pop_C(list, &errCheck);
+
+		if( errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+			break;
+		}
+	}
+}
+
+
+void list_clear_NC(List* list, Fifo_Err* errors)
+{
+	*errors = QUEUE_OK;
+	Fifo_Err errCheck;
+
+	while (1)
+	{
+		list_pop_NC(list, &errCheck);
+
+		if( errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+			break;
+		}
+	}
+}
+
+
+void list_delete_C(List** list, Fifo_Err* errors)
+{
+	*errors = QUEUE_ERROR;
+	Fifo_Err errCheck;
+
+	if ((*list) != NULL)
+	{
+		list_clear_C(*list, &errCheck);
+		if(errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+		}
+		else
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(*list);
+
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			*list = NULL;
+
+			*errors = QUEUE_OK;
+		}
+	}
+}
+
+
+void list_delete_NC(List** list, Fifo_Err* errors)
+{
+	*errors = QUEUE_ERROR;
+	Fifo_Err errCheck;
+
+	if ((*list) != NULL)
+	{
+		list_clear_NC(*list, &errCheck);
+		if(errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+		}
+		else
+		{
+#ifdef USE_INTERRUPTS
+			IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+			free(*list);
+
+#ifdef USE_INTERRUPTS
+				IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+			*list = NULL;
+
+			*errors = QUEUE_OK;
+		}
+	}
+}
+
+
+uint8_t list_getSize(List* list, Fifo_Err* errors)
+{
+	uint8_t retVal;
+
+	if (list == NULL)
+	{
+		retVal = 0;
+		*errors = QUEUE_ERROR;
 	}
 	else
 	{
-		List_memb* del = lista->begin;
-		lista->begin = lista->begin->next;
-		IRQ_DISABLE;
-		free(del->data);
-		free(del);
-		IRQ_ENABLE;
-		lista->size -= 1;
+		retVal = list->size;
+		*errors = QUEUE_OK;
 	}
-	return true;
+
+	return retVal;
 }
 
 
-bool List_Pop_NC(List* lista)
+uint8_t list_getDataSize(List* list, Fifo_Err* errors)
 {
-	if (lista == NULL || lista->size == 0) //lista jest niezainicjalizowana
+	uint8_t retVal;
+
+	if (list == NULL)
 	{
-		return false;
+		retVal = 0;
+		*errors = QUEUE_ERROR;
 	}
-
-
-	if (lista->size == 1)
+	else if(list->size <= 0)
 	{
-		IRQ_DISABLE;
-		free(lista->begin);
-		IRQ_ENABLE;
-		lista->begin = NULL;
-		lista->size = 0;
+		retVal = 0;
+		*errors = QUEUE_REF_ERR;
 	}
 	else
 	{
-		List_memb* del = lista->begin;
-		lista->begin = lista->begin->next;
-		IRQ_DISABLE;
-		free(del);
-		IRQ_ENABLE;
-		lista->size -= 1;
+		retVal = list->begin->dataSize;
+		*errors = QUEUE_OK;
 	}
-	return true;
+
+	return retVal;
 }
-
-
-void List_Clear_C(List* lista)
-{
-	while (List_Pop_C(lista)) {}
-}
-
-
-void List_Clear_NC(List* lista)
-{
-	while (List_Pop_NC(lista)) {}
-}
-
-
-bool List_Delete_C(List** lista)
-{
-	if ((*lista) == NULL)
-		return false;
-	List_Clear_C(*lista);
-	IRQ_DISABLE;
-	free(*lista);
-	IRQ_ENABLE;
-	*lista = NULL;
-	return true;
-}
-
-
-bool List_Delete_NC(List** lista)
-{
-	if ((*lista) == NULL)
-		return false;
-	List_Clear_NC(*lista);
-	IRQ_DISABLE;
-	free(*lista);
-	IRQ_ENABLE;
-	*lista = NULL;
-	return true;
-}
-
-
-int List_GetSize(List* lista)
-{
-	return lista->size;
-}
-
-
-uint8_t List_GetDataSize(List* lista) 
-{
-	if (lista->size == 0)
-		return 0;
-	return lista->begin->dataSize;
-}
-/*----------------------------functions----------------------------*/

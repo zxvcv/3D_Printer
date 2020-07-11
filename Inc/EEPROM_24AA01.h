@@ -1,22 +1,46 @@
-/*
- * 24AA01_EEPROM.h
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
+ *  24AA01_EEPROM.h
  *
  *  Created on: 06.03.2020
  *      Author: zxvcv
+ * =======================================================================================================
+ * COMMENTS:
+ * 		Remember to use same Queue type to enqueue and dequeue.
+ * 		If the functions do not have a compatible type there, memory leaks will occur.
  *
- *
- * ******************
- * 		EXAMPLE
- * ******************
- *
- * ...
- */
+ * 		Don't mix type 1 and type 2 FIFO in one queue or memory leaks will occur.
+ * =======================================================================================================
+ * EXAMPLE:
+ * 		None
+ ********************************************************************************************************** */
 
 #ifndef EEPROM_24AA01_H_
 #define EEPROM_24AA01_H_
 
-#include "main.h"
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
+
 #include <stdbool.h>
+#include "ProjectTypes.h"
+#include "main.h"
+
+
+
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											DATA TYPES
+ * ####################################################################################################### */
 
 typedef struct EEPROMSettings{
 	bool isReady;
@@ -24,13 +48,23 @@ typedef struct EEPROMSettings{
 	I2C_HandleTypeDef* i2c;
 } EEPROMSettings;
 
-extern EEPROMSettings eeprom;
 
 
-void EEPROM_clear(EEPROMSettings *settings);
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
 
-void EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size);
 
-void EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *dataOUT, int size);
 
-#endif //EEPROM_24AA01_H_
+/* #######################################################################################################
+ *										PUBLIC DECLARATIONS
+ * ####################################################################################################### */
+
+Std_Err EEPROM_clear(EEPROMSettings *settings);
+
+Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size);
+
+Std_Err EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *dataOUT, int size);
+
+
+#endif /*EEPROM_24AA01_H_*/

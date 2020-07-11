@@ -31,14 +31,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /*----------------------------data----------------------------*/
 
-extern SPI_HandleTypeDef hspi2;
 
-ST7565R_Settings lcd = { .IOcs = { .PORT = ST7565R_CS_GPIO_Port, .PIN = ST7565R_CS_Pin },
-						 .IOrst = { .PORT = ST7565R_RST_GPIO_Port, .PIN = ST7565R_RST_Pin },
-						 .IOa0 = { .PORT = ST7565R_A0_GPIO_Port, .PIN = ST7565R_A0_Pin },
-						 .spi = &hspi2 };
 
-List* Buff_SPI_ST7565R = NULL;
+
+
+
 
 uint8_t is_reversed = 0;
 
@@ -83,7 +80,7 @@ static uint8_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
 
 /*----------------------------functions----------------------------*/
 
-static void ST7565_updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
+static void ST7565_updateBoundingBox(ST7565R_Settings* settings, uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
 #ifdef enablePartialUpdate
   if (xmin < xUpdateMin) xUpdateMin = xmin;
   if (xmax > xUpdateMax) xUpdateMax = xmax;
@@ -92,22 +89,22 @@ static void ST7565_updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, u
 #endif
 }
 
-void ST7565_drawbitmap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color) {
+void ST7565_drawbitmap(ST7565R_Settings* settings, uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color) {
   uint8_t i, j;
   for (j=0; j<h; j++) {
     for (i=0; i<w; i++ ) {
       if (bitmap[i + (j/8) * w] & (1<<(j%8))) {
-        ST7565_my_setpixel(x+i, y+j, color);
+        ST7565_my_setpixel(settings, x+i, y+j, color);
       }
     }
   }
 
-  ST7565_updateBoundingBox(x, y, x+w, y+h);
+  ST7565_updateBoundingBox(settings, x, y, x+w, y+h);
 }
 
-void ST7565_drawstring_line(uint8_t x, uint8_t line, char *c) {
+void ST7565_drawstring_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, char *c) {
   while (c[0] != 0) {
-	ST7565_drawchar_line(x, line, c[0]);
+	ST7565_drawchar_line(settings, x, line, c[0]);
     c++;
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
@@ -119,14 +116,14 @@ void ST7565_drawstring_line(uint8_t x, uint8_t line, char *c) {
   }
 }
 
-void ST7565_drawstring_pixel(uint8_t x, uint8_t y, char *c) {
+void ST7565_drawstring_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, char *c) {
   if(y%8 == 0){
-    ST7565_drawstring_line(x, y/8, c);
+    ST7565_drawstring_line(settings, x, y/8, c);
     return;
   }
 
   while (c[0] != 0) {
-	ST7565_drawchar_pixel(x, y, c[0]);
+	ST7565_drawchar_pixel(settings, x, y, c[0]);
     c++;
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
@@ -138,13 +135,13 @@ void ST7565_drawstring_pixel(uint8_t x, uint8_t y, char *c) {
   }
 }
 
-void ST7565_drawstring_P_line(uint8_t x, uint8_t line, const char *str) {
+void ST7565_drawstring_P_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, const char *str) {
   char c;
   while (1) {
     c = *str++;
     if (! c)
       return;
-    ST7565_drawchar_line(x, line, c);
+    ST7565_drawchar_line(settings, x, line, c);
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
       x = 0;    // ran out of this line
@@ -155,9 +152,9 @@ void ST7565_drawstring_P_line(uint8_t x, uint8_t line, const char *str) {
   }
 }
 
-void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *str) {
+void ST7565_drawstring_P_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, const char *str) {
   if(y%8 == 0){
-	  ST7565_drawstring_P_line(x, y/8, str);
+	  ST7565_drawstring_P_line(settings, x, y/8, str);
 	  return;
   }
 
@@ -166,7 +163,7 @@ void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *str) {
     c = *str++;
     if (! c)
       return;
-    ST7565_drawchar_pixel(x, y, c);
+    ST7565_drawchar_pixel(settings, x, y, c);
     x += 6; // 6 pixels wide
     if (x + 6 >= LCDWIDTH) {
       x = 0;    // ran out of this line
@@ -177,38 +174,38 @@ void ST7565_drawstring_P_pixel(uint8_t x, uint8_t y, const char *str) {
   }
 }
 
-void  ST7565_drawchar_line(uint8_t x, uint8_t line, char c) {
+void  ST7565_drawchar_line(ST7565R_Settings* settings, uint8_t x, uint8_t line, char c) {
   uint8_t i;
   for (i =0; i<5; i++ ) {
     st7565_buffer[x + (line*128) ] = font[((unsigned char)c * 5) + i];
     x++;
   }
 
-  ST7565_updateBoundingBox(x-5, line*8, x-1, line*8 + 8);
+  ST7565_updateBoundingBox(settings, x-5, line*8, x-1, line*8 + 8);
 }
 
-void  ST7565_drawchar_pixel(uint8_t x, uint8_t y, char c) {
+void  ST7565_drawchar_pixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, char c) {
   uint8_t i;
   uint8_t y1, y2, a, b;
   a = y%8;
   b = y/8;
   if(a==0)
-	  ST7565_drawchar_line(x, b, c);
+	  ST7565_drawchar_line(settings, x, b, c);
   else{
 	  for (i =0; i<5; i++ ) {
-		  y1 = ST7565_getbuffunit(x, b) & (0xff << (8-a));
-		  y2 = ST7565_getbuffunit(x, b+1) & (0xff >> a);
+		  y1 = ST7565_getbuffunit(settings, x, b) & (0xff << (8-a));
+		  y2 = ST7565_getbuffunit(settings, x, b+1) & (0xff >> a);
 		  y1 |= font[((unsigned char)c * 5) + i] >> a;
 		  y2 |= font[((unsigned char)c * 5) + i] << (8-a);
-		  ST7565_setbuffunit(x, b, y1);
-		  ST7565_setbuffunit(x, b+1, y2);
+		  ST7565_setbuffunit(settings, x, b, y1);
+		  ST7565_setbuffunit(settings, x, b+1, y2);
 	      x++;
 	  }
   }
 }
 
 // bresenham's algorithm - thx wikpedia
-void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
+void ST7565_drawline(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
 		      uint8_t color) {
   uint8_t steep = abs(y1 - y0) > abs(x1 - x0);
   if (steep) {
@@ -222,7 +219,7 @@ void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
   }
 
   // much faster to put the test here, since we've already sorted the points
-  ST7565_updateBoundingBox(x0, y0, x1, y1);
+  ST7565_updateBoundingBox(settings, x0, y0, x1, y1);
 
   uint8_t dx, dy;
   dx = x1 - x0;
@@ -238,9 +235,9 @@ void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
 
   for (; x0<=x1; x0++) {
     if (steep) {
-    	ST7565_my_setpixel(y0, x0, color);
+    	ST7565_my_setpixel(settings, y0, x0, color);
     } else {
-    	ST7565_my_setpixel(x0, y0, color);
+    	ST7565_my_setpixel(settings, x0, y0, color);
     }
     err -= dy;
     if (err < 0) {
@@ -251,38 +248,38 @@ void ST7565_drawline(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,
 }
 
 // filled rectangle
-void ST7565_fillrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color) {
+void ST7565_fillrect(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color) {
   uint8_t i, j;
 
   // stupidest version - just pixels - but fast with internal buffer!
   for (i=x; i<x+w; i++) {
     for (j=y; j<y+h; j++) {
-      ST7565_my_setpixel(i, j, color);
+      ST7565_my_setpixel(settings, i, j, color);
     }
   }
 
-  ST7565_updateBoundingBox(x, y, x+w, y+h);
+  ST7565_updateBoundingBox(settings, x, y, x+w, y+h);
 }
 
 // draw a rectangle
-void ST7565_drawrect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color) {
+void ST7565_drawrect(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color) {
   uint8_t i;
   // stupidest version - just pixels - but fast with internal buffer!
   for (i=x; i<x+w; i++) {
-	ST7565_my_setpixel(i, y, color);
-	ST7565_my_setpixel(i, y+h-1, color);
+	ST7565_my_setpixel(settings, i, y, color);
+	ST7565_my_setpixel(settings, i, y+h-1, color);
   }
   for (i=y; i<y+h; i++) {
-	ST7565_my_setpixel(x, i, color);
-	ST7565_my_setpixel(x+w-1, i, color);
+	ST7565_my_setpixel(settings, x, i, color);
+	ST7565_my_setpixel(settings, x+w-1, i, color);
   } 
 
-  ST7565_updateBoundingBox(x, y, x+w, y+h);
+  ST7565_updateBoundingBox(settings, x, y, x+w, y+h);
 }
 
 // draw a circle outline
-void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
-	ST7565_updateBoundingBox(x0-r, y0-r, x0+r, y0+r);
+void ST7565_drawcircle(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
+	ST7565_updateBoundingBox(settings, x0-r, y0-r, x0+r, y0+r);
 
   int8_t f = 1 - r;
   int8_t ddF_x = 1;
@@ -290,10 +287,10 @@ void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
   int8_t x = 0;
   int8_t y = r;
 
-  ST7565_my_setpixel(x0, y0+r, color);
-  ST7565_my_setpixel(x0, y0-r, color);
-  ST7565_my_setpixel(x0+r, y0, color);
-  ST7565_my_setpixel(x0-r, y0, color);
+  ST7565_my_setpixel(settings, x0, y0+r, color);
+  ST7565_my_setpixel(settings, x0, y0-r, color);
+  ST7565_my_setpixel(settings, x0+r, y0, color);
+  ST7565_my_setpixel(settings, x0-r, y0, color);
 
   while (x<y) {
     if (f >= 0) {
@@ -305,15 +302,15 @@ void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
     ddF_x += 2;
     f += ddF_x;
   
-    ST7565_my_setpixel(x0 + x, y0 + y, color);
-    ST7565_my_setpixel(x0 - x, y0 + y, color);
-    ST7565_my_setpixel(x0 + x, y0 - y, color);
-    ST7565_my_setpixel(x0 - x, y0 - y, color);
+    ST7565_my_setpixel(settings, x0 + x, y0 + y, color);
+    ST7565_my_setpixel(settings, x0 - x, y0 + y, color);
+    ST7565_my_setpixel(settings, x0 + x, y0 - y, color);
+    ST7565_my_setpixel(settings, x0 - x, y0 - y, color);
     
-    ST7565_my_setpixel(x0 + y, y0 + x, color);
-    ST7565_my_setpixel(x0 - y, y0 + x, color);
-    ST7565_my_setpixel(x0 + y, y0 - x, color);
-    ST7565_my_setpixel(x0 - y, y0 - x, color);
+    ST7565_my_setpixel(settings, x0 + y, y0 + x, color);
+    ST7565_my_setpixel(settings, x0 - y, y0 + x, color);
+    ST7565_my_setpixel(settings, x0 + y, y0 - x, color);
+    ST7565_my_setpixel(settings, x0 - y, y0 - x, color);
     
   }
 
@@ -321,8 +318,8 @@ void ST7565_drawcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
 
 }
 
-void ST7565_fillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
-  ST7565_updateBoundingBox(x0-r, y0-r, x0+r, y0+r);
+void ST7565_fillcircle(ST7565R_Settings* settings, uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
+  ST7565_updateBoundingBox(settings, x0-r, y0-r, x0+r, y0+r);
 
   int8_t f = 1 - r;
   int8_t ddF_x = 1;
@@ -332,7 +329,7 @@ void ST7565_fillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
   uint8_t i;
 
   for (i=y0-r; i<=y0+r; i++) {
-	ST7565_my_setpixel(x0, i, color);
+	ST7565_my_setpixel(settings, x0, i, color);
   }
 
   while (x<y) {
@@ -346,17 +343,17 @@ void ST7565_fillcircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color) {
     f += ddF_x;
   
     for (i=y0-y; i<=y0+y; i++) {
-      ST7565_my_setpixel(x0+x, i, color);
-      ST7565_my_setpixel(x0-x, i, color);
+      ST7565_my_setpixel(settings, x0+x, i, color);
+      ST7565_my_setpixel(settings, x0-x, i, color);
     } 
     for (i=y0-x; i<=y0+x; i++) {
-      ST7565_my_setpixel(x0+y, i, color);
-      ST7565_my_setpixel(x0-y, i, color);
+      ST7565_my_setpixel(settings, x0+y, i, color);
+      ST7565_my_setpixel(settings, x0-y, i, color);
     }    
   }
 }
 
-void ST7565_my_setpixel(uint8_t x, uint8_t y, uint8_t color) {
+void ST7565_my_setpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t color) {
   if ((x >= LCDWIDTH) || (y >= LCDHEIGHT))
     return;
 
@@ -368,7 +365,7 @@ void ST7565_my_setpixel(uint8_t x, uint8_t y, uint8_t color) {
 }
 
 // the most basic function, set a single pixel
-void ST7565_setpixel(uint8_t x, uint8_t y, uint8_t color) {
+void ST7565_setpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y, uint8_t color) {
   if ((x >= LCDWIDTH) || (y >= LCDHEIGHT))
     return;
 
@@ -378,40 +375,42 @@ void ST7565_setpixel(uint8_t x, uint8_t y, uint8_t color) {
   else
     st7565_buffer[x+ (y/8)*128] &= ~(1<<(7-(y%8)));
 
-  ST7565_updateBoundingBox(x,y,x,y);
+  ST7565_updateBoundingBox(settings, x,y,x,y);
 }
 
 // the most basic function, get a single pixel
-uint8_t ST7565_getpixel(uint8_t x, uint8_t y) {
+uint8_t ST7565_getpixel(ST7565R_Settings* settings, uint8_t x, uint8_t y) {
   if ((x >= LCDWIDTH) || (y >= LCDHEIGHT))
     return 0;
 
   return (st7565_buffer[x+ (y/8)*128] >> (7-(y%8))) & 0x1;  
 }
 
-uint8_t ST7565_getbuffunit(uint8_t x, uint8_t line) {
+uint8_t ST7565_getbuffunit(ST7565R_Settings* settings, uint8_t x, uint8_t line) {
   if ((x >= LCDWIDTH) || (line >= LCDHEIGHT / 8))
     return 0;
 
   return st7565_buffer[x + (line*128) ];
 }
 
-void ST7565_setbuffunit(uint8_t x, uint8_t line, uint8_t data) {
+void ST7565_setbuffunit(ST7565R_Settings* settings, uint8_t x, uint8_t line, uint8_t data) {
   if ((x >= LCDWIDTH) || (line >= LCDHEIGHT / 8))
     return;
   else
 	  st7565_buffer[x + (line*128) ] = data;
 }
 
-void ST7565_begin(uint8_t contrast) {
-	List_Create(&Buff_SPI_ST7565R);
-	ST7565_st7565_init();
-	ST7565_st7565_command(CMD_DISPLAY_ON);
-	ST7565_st7565_command(CMD_SET_ALLPTS_NORMAL);
-	ST7565_st7565_set_brightness(contrast);
+void ST7565_begin(ST7565R_Settings* settings, uint8_t contrast) {
+	Fifo_Err errors;
+
+	list_create(&(settings->buffer), &errors);
+	ST7565_st7565_init(settings);
+	ST7565_st7565_command(settings, CMD_DISPLAY_ON);
+	ST7565_st7565_command(settings, CMD_SET_ALLPTS_NORMAL);
+	ST7565_st7565_set_brightness(settings, contrast);
 }
 
-void ST7565_st7565_init(void) {
+void ST7565_st7565_init(ST7565R_Settings* settings) {
   // set pin directions
 //  pinMode(sid, OUTPUT);
 //  pinMode(sclk, OUTPUT);
@@ -422,41 +421,41 @@ void ST7565_st7565_init(void) {
   // toggle RST low to reset; CS low so it'll listen to us
 //  if (cs > 0)
 //    digitalWrite(cs, LOW);
-	HAL_GPIO_WritePin(lcd.IOcs.PORT, lcd.IOcs.PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(settings->IOcs.PORT, settings->IOcs.PIN, GPIO_PIN_RESET);
 
 //  digitalWrite(rst, LOW);
-	HAL_GPIO_WritePin(lcd.IOrst.PORT, lcd.IOrst.PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(settings->IOrst.PORT, settings->IOrst.PIN, GPIO_PIN_RESET);
 	HAL_Delay(500);
 
 //  digitalWrite(rst, HIGH);
-	HAL_GPIO_WritePin(lcd.IOrst.PORT, lcd.IOrst.PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(settings->IOrst.PORT, settings->IOrst.PIN, GPIO_PIN_SET);
 
   // LCD bias select
-  ST7565_st7565_command(CMD_SET_BIAS_7);
+  ST7565_st7565_command(settings, CMD_SET_BIAS_7);
   // ADC select
-  ST7565_st7565_command(CMD_SET_ADC_NORMAL);
+  ST7565_st7565_command(settings, CMD_SET_ADC_NORMAL);
   // SHL select
-  ST7565_st7565_command(CMD_SET_COM_NORMAL);
+  ST7565_st7565_command(settings, CMD_SET_COM_NORMAL);
   // Initial display line
-  ST7565_st7565_command(CMD_SET_DISP_START_LINE);
+  ST7565_st7565_command(settings, CMD_SET_DISP_START_LINE);
 
   // turn on voltage converter (VC=1, VR=0, VF=0)
-  ST7565_st7565_command(CMD_SET_POWER_CONTROL | 0x4);
+  ST7565_st7565_command(settings, CMD_SET_POWER_CONTROL | 0x4);
   // wait for 50% rising
   HAL_Delay(50);
 
   // turn on voltage regulator (VC=1, VR=1, VF=0)
-  ST7565_st7565_command(CMD_SET_POWER_CONTROL | 0x6);
+  ST7565_st7565_command(settings, CMD_SET_POWER_CONTROL | 0x6);
   // wait >=50ms
   HAL_Delay(50);
 
   // turn on voltage follower (VC=1, VR=1, VF=1)
-  ST7565_st7565_command(CMD_SET_POWER_CONTROL | 0x7);
+  ST7565_st7565_command(settings, CMD_SET_POWER_CONTROL | 0x7);
   // wait
   HAL_Delay(10);
 
   // set lcd operating voltage (regulator resistor, ref voltage resistor)
-  ST7565_st7565_command(CMD_SET_RESISTOR_RATIO | 0x6);
+  ST7565_st7565_command(settings, CMD_SET_RESISTOR_RATIO | 0x6);
 
   // initial display line
   // set page address
@@ -465,56 +464,61 @@ void ST7565_st7565_init(void) {
 
   // set up a bounding box for screen updates
 
-  ST7565_updateBoundingBox(0, 0, LCDWIDTH-1, LCDHEIGHT-1);
+  ST7565_updateBoundingBox(settings, 0, 0, LCDWIDTH-1, LCDHEIGHT-1);
 }
 
-inline void ST7565_spiwrite() {
+inline void ST7565_spiwrite(ST7565R_Settings* settings) {
   //shiftOut(sid, sclk, MSBFIRST, c);
   //while (SPI_GetFlagStatus(SPI2, SPI_FLAG_TXE) == RESET);
+	Fifo_Err errors;
 
-	DataToST7565* data = (DataToST7565*)List_Front(Buff_SPI_ST7565R);
-	HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, data->state_a0);
+	DataToST7565* data = (DataToST7565*)list_front(settings->buffer, &errors);
+	HAL_GPIO_WritePin(settings->IOa0.PORT, settings->IOa0.PIN, data->state_a0);
 
-	HAL_SPI_Transmit_IT(lcd.spi, &(data->val), 1); //SPI_SendData(SPI2, c);
+	HAL_SPI_Transmit_IT(settings->spi, &(data->val), 1); //SPI_SendData(SPI2, c);
 }
 
-void ST7565_st7565_command(uint8_t c) {
+void ST7565_st7565_command(ST7565R_Settings* settings, uint8_t c) {
+	Fifo_Err errors;
+
 	__disable_irq();
 	DataToST7565* data = (DataToST7565*)malloc(sizeof(DataToST7565));
 	__enable_irq();
 	data->state_a0 = false;
 	data->val = c;
-	List_Push_NC(Buff_SPI_ST7565R, data);
-	if(List_GetSize(Buff_SPI_ST7565R) <= 1)
-		ST7565_spiwrite();
+	list_push_NC(settings->buffer, data, &errors);
+	if(list_getSize(settings->buffer, &errors) <= 1)
+		ST7565_spiwrite(settings);
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_RESET);
 
 	//ST7565_spiwrite(c);
 }
 
-void ST7565_st7565_data(uint8_t c) {
+void ST7565_st7565_data(ST7565R_Settings* settings, uint8_t c) {
+	Fifo_Err errors;
+
 	__disable_irq();
 	DataToST7565* data = (DataToST7565*)malloc(sizeof(DataToST7565));
 	__enable_irq();
 	data->state_a0 = true;
 	data->val = c;
-	List_Push_NC(Buff_SPI_ST7565R, data);
-	if(List_GetSize(Buff_SPI_ST7565R) <= 1)
-			ST7565_spiwrite();
+	list_push_NC(settings->buffer, data, &errors);
+	if(list_getSize(settings->buffer, &errors) <= 1)
+			ST7565_spiwrite(settings);
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_SET);
 
 	//ST7565_spiwrite(c);
 }
 
-void ST7565_st7565_set_brightness(uint8_t val) {
-	ST7565_st7565_command(CMD_SET_VOLUME_FIRST);
-    ST7565_st7565_command(CMD_SET_VOLUME_SECOND | (val & 0x3f));
+void ST7565_st7565_set_brightness(ST7565R_Settings* settings, uint8_t val) {
+	ST7565_st7565_command(settings, CMD_SET_VOLUME_FIRST);
+    ST7565_st7565_command(settings, CMD_SET_VOLUME_SECOND | (val & 0x3f));
 }
 
 
-void ST7565_display(void) {
+void ST7565_display(ST7565R_Settings* settings) {
   uint8_t col, maxcol, p;
 
   /*
@@ -541,7 +545,7 @@ void ST7565_display(void) {
 #endif
 
     HAL_Delay(1);
-    ST7565_st7565_command(CMD_SET_PAGE | pagemap[p]);
+    ST7565_st7565_command(settings, CMD_SET_PAGE | pagemap[p]);
     HAL_Delay(1);//DelayuS(100);
 
 
@@ -554,17 +558,17 @@ void ST7565_display(void) {
     maxcol = LCDWIDTH;
 #endif
 
-    ST7565_st7565_command(CMD_SET_COLUMN_LOWER | ((col+ST7565_STARTBYTES) & 0xf));
+    ST7565_st7565_command(settings, CMD_SET_COLUMN_LOWER | ((col+ST7565_STARTBYTES) & 0xf));
     HAL_Delay(1);
-    ST7565_st7565_command(CMD_SET_COLUMN_UPPER | (((col+ST7565_STARTBYTES) >> 4) & 0x0F));
+    ST7565_st7565_command(settings, CMD_SET_COLUMN_UPPER | (((col+ST7565_STARTBYTES) >> 4) & 0x0F));
     HAL_Delay(1);
-    ST7565_st7565_command(CMD_RMW);
+    ST7565_st7565_command(settings, CMD_RMW);
     HAL_Delay(1);//DelayuS(100);
     
     for(; col < maxcol; col++) {
       //uart_putw_dec(col);
       //uart_putchar(' ');
-      ST7565_st7565_data(st7565_buffer[(128*p)+col]);
+      ST7565_st7565_data(settings, st7565_buffer[(128*p)+col]);
       //DelayuS(10);
     }
   }
@@ -578,14 +582,14 @@ void ST7565_display(void) {
 }
 
 // clear everything
-void ST7565_clear(void) {
+void ST7565_clear(ST7565R_Settings* settings) {
   memset(st7565_buffer, 0, 1024);
-  ST7565_updateBoundingBox(0, 0, LCDWIDTH-1, LCDHEIGHT-1);
+  ST7565_updateBoundingBox(settings, 0, 0, LCDWIDTH-1, LCDHEIGHT-1);
 }
 
 
 // this doesnt touch the buffer, just clears the display RAM - might be handy
-void ST7565_clear_display(void) {
+void ST7565_clear_display(ST7565R_Settings* settings) {
   uint8_t p, c;
   
   for(p = 0; p < 8; p++) {
@@ -595,14 +599,14 @@ void ST7565_clear_display(void) {
       putstring_nl("");
     */
 
-	ST7565_st7565_command(CMD_SET_PAGE | p);
+	ST7565_st7565_command(settings, CMD_SET_PAGE | p);
     for(c = 0; c < 128; c++) {
       //uart_putw_dec(c);
       //uart_putchar(' ');
-      ST7565_st7565_command(CMD_SET_COLUMN_LOWER | (c & 0xf));
-      ST7565_st7565_command(CMD_SET_COLUMN_UPPER | ((c >> 4) & 0xf));
+      ST7565_st7565_command(settings, CMD_SET_COLUMN_LOWER | (c & 0xf));
+      ST7565_st7565_command(settings, CMD_SET_COLUMN_UPPER | ((c >> 4) & 0xf));
       //DelayuS(10);
-      ST7565_st7565_data(0x0);
+      ST7565_st7565_data(settings, 0x0);
     }
   }
 }

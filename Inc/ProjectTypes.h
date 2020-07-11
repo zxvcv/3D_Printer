@@ -11,14 +11,16 @@
  *
  ********************************************************************************************************** */
 
-#ifndef VECTOR_OPERATIONS_
-#define VECTOR_OPERATIONS_
+#ifndef PROJECT_TYPES_H_
+#define PROJECT_TYPES_H_
 
 
 
 /* #######################################################################################################
  *											INCLUDES
  * ####################################################################################################### */
+
+#include "main.h"
 
 
 
@@ -32,16 +34,20 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct vect3D_d{
-	double x;
-	double y;
-	double z;
-}vect3D_d;
+typedef enum Std_Err_Tag{
+	STD_OK,
+	STD_ERROR,
+	STD_ALLOC_ERROR,
+	STD_REFERENCE_ERROR,
+	STD_PARAMETER_ERROR,
+	STD_BUSY_ERROR,
+	STD_TIMEOUT_ERROR
+} Std_Err;
 
-typedef struct vect2D_d{
-	double x;
-	double y;
-}vect2D_d;
+typedef struct IO_Pin_Tag{
+	GPIO_TypeDef* const PORT;
+	const uint16_t PIN;
+}IO_Pin;
 
 
 
@@ -55,10 +61,8 @@ typedef struct vect2D_d{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-vect2D_d getVelocity2D(vect2D_d move, double v);
-
-vect3D_d getVelocity3D(vect3D_d move, double v);
+Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
 
 
 
-#endif /*VECTOR_OPERATIONS_*/
+#endif /*PROJECT_TYPES_H_*/

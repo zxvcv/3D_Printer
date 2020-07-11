@@ -1,10 +1,54 @@
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
+ *
+ * =======================================================================================================
+ * COMMENTS:
+ *
+ * =======================================================================================================
+ * EXAMPLE:
+ *
+ ********************************************************************************************************** */
+
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
+
 #include "parserGCode.h"
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "vectorOperations.h"
-#include "a4988_stepstick.h"
-#include "settings.h"
-#include "projectDefines.h"
+#include "manager.h"
+
+
+
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
+
+#define ACCURACY 1000
+
+
+
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											DATA TYPES
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *										PRIVATE DEFINITIONS
+ * ####################################################################################################### */
 
 /*
  * COMMAND G1
@@ -16,41 +60,35 @@
  *	 Include an E value if you want to move the extruder as well.
  *	 Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
-void command_G1(GCodeCommand* cmd) {
+GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
 	vect3D_d move;
 
-	if(printerSettings.posMode){
-		move.x = cmd->usedFields._x == 1 ? cmd->x - (double)motors[0].data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
-				: (double)motors[0].data.err.roundingMoveError / ACCURACY;
-		move.y = cmd->usedFields._y == 1 ? cmd->y - (double)motors[1].data.position / ACCURACY// + (double)motors[1].data.err.roundingMoveError / ACCURACY
-				: (double)motors[1].data.err.roundingMoveError / ACCURACY;
-		move.z = cmd->usedFields._z == 1 ? cmd->z - (double)motors[2].data.position / ACCURACY// + (double)motors[2].data.err.roundingMoveError / ACCURACY
-				: (double)motors[2].data.err.roundingMoveError / ACCURACY;
+	if(settings->positioningMode == RELATIVE)
+	{
+		move.x = cmd->x + (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
+		move.y = cmd->y + (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
+		move.z = cmd->z + (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;
+	}
+	else if(settings->positioningMode == ABSOLUTE)
+	{
+		move.x = cmd->usedFields._x == 1 ? cmd->x - (double)settings->motors[0]->data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
+		move.y = cmd->usedFields._y == 1 ? cmd->y - (double)settings->motors[1]->data.position / ACCURACY// + (double)motors[1].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
+		move.z = cmd->usedFields._z == 1 ? cmd->z - (double)settings->motors[2]->data.position / ACCURACY// + (double)motors[2].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;
 		//clearAllMotorsRoundingErrors(&printerSettings);
-	}else{
-		move.x = cmd->x + (double)motors[0].data.err.roundingMoveError / ACCURACY;
-		move.y = cmd->y + (double)motors[1].data.err.roundingMoveError / ACCURACY;
-		move.z = cmd->z + (double)motors[2].data.err.roundingMoveError / ACCURACY;
 	}
 
 	if(cmd->usedFields._f == 1)
-		printerSettings.speed = cmd->f;
+		settings->speed = cmd->f;
 
-	vect3D_d velocity = getVelocity3D(move, printerSettings.speed);
+	vect3D_d velocity = getVelocity3D(move, settings->speed);
 
-	motors[0].data.speed = fabs(velocity.x);
-	motors[1].data.speed = fabs(velocity.y);
-	motors[2].data.speed = fabs(velocity.z);
-	motors[3].data.speed = fabs(velocity.z);
-
-	//test
-	extern UART_HandleTypeDef huart2;
-	uint8_t dt[100], siz;
-	siz = sprintf(dt, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\n", move.x, move.y, move.z, move.z);
-	HAL_UART_Transmit(&huart2, dt, siz, 1000);
-	siz = sprintf(dt, "$CntVel: %10.5f, %10.5f, %10.5f, %10.5f\n\n", velocity.x, velocity.y, velocity.z, velocity.z);
-	HAL_UART_Transmit(&huart2, dt, siz, 1000);
-	//test end
+	settings->motors[0]->data.speed = fabs(velocity.x);
+	settings->motors[1]->data.speed = fabs(velocity.y);
+	settings->motors[2]->data.speed = fabs(velocity.z);
+	settings->motors[3]->data.speed = fabs(velocity.z);
 
 #ifdef LOG_ENABLE
 #include "FIFO_void.h"
@@ -60,27 +98,34 @@ void command_G1(GCodeCommand* cmd) {
 	List_Push_C(BuffOUT_logs, data, sizee);
 	sizee = sprintf(data, "$CntMov: %10.5f, %10.5f, %10.5f, %10.5f\r\n", move.x, move.y, move.z, move.z);
 	List_Push_C(BuffOUT_logs, data, sizee);
-#endif
+#endif /*LOG_ENABLE*/
 
-	motors[0].data.err = motorSetMove(&(motors[0]), move.x);
-	motors[1].data.err = motorSetMove(&(motors[1]), move.y);
-	motors[2].data.err = motorSetMove(&(motors[2]), move.z);
-	motors[3].data.err = motorSetMove(&(motors[3]), move.z);
+	settings->motors[0]->data.err = motorSetMove(settings->motors[0], move.x);
+	settings->motors[1]->data.err = motorSetMove(settings->motors[1], move.y);
+	settings->motors[2]->data.err = motorSetMove(settings->motors[2], move.z);
+	settings->motors[3]->data.err = motorSetMove(settings->motors[3], move.z);
 
-	if(motors[0].data.err.errMove || motors[1].data.err.errMove || motors[2].data.err.errMove || motors[3].data.err.errMove){
-		printerSettings.errMove = true;
-		return;
+
+	//---------------------------------OLD---------------------------------
+
+
+
+	if(settings->motors[0]->data.err.errMove || settings->motors[1]->data.err.errMove || settings->motors[2]->data.err.errMove || settings->motors[3]->data.err.errMove){
+		settings->errMove = true;
+		return GCODE_ERROR;
 	}
 
 	__disable_irq();
-	motorStart(&(motors[0]));
-	motorStart(&(motors[1]));
-	motorStart(&(motors[2]));
-	motorStart(&(motors[3]));
+	motorStart(settings->motors[0]);
+	motorStart(settings->motors[1]);
+	motorStart(settings->motors[2]);
+	motorStart(settings->motors[3]);
 	__enable_irq();
 
-	extern bool executing_SDcommand;
-	executing_SDcommand = true;
+	settings->sdCommandState = BUSY;
+	return GCODE_OK;
+	//extern bool executing_SDcommand;
+	//executing_SDcommand = true;
 	/*
 	bool state;
 	do{
@@ -97,31 +142,33 @@ void command_G1(GCodeCommand* cmd) {
  *  If no arguments are provided, the machine will home all 3 axes. 
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
-void command_G28(GCodeCommand* cmd) {
+GCode_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings) {
 	//temporarty, in final version it could be maxSpeed of exry axis
-	motors[0].data.speed = printerSettings.speed;
-	motors[1].data.speed = printerSettings.speed;
-	motors[2].data.speed = printerSettings.speed;
-	motors[3].data.speed = printerSettings.speed;
+	settings->motors[0]->data.speed = settings->speed;
+	settings->motors[1]->data.speed = settings->speed;
+	settings->motors[2]->data.speed = settings->speed;
+	settings->motors[3]->data.speed = settings->speed;
 
 	if(cmd->usedFields._x == 1)
-		motorSetMove(&(motors[0]), -((double)motors[0].data.position/ACCURACY));
+		motorSetMove(settings->motors[0], -((double)settings->motors[0]->data.position/ACCURACY));
 	if(cmd->usedFields._y == 1)
-		motorSetMove(&(motors[1]), -((double)motors[1].data.position/ACCURACY));
+		motorSetMove(settings->motors[1], -((double)settings->motors[1]->data.position/ACCURACY));
 	if(cmd->usedFields._z == 1){
-		motorSetMove(&(motors[2]), -((double)motors[2].data.position/ACCURACY));
-		motorSetMove(&(motors[3]), -((double)motors[3].data.position/ACCURACY));
+		motorSetMove(settings->motors[2], -((double)settings->motors[2]->data.position/ACCURACY));
+		motorSetMove(settings->motors[3], -((double)settings->motors[3]->data.position/ACCURACY));
 	}
 
 	__disable_irq();
-	motorStart(&(motors[0]));
-	motorStart(&(motors[1]));
-	motorStart(&(motors[2]));
-	motorStart(&(motors[3]));
+	motorStart(settings->motors[0]);
+	motorStart(settings->motors[1]);
+	motorStart(settings->motors[2]);
+	motorStart(settings->motors[3]);
 	__enable_irq();
 
-	extern bool executing_SDcommand;
-	executing_SDcommand = true;
+	settings->sdCommandState = BUSY;
+	return GCODE_OK;
+	//extern bool executing_SDcommand;
+	//executing_SDcommand = true;
 	/*
 	bool state;
 	do{
@@ -138,8 +185,9 @@ void command_G28(GCodeCommand* cmd) {
  *  Arguments:
  *	 None
  */
-void command_G90(GCodeCommand* cmd) {
-	printerSettings.posMode = true;
+GCode_Err command_G90(GCodeCommand* cmd, DeviceSettings* settings) {
+	settings->positioningMode = ABSOLUTE;
+	return GCODE_OK;
 }
 
 /*
@@ -150,8 +198,9 @@ void command_G90(GCodeCommand* cmd) {
  *  Arguments:
  *	 None
  */
-void command_G91(GCodeCommand* cmd) {
-	printerSettings.posMode = false;
+GCode_Err command_G91(GCodeCommand* cmd, DeviceSettings* settings) {
+	settings->positioningMode = RELATIVE;
+	return GCODE_OK;
 }
 
 /*
@@ -163,15 +212,16 @@ void command_G91(GCodeCommand* cmd) {
  *   You can include the X, Y, Z, and E axes. 
  *   If you do not include one of these axes in the command, the position will remain unchanged.
  */
-void command_G92(GCodeCommand* cmd) {
+GCode_Err command_G92(GCodeCommand* cmd, DeviceSettings* settings) {
 	if(cmd->usedFields._x == 1)
-		motors[0].data.position = cmd->x; //poprawic (ACCURACY)
+		settings->motors[0]->data.position = cmd->x; //poprawic (ACCURACY)
 	if(cmd->usedFields._y == 1)
-		motors[1].data.position = cmd->y; //poprawic (ACCURACY)
+		settings->motors[1]->data.position = cmd->y; //poprawic (ACCURACY)
 	if(cmd->usedFields._z == 1)
-		motors[2].data.position = cmd->z; //poprawic (ACCURACY)
+		settings->motors[2]->data.position = cmd->z; //poprawic (ACCURACY)
 	//if(cmd->usedFields._e == 1)
 		//set extruder positoin
+	return GCODE_OK;
 }
 
 /*
@@ -183,8 +233,8 @@ void command_G92(GCodeCommand* cmd) {
  *  Arguments:
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
-void command_M104(GCodeCommand* cmd) {
-
+GCode_Err command_M104(GCodeCommand* cmd, DeviceSettings* settings) {
+	return GCODE_OK;
 }
 
 /*
@@ -196,8 +246,8 @@ void command_M104(GCodeCommand* cmd) {
  *  Arguments:
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
-void command_M109(GCodeCommand* cmd) {
-
+GCode_Err command_M109(GCodeCommand* cmd, DeviceSettings* settings) {
+	return GCODE_OK;
 }
 
 /*
@@ -209,8 +259,8 @@ void command_M109(GCodeCommand* cmd) {
  *  Arguments:
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
-void command_M140(GCodeCommand* cmd) {
-
+GCode_Err command_M140(GCodeCommand* cmd, DeviceSettings* settings) {
+	return GCODE_OK;
 }
 
 /*
@@ -222,26 +272,26 @@ void command_M140(GCodeCommand* cmd) {
  *  Arguments:
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
-void command_M190(GCodeCommand* cmd) {
-
+GCode_Err command_M190(GCodeCommand* cmd, DeviceSettings* settings) {
+	return GCODE_OK;
 }
 
 /*
  * COMMAND M106
- *  This command allows you to set the speed of your printer’s part cooling fan.
+ *  This command allows you to set the speed of your printerï¿½s part cooling fan.
  *	This is an external cooling fan that is pointed towards the part that you are printing.
  *
  *  Arguments:
  *	 The S value sets the speed of the cooling fan in a range between 0 (off) and 255 (full power).
  */
-void command_M106(GCodeCommand* cmd) {
-
+GCode_Err command_M106(GCodeCommand* cmd, DeviceSettings* settings) {
+	return GCODE_OK;
 }
 
 
 const struct {
 	char* name;
-	void (*execute)(GCodeCommand*);
+	GCode_Err (*execute)(GCodeCommand*, DeviceSettings*);
 } commands[GCODE_COMMANDS_NUM] = {
 		{	"G1",	command_G1		},
 		{	"G28",	command_G28		},
@@ -256,7 +306,12 @@ const struct {
 };
 
 
-void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
+
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
+
+GCode_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 	char* token = NULL, * cmdName = NULL;
 	double val;
 
@@ -284,12 +339,13 @@ void parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
 			break;
 		}
 	}
+	return GCODE_OK;
 }
 
-bool executeGCodeCommand(GCodeCommand* cmd) {
+GCode_Err executeGCodeCommand(GCodeCommand* cmd) {
 	if (cmd->execute == NULL)
-		return false;
+		return GCODE_ERROR;
 	
-	cmd->execute(cmd);
-	return true;
+	cmd->execute(cmd, &printerSettings);
+	return GCODE_OK;
 }

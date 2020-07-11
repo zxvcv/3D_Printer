@@ -1,22 +1,53 @@
-/*
- * PRZYK£AD U¯YCIA:
+/* #######################################################################################################
+ *											INTRODUCTION
+ * ####################################################################################################### */
+/* *********************************************************************************************************
  *
- *	char cmdName[50]; //must ends with '\0'
- *	GCodeCommand cmd;
- *	parseGCodeCommand(cmdName, &cmd);
- *	executeGCodeCommand(&cmd);
+ * =======================================================================================================
+ * COMMENTS:
  *
- */
+ * =======================================================================================================
+ * EXAMPLE:
+ *		char cmdName[50]; //must ends with '\0'
+ *		GCodeCommand cmd;
+ *		parseGCodeCommand(cmdName, &cmd);
+ *		executeGCodeCommand(&cmd);
+ ********************************************************************************************************** */
 
 #ifndef PARSER_GCODE_H_
 #define PARSER_GCODE_H_
 
+
+
+/* #######################################################################################################
+ *											INCLUDES
+ * ####################################################################################################### */
+
 #include <stdbool.h>
+#include "a4988_stepstick.h"
+#include "manager.h"
+
+
+
+/* #######################################################################################################
+ *											DEFINES
+ * ####################################################################################################### */
 
 #define GCODE_COMMANDS_NUM 10
 
-typedef struct GCodeCommand{
-	void (*execute)(struct GCodeCommand*) ;	//command pointer
+
+
+/* #######################################################################################################
+ *											DATA TYPES
+ * ####################################################################################################### */
+
+typedef enum GCode_Err_Tag{
+	GCODE_OK,
+	GCODE_ERROR
+} GCode_Err;
+
+typedef struct GCodeCommand_Tag{
+	GCode_Err (*execute)(struct GCodeCommand_Tag*, DeviceSettings*) ;	//command pointer
 	int cmdNum;
 
 	double x;				//X-axis move
@@ -34,9 +65,23 @@ typedef struct GCodeCommand{
 		unsigned short _f : 1;
 		unsigned short _s : 1;
 	}usedFields;
-} GCodeCommand;
+}GCodeCommand;
 
-void parseGCodeCommand(char* cmd, GCodeCommand* cpOUT);
-bool executeGCodeCommand(GCodeCommand* cmd);
 
-#endif // PARSER_GCODE_H_
+
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *										PUBLIC DECLARATIONS
+ * ####################################################################################################### */
+
+GCode_Err parseGCodeCommand(char* cmd, GCodeCommand* cpOUT);
+GCode_Err executeGCodeCommand(GCodeCommand* cmd);
+
+
+
+#endif /*PARSER_GCODE_H_*/
