@@ -2,7 +2,10 @@
  *											INTRODUCTION
  * ####################################################################################################### */
 /* *********************************************************************************************************
+ *  interrupts.c
  *
+ *  Created on: 04.11.2019
+ *      Author: zxvcv
  * =======================================================================================================
  * COMMENTS:
  *
@@ -11,22 +14,14 @@
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
-
 
 
 /* #######################################################################################################
  *											INCLUDES
  * ####################################################################################################### */
 
-#include <stdbool.h>
-#include "a4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "ST7565.h"
-#include "diskio.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
+#include "interrupts.h"
+#include "manager.h"
 
 
 
@@ -34,7 +29,13 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define MOTORS_NUM 4
+
+
+/* #######################################################################################################
+ *											EXTERNS
+ * ####################################################################################################### */
+
+extern DeviceSettings printerSettings; /* manager.h */
 
 
 
@@ -42,67 +43,60 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct MotorData_EEPROM{
-	double maxSpeed;
-
-	int stepSize;
-
-	int positionZero;
-	int positionEnd;
-}MotorData_EEPROM;
-
-typedef struct DeviceSettings_Tag{
-	enum {
-		RELATIVE,
-		ABSOLUTE
-	}positioningMode;
-
-	enum {
-		IDLE,
-		READY,
-		BUSY
-	}sdCommandState;
-
-	FATFS* fatfs;
-
-	SDCard_Settings* sd;
-
-	MotorSettings* motors[MOTORS_NUM];
-
-	EEPROMSettings* eeprom;
-
-	ST7565R_Settings* lcd;
-
-	BT_Settings* bt;
-
-	bool errMove;
-
-	double speed;
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}DeviceSettings;
-
 
 
 /* #######################################################################################################
- *											EXTERNS
+ *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
+//transmisja danych do wyswietlacza ST7565
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
+	Fifo_Err errors;
 
+	list_pop_C(printerSettings.lcd->buffer, &errors);
+	__disable_irq();
+	int size = list_getSize(printerSettings.lcd->buffer, &errors);
+	__enable_irq();
 
-/* #######################################################################################################
- *										PUBLIC DECLARATIONS
- * ####################################################################################################### */
+	if(size > 0)
+		ST7565_spiwrite(printerSettings.lcd);
+}
 
-void init_manager(DeviceSettings* settings);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	for(int i=0; i< MOTORS_NUM; ++i)
+		if(motorIsOn(printerSettings.motors[i]))
+			motorUpdate(printerSettings.motors[i]);
+}
 
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	Fifo_Err errors;
 
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	__disable_irq();
+	list_pop_C(printerSettings.bt->Buff_Bt_OUT, &errors);
+	__enable_irq();
 
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
+	if(list_getSize(printerSettings.bt->Buff_Bt_OUT, &errors) == 0)
+	{
+		printerSettings.bt->transmissionBT = false;
+	}
+	else
+	{
+		HAL_UART_Transmit_IT(printerSettings.bt->huart, (uint8_t*)list_front(printerSettings.bt->Buff_Bt_OUT, &errors), list_getDataSize(printerSettings.bt->Buff_Bt_OUT, &errors));
+	}
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+}
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	Fifo_Err errors;
 
+	if(huart == printerSettings.bt->huart){
+		list_push_C(printerSettings.bt->Buff_Bt_IN, &(printerSettings.bt->recievedBT), 1, &errors);
 
-#endif /*MANAGER_H_*/
+		if(printerSettings.bt->recievedBT == '\n')
+			printerSettings.bt->EOL_BT_recieved = true;
+		HAL_UART_Receive_IT(printerSettings.bt->huart, &(printerSettings.bt->recievedBT), 1);
+	}
+}

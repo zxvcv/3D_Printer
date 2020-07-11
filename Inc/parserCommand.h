@@ -11,8 +11,8 @@
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
+#ifndef PARSER_COMMAND_H_
+#define PARSER_COMMAND_H_
 
 
 
@@ -21,12 +21,7 @@
  * ####################################################################################################### */
 
 #include <stdbool.h>
-#include "a4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "ST7565.h"
-#include "diskio.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
+#include "manager.h"
 
 
 
@@ -34,7 +29,9 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define MOTORS_NUM 4
+#define SYSTEM_COMMANDS_NUM 11
+#define SYSTEM_COMMANDS_MOTORS_MAX_NUM 2
+#define SYSTEM_COMMANDS_ARGS_MAX_NUM 2
 
 
 
@@ -42,46 +39,12 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct MotorData_EEPROM{
-	double maxSpeed;
-
-	int stepSize;
-
-	int positionZero;
-	int positionEnd;
-}MotorData_EEPROM;
-
-typedef struct DeviceSettings_Tag{
-	enum {
-		RELATIVE,
-		ABSOLUTE
-	}positioningMode;
-
-	enum {
-		IDLE,
-		READY,
-		BUSY
-	}sdCommandState;
-
-	FATFS* fatfs;
-
-	SDCard_Settings* sd;
-
-	MotorSettings* motors[MOTORS_NUM];
-
-	EEPROMSettings* eeprom;
-
-	ST7565R_Settings* lcd;
-
-	BT_Settings* bt;
-
-	bool errMove;
-
-	double speed;
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}DeviceSettings;
+typedef struct SystemCommand{
+	void (*execute)(struct SystemCommand*, DeviceSettings*) ;	//command pointer
+	uint8_t motorsNum;
+	MotorSettings *motor[SYSTEM_COMMANDS_MOTORS_MAX_NUM];
+	double arg[SYSTEM_COMMANDS_ARGS_MAX_NUM];
+} SystemCommand;
 
 
 
@@ -95,14 +58,7 @@ typedef struct DeviceSettings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_manager(DeviceSettings* settings);
+void parseSystemCommand(char* cmd, SystemCommand* cpOUT, DeviceSettings* settings);
+bool executeSystemCommand(SystemCommand* cmd, DeviceSettings* settings);
 
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
-
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
-
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
-
-
-
-#endif /*MANAGER_H_*/
+#endif /*PARSER_COMMAND_H_*/

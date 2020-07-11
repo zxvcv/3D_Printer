@@ -31,8 +31,6 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define USE_INTERRUPTS
-
 #ifdef USE_INTERRUPTS
 #define IRQ_ENABLE __enable_irq()
 #define IRQ_DISABLE __disable_irq()

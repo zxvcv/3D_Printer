@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "manager.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +52,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+extern DeviceSettings printerSettings;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,6 +108,29 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+	for(int i=0; i<MOTORS_NUM; ++i)
+		motorInit(printerSettings.motors[i]);
+	HAL_TIM_Base_Start_IT(&htim6);
+	ST7565_begin(printerSettings.lcd, 0x08);
+	ST7565_clear_display(printerSettings.lcd);
+	/*
+	ST7565_clear();
+	drawInterface();
+	InterfaceValues val = { .instruction = 0,
+			  	  	  	  	.numOfInstructions = 0,
+							.posX = 0.0,
+							.posY = 0.0,
+							.posZ = 0.0,
+							.tmpH = 0.0,
+							.tmpB = 0.0
+	};
+	updateValues(&val);
+	*/
+	//reading data form EEPROM
+	for(int i=0; i<MOTORS_NUM; ++i)
+		getMotorData_EEPROM(printerSettings.motors[i], printerSettings.eeprom);
+
+	init_manager(&printerSettings);
 
   /* USER CODE END 2 */
 
@@ -115,7 +138,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+	  //System Commands
+	  parse_data_BT(printerSettings.bt);
+	  execute_command_BT(printerSettings.bt);
+	  send_command_BT(printerSettings.bt);
+
+
+	  //SDcard Commands
+	  parse_data_SDcard(printerSettings.sd);
+	  execute_command_SDcard(printerSettings.sd);
+
+#ifdef LOG_ENABLE
+	  send_logs_SDcard();
+#endif
+
+	  reset_commands_SDcard(printerSettings.sd);
+	  detecting_endCommand_SDcard(printerSettings.sd);
+
+	/* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }

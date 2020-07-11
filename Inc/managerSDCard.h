@@ -5,14 +5,14 @@
  *
  * =======================================================================================================
  * COMMENTS:
- *
+ * 		.
  * =======================================================================================================
  * EXAMPLE:
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
+#ifndef MANAGER_SDCARD_H_
+#define MANAGER_SDCARD_H_
 
 
 
@@ -21,12 +21,8 @@
  * ####################################################################################################### */
 
 #include <stdbool.h>
-#include "a4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "ST7565.h"
+#include "FIFO_void.h"
 #include "diskio.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
 
 
 
@@ -34,7 +30,7 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define MOTORS_NUM 4
+#define BYTES_TO_READ 50
 
 
 
@@ -42,46 +38,24 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct MotorData_EEPROM{
-	double maxSpeed;
+typedef struct SDCard_Settings_Tag{
+	FIL* file;
 
-	int stepSize;
+	List* BuffIN_SDcmd;
 
-	int positionZero;
-	int positionEnd;
-}MotorData_EEPROM;
+	uint8_t activeTab;
+	uint8_t dataSDin[2][BYTES_TO_READ];
+	uint8_t counterTab[2];
 
-typedef struct DeviceSettings_Tag{
-	enum {
-		RELATIVE,
-		ABSOLUTE
-	}positioningMode;
+	bool end_SDprogram;
+	bool executing_SDprogram;
+	bool executing_SDcommand;
 
-	enum {
-		IDLE,
-		READY,
-		BUSY
-	}sdCommandState;
-
-	FATFS* fatfs;
-
-	SDCard_Settings* sd;
-
-	MotorSettings* motors[MOTORS_NUM];
-
-	EEPROMSettings* eeprom;
-
-	ST7565R_Settings* lcd;
-
-	BT_Settings* bt;
-
-	bool errMove;
-
-	double speed;
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}DeviceSettings;
+#ifdef LOG_ENABLE
+	FIL* logFile;
+	List* BuffOUT_logs = NULL;
+#endif /*LOG_ENABLE*/
+}SDCard_Settings;
 
 
 
@@ -95,14 +69,15 @@ typedef struct DeviceSettings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_manager(DeviceSettings* settings);
+void init_operations_SDcard(SDCard_Settings* settings);
+void parse_data_SDcard(SDCard_Settings* settings);
+void execute_command_SDcard(SDCard_Settings* settings);
+#ifdef LOG_ENABLE
+void send_logs_SDcard();
+#endif
+void reset_commands_SDcard(SDCard_Settings* settings);
+void detecting_endCommand_SDcard(SDCard_Settings* settings);
 
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
-
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
-
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
 
 
-
-#endif /*MANAGER_H_*/
+#endif /*MANAGER_SDCARD_H_*/

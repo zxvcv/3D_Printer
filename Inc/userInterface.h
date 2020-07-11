@@ -11,8 +11,8 @@
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
+#ifndef USER_INTERFACE_H_
+#define USER_INTERFACE_H_
 
 
 
@@ -20,13 +20,7 @@
  *											INCLUDES
  * ####################################################################################################### */
 
-#include <stdbool.h>
-#include "a4988_stepstick.h"
-#include "EEPROM_24AA01.h"
 #include "ST7565.h"
-#include "diskio.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
 
 
 
@@ -34,54 +28,21 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define MOTORS_NUM 4
-
 
 
 /* #######################################################################################################
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct MotorData_EEPROM{
-	double maxSpeed;
-
-	int stepSize;
-
-	int positionZero;
-	int positionEnd;
-}MotorData_EEPROM;
-
-typedef struct DeviceSettings_Tag{
-	enum {
-		RELATIVE,
-		ABSOLUTE
-	}positioningMode;
-
-	enum {
-		IDLE,
-		READY,
-		BUSY
-	}sdCommandState;
-
-	FATFS* fatfs;
-
-	SDCard_Settings* sd;
-
-	MotorSettings* motors[MOTORS_NUM];
-
-	EEPROMSettings* eeprom;
-
-	ST7565R_Settings* lcd;
-
-	BT_Settings* bt;
-
-	bool errMove;
-
-	double speed;
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}DeviceSettings;
+typedef struct InterfaceValues{
+	int instruction;
+	int numOfInstructions;
+	float posX;
+	float posY;
+	float posZ;
+	float tmpH;
+	float tmpB;
+} InterfaceValues;
 
 
 
@@ -95,14 +56,9 @@ typedef struct DeviceSettings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_manager(DeviceSettings* settings);
-
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
-
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
-
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
+void drawInterface(ST7565R_Settings* settings);
+void updateValues(InterfaceValues *val, ST7565R_Settings* settings);
 
 
 
-#endif /*MANAGER_H_*/
+#endif /*USER_INTERFACE_H_*/

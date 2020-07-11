@@ -11,77 +11,19 @@
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
-
 
 
 /* #######################################################################################################
  *											INCLUDES
  * ####################################################################################################### */
 
-#include <stdbool.h>
-#include "a4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "ST7565.h"
-#include "diskio.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
+#include "userInterface.h"
 
 
 
 /* #######################################################################################################
  *											DEFINES
  * ####################################################################################################### */
-
-#define MOTORS_NUM 4
-
-
-
-/* #######################################################################################################
- *											DATA TYPES
- * ####################################################################################################### */
-
-typedef struct MotorData_EEPROM{
-	double maxSpeed;
-
-	int stepSize;
-
-	int positionZero;
-	int positionEnd;
-}MotorData_EEPROM;
-
-typedef struct DeviceSettings_Tag{
-	enum {
-		RELATIVE,
-		ABSOLUTE
-	}positioningMode;
-
-	enum {
-		IDLE,
-		READY,
-		BUSY
-	}sdCommandState;
-
-	FATFS* fatfs;
-
-	SDCard_Settings* sd;
-
-	MotorSettings* motors[MOTORS_NUM];
-
-	EEPROMSettings* eeprom;
-
-	ST7565R_Settings* lcd;
-
-	BT_Settings* bt;
-
-	bool errMove;
-
-	double speed;
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}DeviceSettings;
 
 
 
@@ -92,17 +34,44 @@ typedef struct DeviceSettings_Tag{
 
 
 /* #######################################################################################################
- *										PUBLIC DECLARATIONS
+ *											DATA TYPES
  * ####################################################################################################### */
 
-void init_manager(DeviceSettings* settings);
-
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
-
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
-
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
 
 
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
 
-#endif /*MANAGER_H_*/
+void drawInterface(ST7565R_Settings* settings){
+	ST7565_drawstring_P_line(settings, 5, 0, "Instruction: ");
+	ST7565_drawchar_line(settings, 90, 0, '/');
+	ST7565_drawstring_P_line(settings, 5, 2, "Pos X: ");
+	ST7565_drawstring_P_line(settings, 5, 3, "Pos Y: ");
+	ST7565_drawstring_P_line(settings, 5, 4, "Pos Z: ");
+	ST7565_drawstring_P_line(settings, 5, 6, "Tmp  head: ");
+	ST7565_drawstring_P_line(settings, 5, 7, "Tmp board: ");
+	ST7565_display(settings);
+}
+
+void updateValues(InterfaceValues *val, ST7565R_Settings* settings){
+	char buff[20];
+	itoa(val->instruction, buff, 10);
+	ST7565_drawstring_line(settings, 70, 0, buff);
+	itoa(val->numOfInstructions, buff, 10);
+	ST7565_drawstring_line(settings, 92, 0, buff);
+	/*
+	ftoa(val->posX, buff, 2);
+	ST7565_drawstring_line(50, 2, buff);
+	ftoa(val->posY, buff, 2);
+	ST7565_drawstring_line(50, 3, buff);
+	ftoa(val->posZ, buff, 2);
+	ST7565_drawstring_line(50, 4, buff);
+	ftoa(val->tmpH, buff, 2);
+	ST7565_drawstring_line(80, 6, buff);
+	ftoa(val->tmpB, buff, 2);
+	ST7565_drawstring_line(80, 7, buff);
+	*/
+	ST7565_display(settings);
+}
+
