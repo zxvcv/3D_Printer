@@ -10,11 +10,11 @@ add_subdirectory(googletest)
 
 include_directories(../Inc)
 
-set(Headers
+set(Headers 
     ../Inc/FIFO_void.h
 )
 
-set(Sources
+set(Sources 
     ../Src/FIFO_void.c
 )
 
@@ -22,6 +22,7 @@ set(Sources
 #tested code will be a library for this program
 
 add_library(${This} STATIC ${Headers} ${Sources})
+
 
 #tests
 add_subdirectory(Tests/fifo)

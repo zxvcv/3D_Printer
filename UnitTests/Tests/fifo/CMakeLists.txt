@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10.2)
 
-set(This FIFO_void_Test)
+set(This FIFO_void_UT)
+
 
 set(Sources
-    fifo_UT.cpp
+    FIFO_void_UT.cpp
 )
 
 add_executable(${This} ${Sources})

@@ -208,9 +208,9 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 			}
 			else
 			{
-				list->begin->next = NULL;
-				list->begin->data = val;
-				list->begin->dataSize = 0;
+				prev->next->next = NULL;
+				prev->next->data = val;
+				prev->next->dataSize = 0;
 				list->size += 1;
 
 				*errors = QUEUE_OK;
@@ -350,16 +350,26 @@ void list_clear_C(List* list, Fifo_Err* errors)
 	*errors = QUEUE_OK;
 	Fifo_Err errCheck;
 
-	while (1)
+	while (list_getSize(list, &errCheck) > 0)
 	{
+		if(errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+			break;
+		}
+
 		list_pop_C(list, &errCheck);
 
-		if( errCheck != QUEUE_OK)
+		if(errCheck != QUEUE_OK)
 		{
 			*errors = errCheck;
 			break;
 		}
 	}
+
+	if(errCheck != QUEUE_OK)
+		*errors = errCheck;
+
 }
 
 
@@ -368,22 +378,32 @@ void list_clear_NC(List* list, Fifo_Err* errors)
 	*errors = QUEUE_OK;
 	Fifo_Err errCheck;
 
-	while (1)
+	while (list_getSize(list, &errCheck) > 0)
 	{
+		if(errCheck != QUEUE_OK)
+		{
+			*errors = errCheck;
+			break;
+		}
+
 		list_pop_NC(list, &errCheck);
 
-		if( errCheck != QUEUE_OK)
+		if(errCheck != QUEUE_OK)
 		{
 			*errors = errCheck;
 			break;
 		}
 	}
+
+	if(errCheck != QUEUE_OK)
+		*errors = errCheck;
+
 }
 
 
 void list_delete_C(List** list, Fifo_Err* errors)
 {
-	*errors = QUEUE_ERROR;
+	*errors = QUEUE_OK;
 	Fifo_Err errCheck;
 
 	if ((*list) != NULL)
@@ -406,8 +426,6 @@ void list_delete_C(List** list, Fifo_Err* errors)
 #endif /* USE_INTERRUPTS */
 
 			*list = NULL;
-
-			*errors = QUEUE_OK;
 		}
 	}
 }
@@ -415,7 +433,7 @@ void list_delete_C(List** list, Fifo_Err* errors)
 
 void list_delete_NC(List** list, Fifo_Err* errors)
 {
-	*errors = QUEUE_ERROR;
+	*errors = QUEUE_OK;
 	Fifo_Err errCheck;
 
 	if ((*list) != NULL)
