@@ -12,10 +12,12 @@ include_directories(../Inc)
 
 set(Headers 
     ../Inc/FIFO_void.h
+    ../Inc/vectorOperations.h
 )
 
 set(Sources 
     ../Src/FIFO_void.c
+    ../Src/vectorOperations.c
 )
 
 #test will be a program
@@ -26,3 +28,4 @@ add_library(${This} STATIC ${Headers} ${Sources})
 
 #tests
 add_subdirectory(Tests/fifo)
+add_subdirectory(Tests/vectorOperations)

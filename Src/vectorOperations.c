@@ -49,16 +49,34 @@
 
 vect2D_d getVelocity2D(vect2D_d move, double v){
 	double alfa;
-	vect2D_d vel = {1.,1.};
+	vect2D_d vel;
+	vect2D_d sign;
 
-	if(move.x == 0 || move.y == 0){
-		vel.x = v;
-		vel.y = v;
-	}else{
-		alfa = atan(move.y / move.x);
-		vel.x = cos(alfa) * v;
-		vel.y = sin(alfa) * v;
+	sign.x = signbit(move.x) ? -1 : 1;
+	sign.y = signbit(move.y) ? -1 : 1;
+
+	if(move.x == 0 && move.y == 0)
+	{
+		vel.x = 0;
+		vel.y = 0;
 	}
+	else if(move.x == 0)
+	{
+		vel.x = 0;
+		vel.y = v * sign.y;
+	}
+	else if(move.y == 0)
+	{
+		vel.x = v * sign.x;
+		vel.y = 0;
+	}
+	else
+	{
+		alfa = atan(move.y / move.x);
+		vel.x = fabs(cos(alfa) * v) * sign.x;
+		vel.y = fabs(sin(alfa) * v) * sign.y;
+	}
+	
 	return vel;
 }
 
@@ -67,6 +85,7 @@ vect3D_d getVelocity3D(vect3D_d move, double v){
 	double mProjXY, vProjXY;
 	vect3D_d vel;
 	vect2D_d vect2D;
+	vect3D_d sign;
 
 	if(move.x == 0){
 		vel.x = 0.;
@@ -90,14 +109,19 @@ vect3D_d getVelocity3D(vect3D_d move, double v){
 		vel.x = vect2D.x;
 		vel.y = vect2D.y;
 	}else{
+		sign.x = signbit(move.x) ? -1 : 1;
+		sign.y = signbit(move.y) ? -1 : 1;
+		sign.z = signbit(move.z) ? -1 : 1;
+
 		alfa = atan(move.y / move.x);
 		mProjXY = move.y / sin(alfa);
 		beta = atan(mProjXY / move.z);
-		vel.z = cos(beta) * v;
+		vel.z = fabs(cos(beta) * v) * sign.z;
 		vProjXY = sin(beta) * v;
-		vel.x = cos(alfa) * vProjXY;
-		vel.y = sin(alfa) * vProjXY;
+		vel.x = fabs(cos(alfa) * vProjXY) * sign.x;
+		vel.y = fabs(sin(alfa) * vProjXY) * sign.y;
 	}
+
 	return vel;
 }
 
