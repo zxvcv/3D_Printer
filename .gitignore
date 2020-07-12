@@ -73,3 +73,11 @@ Debug/
 .sts4-cache/
 
 # End of https://www.gitignore.io/api/eclipse
+
+####################### Unit Tests ####################
+
+#google test repo
+UnitTests/googletest
+
+#make build
+UnitTests/build/
