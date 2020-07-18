@@ -4,7 +4,7 @@
 
 extern "C"
 {
-    #include "../../../Inc/FIFO_void.h"
+    #include "FIFO_void.h"
 }
 
 class Fifo_void_test : public ::testing::Test {

@@ -6,7 +6,7 @@
 
 extern "C"
 {
-    #include "../../../Inc/vectorOperations.h"
+    #include "vectorOperations.h"
 }
 
 class VectorOperations_test : public ::testing::Test {

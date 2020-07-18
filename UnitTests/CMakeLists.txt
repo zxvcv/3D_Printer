@@ -8,24 +8,12 @@ enable_testing()
 
 add_subdirectory(googletest)
 
-include_directories(../Inc)
-
-set(Headers 
-    ../Inc/FIFO_void.h
-    ../Inc/vectorOperations.h
-)
-
-set(Sources 
-    ../Src/FIFO_void.c
-    ../Src/vectorOperations.c
-)
 
 #test will be a program
 #tested code will be a library for this program
 
-add_library(${This} STATIC ${Headers} ${Sources})
 
-
-#tests
+#***** tests *****#
 add_subdirectory(Tests/fifo)
 add_subdirectory(Tests/vectorOperations)
+add_subdirectory(Tests/a4988_stepstick)

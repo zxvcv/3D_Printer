@@ -197,7 +197,7 @@ void detecting_endCommand_SDcard(SDCard_Settings* settings){
 	if(settings->executing_SDcommand){
 		bool flag = false;
 		for(int i=0; i<MOTORS_NUM; ++i)
-			flag |= printerSettings.motors[i]->isOn;
+			flag |= printerSettings.motors[i]->flags.isOn;
 		if(!flag)
 			settings->executing_SDcommand = false;
 	}

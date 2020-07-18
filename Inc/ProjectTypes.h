@@ -45,8 +45,8 @@ typedef enum Std_Err_Tag{
 } Std_Err;
 
 typedef struct IO_Pin_Tag{
-	GPIO_TypeDef* const PORT;
-	const uint16_t PIN;
+	GPIO_TypeDef* PORT;
+	uint16_t PIN;
 }IO_Pin;
 
 

@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "manager.h"
+#include "ProjectObjects.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

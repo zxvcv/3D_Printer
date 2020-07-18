@@ -69,8 +69,8 @@ void systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings){
 	Fifo_Err errors;
 
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i){
-		msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", cmd->motor[i]->data.motorNum, (double)cmd->motor[i]->data.position / ACCURACY, (double)cmd->motor[i]->data.positionZero / ACCURACY,
-				(double)cmd->motor[i]->data.positionEnd / ACCURACY, cmd->motor[i]->data.speed, cmd->motor[i]->data.maxSpeed);
+		msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", cmd->motor[i]->device.motorNum, (double)cmd->motor[i]->data.position / ACCURACY, (double)cmd->motor[i]->device.positionZero / ACCURACY,
+				(double)cmd->motor[i]->device.positionEnd / ACCURACY, cmd->motor[i]->data.speed, cmd->motor[i]->device.maxSpeed);
 		list_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize, &errors);
 	}
 }
@@ -78,7 +78,7 @@ void systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings){
 void systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings){
 	double move = cmd->arg[0] - ((double)cmd->motor[0]->data.position / ACCURACY);
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		settings->motors[i]->data.err = motorSetMove(cmd->motor[i], move);
+		motorSetMove(cmd->motor[i], move, &(settings->motors[i]->data.err));
 
 	__disable_irq();
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
@@ -95,8 +95,8 @@ void systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings){
 
 void systemCmd_MotorPositionValueSet(SystemCommand* cmd, DeviceSettings* settings){
 	int argInt = (int)(cmd->arg[0] * ACCURACY);
-	if(argInt >= cmd->motor[0]->data.positionZero &&
-	   argInt <= cmd->motor[0]->data.positionEnd ){
+	if(argInt >= cmd->motor[0]->device.positionZero &&
+	   argInt <= cmd->motor[0]->device.positionEnd ){
 		cmd->motor[0]->data.position = argInt;
 	}
 	systemCmd_MotorDataRequest(cmd, settings);
@@ -104,21 +104,21 @@ void systemCmd_MotorPositionValueSet(SystemCommand* cmd, DeviceSettings* setting
 
 void systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings){
 	int argInt = (int)(cmd->arg[0] * ACCURACY);
-	cmd->motor[0]->data.positionZero = argInt;
-	EEPROM_writeData(settings->eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONZERO, (uint8_t*)(&argInt), sizeof(argInt));
+	cmd->motor[0]->device.positionZero = argInt;
+	EEPROM_writeData(settings->eeprom, cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONZERO, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorDataRequest(cmd, settings);
 }
 
 void systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings){
 	int argInt = (int)(cmd->arg[0] * ACCURACY);
-	cmd->motor[0]->data.positionEnd = argInt;
-	EEPROM_writeData(settings->eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_POSITIONEND, (uint8_t*)(&argInt), sizeof(argInt));
+	cmd->motor[0]->device.positionEnd = argInt;
+	EEPROM_writeData(settings->eeprom, cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONEND, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorDataRequest(cmd, settings);
 }
 
 void systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		settings->motors[i]->data.err = motorSetMove(cmd->motor[i], cmd->arg[0] + (double)settings->motors[i]->data.err.roundingMoveError / ACCURACY);
+		motorSetMove(cmd->motor[i], cmd->arg[0] + (double)settings->motors[i]->data.err.moveError / ACCURACY, &(settings->motors[i]->data.err));
 	__disable_irq();
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 		motorStart(cmd->motor[i]);
@@ -135,7 +135,7 @@ void systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings){
 
 void systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-		if(cmd->arg[0] <= cmd->motor[i]->data.maxSpeed && cmd->arg[0] >= 0)
+		if(cmd->arg[0] <= cmd->motor[i]->device.maxSpeed && cmd->arg[0] >= 0)
 			cmd->motor[i]->data.speed = cmd->arg[0];
 
 	systemCmd_MotorDataRequest(cmd, settings);
@@ -144,8 +144,8 @@ void systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings){
 void systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings){
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i){
 		if(cmd->arg[0] >= 0)
-			cmd->motor[i]->data.maxSpeed = cmd->arg[0];
-		EEPROM_writeData(settings->eeprom, cmd->motor[i]->eepromDataAddress + _OFFSET_MAXSPEED, (uint8_t*)(cmd->arg), sizeof(double));
+			cmd->motor[i]->device.maxSpeed = cmd->arg[0];
+		EEPROM_writeData(settings->eeprom, cmd->motor[i]->device.eepromDataAddress + _OFFSET_MAXSPEED, (uint8_t*)(cmd->arg), sizeof(double));
 	}
 	systemCmd_MotorDataRequest(cmd, settings);
 }
@@ -153,15 +153,15 @@ void systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings){
 void systemCmd_MotorsStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings){
 	Fifo_Err errors;
 
-	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", (double)(settings->motors[0]->stepSize) / ACCURACY, (double)(settings->motors[1]->stepSize) / ACCURACY,
-			(double)(settings->motors[2]->stepSize) / ACCURACY, (double)(settings->motors[3]->stepSize) / ACCURACY, (double)0);
+	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", (double)(settings->motors[0]->device.stepSize) / ACCURACY, (double)(settings->motors[1]->device.stepSize) / ACCURACY,
+			(double)(settings->motors[2]->device.stepSize) / ACCURACY, (double)(settings->motors[3]->device.stepSize) / ACCURACY, (double)0);
 	list_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize, &errors);
 }
 
 void systemCmd_MotorsStepSizeSet(SystemCommand* cmd, DeviceSettings* settings){
 	int argInt = (int)(cmd->arg[0] * ACCURACY);
-	cmd->motor[0]->stepSize = argInt;
-	EEPROM_writeData(settings->eeprom, cmd->motor[0]->eepromDataAddress + _OFFSET_STEPSIZE, (uint8_t*)(&argInt), sizeof(argInt));
+	cmd->motor[0]->device.stepSize = argInt;
+	EEPROM_writeData(settings->eeprom, cmd->motor[0]->device.eepromDataAddress + _OFFSET_STEPSIZE, (uint8_t*)(&argInt), sizeof(argInt));
 	systemCmd_MotorsStepSizeRequest(cmd, settings);
 }
 

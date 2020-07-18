@@ -64,21 +64,24 @@ extern DeviceSettings printerSettings; /* TO DO delete this extern */
  */
 GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
 	vect3D_d move;
+	move.x = 0; move.y = 0; move.z = 0;
 
 	if(settings->positioningMode == RELATIVE)
 	{
-		move.x = cmd->x + (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
+		/*TO DO: commented to be compilable*/
+		/*move.x = cmd->x + (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
 		move.y = cmd->y + (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
-		move.z = cmd->z + (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;
+		move.z = cmd->z + (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;*/
 	}
 	else if(settings->positioningMode == ABSOLUTE)
 	{
-		move.x = cmd->usedFields._x == 1 ? cmd->x - (double)settings->motors[0]->data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
+		/*TO DO: commented to be compilable*/
+		/*move.x = cmd->usedFields._x == 1 ? cmd->x - (double)settings->motors[0]->data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
 				: (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
 		move.y = cmd->usedFields._y == 1 ? cmd->y - (double)settings->motors[1]->data.position / ACCURACY// + (double)motors[1].data.err.roundingMoveError / ACCURACY
 				: (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
 		move.z = cmd->usedFields._z == 1 ? cmd->z - (double)settings->motors[2]->data.position / ACCURACY// + (double)motors[2].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;
+				: (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;*/
 		//clearAllMotorsRoundingErrors(&printerSettings);
 	}
 
@@ -102,17 +105,19 @@ GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
 	List_Push_C(BuffOUT_logs, data, sizee);
 #endif /*LOG_ENABLE*/
 
-	settings->motors[0]->data.err = motorSetMove(settings->motors[0], move.x);
-	settings->motors[1]->data.err = motorSetMove(settings->motors[1], move.y);
-	settings->motors[2]->data.err = motorSetMove(settings->motors[2], move.z);
-	settings->motors[3]->data.err = motorSetMove(settings->motors[3], move.z);
+	bool error = false;
+	error |= motorSetMove(settings->motors[0], move.x, &(settings->motors[0]->data.err));
+	error |= motorSetMove(settings->motors[1], move.y, &(settings->motors[1]->data.err));
+	error |= motorSetMove(settings->motors[2], move.z, &(settings->motors[2]->data.err));
+	error |= motorSetMove(settings->motors[3], move.z, &(settings->motors[3]->data.err));
 
 
 	//---------------------------------OLD---------------------------------
 
 
 
-	if(settings->motors[0]->data.err.errMove || settings->motors[1]->data.err.errMove || settings->motors[2]->data.err.errMove || settings->motors[3]->data.err.errMove){
+	if(error)
+	{
 		settings->errMove = true;
 		return GCODE_ERROR;
 	}
@@ -151,14 +156,15 @@ GCode_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings) {
 	settings->motors[2]->data.speed = settings->speed;
 	settings->motors[3]->data.speed = settings->speed;
 
-	if(cmd->usedFields._x == 1)
+	/*TO DO: commented to be compilable*/
+	/*if(cmd->usedFields._x == 1)
 		motorSetMove(settings->motors[0], -((double)settings->motors[0]->data.position/ACCURACY));
 	if(cmd->usedFields._y == 1)
 		motorSetMove(settings->motors[1], -((double)settings->motors[1]->data.position/ACCURACY));
 	if(cmd->usedFields._z == 1){
 		motorSetMove(settings->motors[2], -((double)settings->motors[2]->data.position/ACCURACY));
 		motorSetMove(settings->motors[3], -((double)settings->motors[3]->data.position/ACCURACY));
-	}
+	}*/
 
 	__disable_irq();
 	motorStart(settings->motors[0]);

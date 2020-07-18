@@ -24,7 +24,8 @@
  * ####################################################################################################### */
 
 #include "EEPROM_24AA01.h"
-#include "stm32f3xx_hal_def.h"
+//#include "stm32f3xx_hal_def.h"
+#include "main.h"
 
 
 

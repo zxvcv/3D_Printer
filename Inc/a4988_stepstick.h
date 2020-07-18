@@ -58,42 +58,15 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef enum MOTOR_STEP_FAZE{
-	HIGH = GPIO_PIN_SET,
-	LOW = GPIO_PIN_RESET,
-}MOTOR_STEP_FAZE;
-
-typedef enum MOTOR_DIRECTION_FAZE{
-	CLOCK = GPIO_PIN_SET, //zgodnie ze wskaz�wkami zegara
-	RCLOCK = GPIO_PIN_RESET //przeciwnie do ruchu wskazowek zegara (reverse clock)
-}MOTOR_DIRECTION_FAZE;
-
-typedef enum MOTOR_SLEEP_FAZE{
-	AWAKE = GPIO_PIN_SET,
-	SLEEP = GPIO_PIN_RESET
-}MOTOR_SLEEP_FAZE;
-
-typedef enum MOTOR_RESET_FAZE{
-	START = GPIO_PIN_SET,
-	STOP = GPIO_PIN_RESET
-}MOTOR_RESET_FAZE;
-
 typedef struct RoundingErrorData{
-	int roundingMoveError;
-	double roundingSpeedError;
-	bool errMove;
+	int moveError;
+	double speedError;
 } RoundingErrorData;
 
 typedef struct MotorData{
-	uint8_t motorNum;
-
 	int position; //pos * ACCURACY
-	RoundingErrorData err;
 	double speed;
-
-	double maxSpeed;
-	int positionZero; //posZero * ACCURACY
-	int positionEnd; //posEnd * ACCURACY
+	RoundingErrorData err;
 } MotorData;
 
 typedef struct MotorSettings_Tag{
@@ -102,21 +75,34 @@ typedef struct MotorSettings_Tag{
 	IO_Pin IOdirection;
 	IO_Pin IOstep;
 
-	bool isOn;
-	MOTOR_STEP_FAZE stateStep;
-	bool isReversed;
-	MOTOR_DIRECTION_FAZE stateDirection;
-	MOTOR_SLEEP_FAZE stateSleep;
-	MOTOR_RESET_FAZE stateReset;
+	struct{
+		unsigned int isOn		:1;		/*(1-on			0-off				)*/
+		unsigned int reset		:1;		/*(1-yes		0-no				)*/
+		unsigned int sleep		:1;		/*(1-yes		0-no				)*/
+		unsigned int stepPhase	:1;		/*(1-high		0-low				)*/
+		unsigned int direction	:1;		/*(1-clockwise,	0-counter clockwise	)*/
+	}flags;
+
+	struct{
+		uint16_t changeTime;
+		uint16_t stepLeft;
+	}counters;
 
 	uint16_t changeTime;
-	uint16_t changeTimeCounter;
-	uint16_t stepLeftCounter;
 
-	double timerFrequency;	//[Hz] timer frequency
-	int stepSize;			//[mm] length of move with one motor step (stepSize * ACCURACY)
+	struct{
+		uint8_t motorNum;
 
-	uint8_t eepromDataAddress;
+		uint8_t eepromDataAddress;
+
+		double timerFrequency;	//[Hz] timer frequency
+		int stepSize;			//[mm] length of move with one motor step (stepSize * ACCURACY)
+		bool isReversed;
+
+		double maxSpeed;
+		int positionZero; //posZero * ACCURACY
+		int positionEnd; //posEnd * ACCURACY
+	}device;
 
 	MotorData data;
 } MotorSettings;
@@ -133,23 +119,25 @@ typedef struct MotorSettings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void  motorInit(MotorSettings* settings);
+void motorUpdatePins(MotorSettings* settings);
+
+void motorInit(MotorSettings* settings);
 
 bool motorUpdate(MotorSettings* settings);
 
-RoundingErrorData motorSetMove(MotorSettings* settings, double move);
+bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError);
 
-void motorStart(MotorSettings* settings);
+bool motorStart(MotorSettings* settings);
 
-void motorStop(MotorSettings* settings);
+bool motorStop(MotorSettings* settings);
 
 bool motorIsOn(MotorSettings* settings);
 
-MOTOR_RESET_FAZE motorGetReset(MotorSettings* settings);
+bool motorGetReset(MotorSettings* settings);
 
-MOTOR_DIRECTION_FAZE motorGetDirection(MotorSettings* settings);
+bool motorGetDirection(MotorSettings* settings);
 
-MOTOR_SLEEP_FAZE motorGetSleep(MotorSettings* settings);
+bool motorGetSleep(MotorSettings* settings);
 
 double motorGetTimerFreq(MotorSettings* settings);
 
