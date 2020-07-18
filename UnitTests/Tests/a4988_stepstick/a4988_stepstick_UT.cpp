@@ -50,6 +50,7 @@ public:
 
 
     MotorSettings* motor;
+    
     static Mock_A4988_stepstick* mock;
 };
 
