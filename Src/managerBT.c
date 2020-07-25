@@ -46,14 +46,36 @@ extern DeviceSettings printerSettings; /* TO DO delete this extern */
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-void init_operations_BT(BT_Settings* settings){
-	Fifo_Err errors;
+Std_Err init_operations_BT(BT_Settings* settings){
+	Std_Err retVal = STD_OK;
+	Fifo_Err fifoErr;
+	HAL_StatusTypeDef halStatus;
 
-	list_create(&(settings->Buff_InputCommandsBT), &errors);
-	list_create(&(settings->Buff_Bt_IN), &errors);
-	list_create(&(settings->Buff_Bt_OUT), &errors);
+	list_create(&(settings->Buff_InputCommandsBT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
 
-	HAL_UART_Receive_IT(settings->huart, &(settings->recievedBT), 1);
+	list_create(&(settings->Buff_Bt_IN), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	list_create(&(settings->Buff_Bt_OUT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	halStatus = HAL_UART_Receive_IT(settings->huart, &(settings->recievedBT), 1);
+	if(halStatus != HAL_OK)
+	{
+		return translate_error_hal_to_project(halStatus);
+	}
+
+	return retVal;
 }
 
 void execute_command_BT(BT_Settings* settings){
@@ -97,3 +119,29 @@ void send_command_BT(BT_Settings* settings){
 	}
 }
 
+Std_Err deinit_operations_BT(BT_Settings* settings)
+{
+	Std_Err retVal = STD_OK;
+	Fifo_Err fifoErr;
+	HAL_StatusTypeDef halStatus;
+
+	list_delete_C(&(settings->Buff_InputCommandsBT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	list_delete_C(&(settings->Buff_Bt_IN), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	list_delete_C(&(settings->Buff_Bt_OUT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	return retVal;
+}

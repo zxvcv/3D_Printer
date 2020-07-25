@@ -43,7 +43,8 @@
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus){
+Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus)
+{
 	Std_Err retVal;
 
 	switch(halStatus){

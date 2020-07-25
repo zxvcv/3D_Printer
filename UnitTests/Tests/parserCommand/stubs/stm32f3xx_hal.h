@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "ff.h"
 
 #ifndef NULL
 #define NULL ((void *)0)
@@ -67,8 +68,20 @@ typedef struct __TIM_HandleTypeDef
 {
 
 } TIM_HandleTypeDef;
+/*
+typedef struct {
+
+} FATFS;
+
+typedef struct {
+
+} FIL;
+
+typedef char TCHAR;
+typedef unsigned char	BYTE;
 
 
+*/
 I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi2;
@@ -79,11 +92,17 @@ TIM_HandleTypeDef htim6;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
-
 void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
 
-#include "managerBT.h"
-Std_Err init_operations_BT(BT_Settings* settings);
+HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
+  uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, 
+  uint32_t Timeout);
+HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
+  uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, 
+  uint32_t Timeout);
+
+FRESULT f_open (FIL* fp, const TCHAR* path,	BYTE mode);
+FRESULT f_mount (FATFS* fs,	const TCHAR* path, BYTE opt);
 
 
 #endif /* __STM32F3xx_HAL_H */

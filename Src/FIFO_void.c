@@ -504,3 +504,18 @@ uint8_t list_getDataSize(List* list, Fifo_Err* errors)
 
 	return retVal;
 }
+
+
+Std_Err translate_error_fifo_to_project(Fifo_Err fifoErr)
+{
+	Std_Err retVal;
+
+	switch(fifoErr){
+	case QUEUE_OK: retVal = STD_OK; break;
+	case QUEUE_ERROR: retVal = STD_ERROR; break;
+	case QUEUE_REF_ERR: retVal = STD_REFERENCE_ERROR; break;
+	case QUEUE_ALLOC_ERR: retVal = STD_ALLOC_ERROR; break;
+	default: retVal = STD_ERROR; break;
+	}
+	return retVal;
+}

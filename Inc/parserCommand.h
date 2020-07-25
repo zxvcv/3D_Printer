@@ -40,7 +40,7 @@
  * ####################################################################################################### */
 
 typedef struct SystemCommand{
-	void (*execute)(struct SystemCommand*, DeviceSettings*) ;	//command pointer
+	Std_Err (*execute)(struct SystemCommand*, DeviceSettings*) ;	//command pointer
 	uint8_t motorsNum;
 	MotorSettings *motor[SYSTEM_COMMANDS_MOTORS_MAX_NUM];
 	double arg[SYSTEM_COMMANDS_ARGS_MAX_NUM];
@@ -58,7 +58,7 @@ typedef struct SystemCommand{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void parseSystemCommand(char* cmd, SystemCommand* cpOUT, DeviceSettings* settings);
-bool executeSystemCommand(SystemCommand* cmd, DeviceSettings* settings);
+Std_Err parseSystemCommand(char* cmd, SystemCommand* cpOUT, DeviceSettings* settings);
+Std_Err executeSystemCommand(SystemCommand* cmd, DeviceSettings* settings);
 
 #endif /*PARSER_COMMAND_H_*/

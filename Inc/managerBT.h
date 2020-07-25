@@ -60,10 +60,11 @@ typedef struct BT_Settings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_operations_BT(BT_Settings* settings);
+Std_Err init_operations_BT(BT_Settings* settings);
 void execute_command_BT(BT_Settings* settings);
 void parse_data_BT(BT_Settings* settings);
 void send_command_BT(BT_Settings* settings);
+Std_Err deinit_operations_BT(BT_Settings* settings);
 
 
 

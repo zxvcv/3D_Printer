@@ -80,10 +80,15 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 
-void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
+HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, 
+  uint16_t Size);
+HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, 
+  uint16_t Size);
 
-#include "managerBT.h"
-Std_Err init_operations_BT(BT_Settings* settings);
+FRESULT f_mount (FATFS* fs, const TCHAR* path, BYTE opt);
+FRESULT f_open (FIL* fp, const TCHAR* path, BYTE mode);
+//#include "managerBT.h"
+//void init_operations_BT(BT_Settings* settings);
 
 
 #endif /* __STM32F3xx_HAL_H */

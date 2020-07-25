@@ -100,6 +100,7 @@ void motorInit(MotorSettings* settings)
 
 bool motorUpdate(MotorSettings* settings)
 {
+	/*this is only function where returning false means error TODO: change this behaviour*/
 	/*TODO: distinguishing between errors*/
 	bool returnVal = false;
 
@@ -175,7 +176,7 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 		roundingError->speedError = 0;
 
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 	double changeFreq = _speed / ((double)_stepSize / ACCURACY);
 	double changeTimeD = settings->device.timerFrequency / (changeFreq * 2);
@@ -206,7 +207,7 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 		roundingError->speedError = 0;
 
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 	else if(abs(accuracy1) <= abs(accuracy2))
 	{
@@ -233,7 +234,7 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 
 
 	/*TODO: distinguishing between errors*/
-	return true;
+	return false;
 }
 
 bool motorStart(MotorSettings* settings)
@@ -241,19 +242,19 @@ bool motorStart(MotorSettings* settings)
 	if(settings->counters.stepLeft <= 0 || settings->changeTime <= 0)
 	{
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 
 	if(settings->flags.reset)
 	{
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 
 	if(settings->flags.stepPhase != LOW)
 	{
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 
 	settings->flags.sleep = 0;
@@ -263,7 +264,7 @@ bool motorStart(MotorSettings* settings)
 	motorUpdatePins(settings);
 
 	/*TODO: distinguishing between errors*/
-	return true;
+	return false;
 }
 
 bool motorStop(MotorSettings* settings)
@@ -273,7 +274,7 @@ bool motorStop(MotorSettings* settings)
 	if(settings->flags.reset)
 	{
 		/*TODO: distinguishing between errors*/
-		return false;
+		return true;
 	}
 
 	settings->flags.isOn = 0;
@@ -283,13 +284,13 @@ bool motorStop(MotorSettings* settings)
 	{
 		/*TODO: move not end info/error*/
 		/*TODO: distinguishing between errors*/
-		returnVal = true;
+		returnVal = false;
 	}
 	else
 	{
 		/*TODO: move end ok info*/
 		/*TODO: distinguishing between errors*/
-		returnVal = true;
+		returnVal = false;
 	}
 	
 	if(settings->flags.stepPhase != LOW)
@@ -298,7 +299,7 @@ bool motorStop(MotorSettings* settings)
 
 		/*TODO: move 1step info*/
 		/*TODO: distinguishing between errors*/
-		returnVal = true;
+		returnVal = false;
 	}
 
 	/*TODO: check if the "motorUpdate" function should be called here*/
