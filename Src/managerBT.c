@@ -123,7 +123,6 @@ Std_Err deinit_operations_BT(BT_Settings* settings)
 {
 	Std_Err retVal = STD_OK;
 	Fifo_Err fifoErr;
-	HAL_StatusTypeDef halStatus;
 
 	list_delete_C(&(settings->Buff_InputCommandsBT), &fifoErr);
 	if(fifoErr != QUEUE_OK)

@@ -101,7 +101,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__Start__test)
 
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStart(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(motor->flags.sleep, 0);
     EXPECT_EQ(motor->flags.isOn, 1);
 }
@@ -119,14 +119,14 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopBeforeMoveIsEnded_HalfStepMove
 
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStart(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorUpdate(motor);
     EXPECT_TRUE(ret);
 
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStop(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(motor->counters.stepLeft, 3);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
@@ -145,7 +145,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopBeforeMoveIsEnded_FullStepMove
 
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStart(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     for(int i=0; i<2; ++i)
     {
         EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
@@ -155,7 +155,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopBeforeMoveIsEnded_FullStepMove
     
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStop(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(motor->counters.stepLeft, 2);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
@@ -174,7 +174,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopAfterMoveIsEnded__test)
 
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStart(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     for(int i=0; i<4; ++i)
     {
         EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
@@ -184,7 +184,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopAfterMoveIsEnded__test)
     
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
     ret = motorStop(motor);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(motor->counters.stepLeft, 0);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
@@ -228,7 +228,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic1__test)
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     
     EXPECT_EQ(motor->counters.stepLeft, 50);
     EXPECT_EQ(motor->counters.changeTime, 10);
@@ -250,7 +250,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic2__test)
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     
     EXPECT_EQ(motor->counters.stepLeft, 68);
     EXPECT_EQ(motor->counters.changeTime, 10);
@@ -271,7 +271,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_SpeedOutOfRange__test)
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
     
     EXPECT_EQ(motor->counters.stepLeft, 0);
     EXPECT_EQ(motor->counters.changeTime, 0);
@@ -292,7 +292,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveLowOutOfRange__tes
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
     
     EXPECT_EQ(motor->counters.stepLeft, 0);
     EXPECT_EQ(motor->counters.changeTime, 0);
@@ -313,7 +313,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveHighOutOfRange__te
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
     
     EXPECT_EQ(motor->counters.stepLeft, 0);
     EXPECT_EQ(motor->counters.changeTime, 0);
@@ -334,7 +334,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveLowOnTheBorder__te
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     EXPECT_EQ(motor->counters.stepLeft,98);
     EXPECT_EQ(motor->counters.changeTime, 10);
@@ -355,7 +355,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveHighOnTheBorder__t
     motor->data.err.speedError = 0;
 
     ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     EXPECT_EQ(motor->counters.stepLeft, 98);
     EXPECT_EQ(motor->counters.changeTime, 10);

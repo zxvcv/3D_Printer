@@ -41,23 +41,20 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef enum GCode_Err_Tag{
-	GCODE_OK,
-	GCODE_ERROR
-} GCode_Err;
-
 typedef struct GCodeCommand_Tag{
-	GCode_Err (*execute)(struct GCodeCommand_Tag*, DeviceSettings*) ;	//command pointer
+	Std_Err (*execute)(struct GCodeCommand_Tag*, DeviceSettings*) ;	//command pointer
 	int cmdNum;
 
-	double x;				//X-axis move
-	double y;				//Y-axis move
-	double z;				//Z-axis move
-	double e;				//extruder-axis move
-	double f;				//speed of the movement
-	double s;				//temperature
+	struct{
+		double x;				//X-axis move
+		double y;				//Y-axis move
+		double z;				//Z-axis move
+		double e;				//extruder-axis move
+		double f;				//speed of the movement
+		double s;				//temperature
+	}data;
 
-	struct UsedFields{
+	struct{
 		unsigned short _x : 1;
 		unsigned short _y : 1;
 		unsigned short _z : 1;
@@ -79,8 +76,8 @@ typedef struct GCodeCommand_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-GCode_Err parseGCodeCommand(char* cmd, GCodeCommand* cpOUT);
-GCode_Err executeGCodeCommand(GCodeCommand* cmd);
+Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cpOUT);
+Std_Err executeGCodeCommand(GCodeCommand* cmd, DeviceSettings* settings);
 
 
 

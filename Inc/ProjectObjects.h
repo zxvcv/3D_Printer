@@ -62,7 +62,6 @@ typedef struct DeviceSettings_Tag{
 
 	enum {
 		IDLE,
-		READY,
 		BUSY
 	}sdCommandState;
 

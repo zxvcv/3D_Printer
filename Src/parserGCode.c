@@ -23,6 +23,7 @@
 #include <math.h>
 #include "vectorOperations.h"
 #include "manager.h"
+#include "ProjectTypes.h"
 
 
 
@@ -37,8 +38,6 @@
 /* #######################################################################################################
  *											EXTERNS
  * ####################################################################################################### */
-
-extern DeviceSettings printerSettings; /* TO DO delete this extern */
 
 
 
@@ -62,31 +61,43 @@ extern DeviceSettings printerSettings; /* TO DO delete this extern */
  *	 Include an E value if you want to move the extruder as well.
  *	 Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
-GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
+Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	Std_Err stdErr = STD_OK;
+	bool motorErr = false;
 	vect3D_d move;
-	move.x = 0; move.y = 0; move.z = 0;
+	move.x = 0;
+	move.y = 0;
+	move.z = 0;
 
 	if(settings->positioningMode == RELATIVE)
 	{
-		/*TO DO: commented to be compilable*/
-		/*move.x = cmd->x + (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
-		move.y = cmd->y + (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
-		move.z = cmd->z + (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;*/
+		move.x = cmd->data.x + (double)settings->motors[0]->data.err.moveError / ACCURACY;
+		move.y = cmd->data.y + (double)settings->motors[1]->data.err.moveError / ACCURACY;
+		move.z = cmd->data.z + (double)settings->motors[2]->data.err.moveError / ACCURACY;
 	}
 	else if(settings->positioningMode == ABSOLUTE)
 	{
-		/*TO DO: commented to be compilable*/
-		/*move.x = cmd->usedFields._x == 1 ? cmd->x - (double)settings->motors[0]->data.position / ACCURACY// + (double)motors[0].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[0]->data.err.roundingMoveError / ACCURACY;
-		move.y = cmd->usedFields._y == 1 ? cmd->y - (double)settings->motors[1]->data.position / ACCURACY// + (double)motors[1].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[1]->data.err.roundingMoveError / ACCURACY;
-		move.z = cmd->usedFields._z == 1 ? cmd->z - (double)settings->motors[2]->data.position / ACCURACY// + (double)motors[2].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[2]->data.err.roundingMoveError / ACCURACY;*/
+		move.x = cmd->usedFields._x == 1 ? cmd->data.x - (double)settings->motors[0]->data.position / ACCURACY
+				// + (double)motors[0].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[0]->data.err.moveError / ACCURACY;
+
+		move.y = cmd->usedFields._y == 1 ? cmd->data.y - (double)settings->motors[1]->data.position / ACCURACY
+				// + (double)motors[1].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[1]->data.err.moveError / ACCURACY;
+
+		move.z = cmd->usedFields._z == 1 ? cmd->data.z - (double)settings->motors[2]->data.position / ACCURACY
+				// + (double)motors[2].data.err.roundingMoveError / ACCURACY
+				: (double)settings->motors[2]->data.err.moveError / ACCURACY;
+
 		//clearAllMotorsRoundingErrors(&printerSettings);
 	}
 
 	if(cmd->usedFields._f == 1)
-		settings->speed = cmd->f;
+	{
+		settings->speed = cmd->data.f;
+	}
 
 	vect3D_d velocity = getVelocity3D(move, settings->speed);
 
@@ -105,40 +116,48 @@ GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
 	List_Push_C(BuffOUT_logs, data, sizee);
 #endif /*LOG_ENABLE*/
 
-	bool error = false;
-	error |= motorSetMove(settings->motors[0], move.x, &(settings->motors[0]->data.err));
-	error |= motorSetMove(settings->motors[1], move.y, &(settings->motors[1]->data.err));
-	error |= motorSetMove(settings->motors[2], move.z, &(settings->motors[2]->data.err));
-	error |= motorSetMove(settings->motors[3], move.z, &(settings->motors[3]->data.err));
+	motorErr |= motorSetMove(settings->motors[0], move.x, &(settings->motors[0]->data.err));
+	motorErr |= motorSetMove(settings->motors[1], move.y, &(settings->motors[1]->data.err));
+	motorErr |= motorSetMove(settings->motors[2], move.z, &(settings->motors[2]->data.err));
+	motorErr |= motorSetMove(settings->motors[3], move.z, &(settings->motors[3]->data.err));
 
-
-	//---------------------------------OLD---------------------------------
-
-
-
-	if(error)
+	if(motorErr)
 	{
+		/*TODO: check if field settings->errMove is needed*/
 		settings->errMove = true;
-		return GCODE_ERROR;
+		return STD_ERROR;
 	}
 
-	__disable_irq();
-	motorStart(settings->motors[0]);
-	motorStart(settings->motors[1]);
-	motorStart(settings->motors[2]);
-	motorStart(settings->motors[3]);
-	__enable_irq();
+#ifdef USE_INTERRUPTS
+	IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+	motorErr |= motorStart(settings->motors[0]);
+	motorErr |= motorStart(settings->motors[1]);
+	motorErr |= motorStart(settings->motors[2]);
+	motorErr |= motorStart(settings->motors[3]);
+
+	if(motorErr)
+	{
+		settings->errMove = true;
+		return STD_ERROR;
+	}
+
+#ifdef USE_INTERRUPTS
+	IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+
+	bool state;
+	do
+	{
+		state = motorIsOn(settings->motors[MOTOR_X]) | 
+				motorIsOn(settings->motors[MOTOR_Y]) | 
+				motorIsOn(settings->motors[MOTOR_Z1]) | 
+				motorIsOn(settings->motors[MOTOR_Z2]);
+	}while(state);
 
 	settings->sdCommandState = BUSY;
-	return GCODE_OK;
-	//extern bool executing_SDcommand;
-	//executing_SDcommand = true;
-	/*
-	bool state;
-	do{
-		state = motorIsOn(&(motors[0])) | motorIsOn(&(motors[1])) | motorIsOn(&(motors[2])) | motorIsOn(&(motors[3]));
-	}while(state);
-	*/
+	return stdErr;
 }
 
 /*
@@ -149,40 +168,94 @@ GCode_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings) {
  *  If no arguments are provided, the machine will home all 3 axes. 
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
-GCode_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings) {
+Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	Std_Err stdErr = STD_OK;
+	bool motorErr = false;
+	RoundingErrorData roundingError;
+	
 	//temporarty, in final version it could be maxSpeed of exry axis
 	settings->motors[0]->data.speed = settings->speed;
 	settings->motors[1]->data.speed = settings->speed;
 	settings->motors[2]->data.speed = settings->speed;
 	settings->motors[3]->data.speed = settings->speed;
 
-	/*TO DO: commented to be compilable*/
-	/*if(cmd->usedFields._x == 1)
-		motorSetMove(settings->motors[0], -((double)settings->motors[0]->data.position/ACCURACY));
+	if(cmd->usedFields._x == 1)
+	{
+		motorErr = motorSetMove(settings->motors[MOTOR_X], 
+								-((double)settings->motors[0]->data.position/ACCURACY), 
+								&roundingError);
+		if(motorErr)
+		{
+			return STD_ERROR;
+		}
+	}
+		
 	if(cmd->usedFields._y == 1)
-		motorSetMove(settings->motors[1], -((double)settings->motors[1]->data.position/ACCURACY));
-	if(cmd->usedFields._z == 1){
-		motorSetMove(settings->motors[2], -((double)settings->motors[2]->data.position/ACCURACY));
-		motorSetMove(settings->motors[3], -((double)settings->motors[3]->data.position/ACCURACY));
-	}*/
+	{
+		motorErr = motorSetMove(settings->motors[MOTOR_Y], 
+								-((double)settings->motors[1]->data.position/ACCURACY),
+								&roundingError);
+		if(motorErr)
+		{
+			return STD_ERROR;
+		}
+	}
+		
+	if(cmd->usedFields._z == 1)
+	{
+		motorErr = motorSetMove(settings->motors[MOTOR_Z1],
+								 -((double)settings->motors[2]->data.position/ACCURACY),
+								 &roundingError);
+		if(motorErr)
+		{
+			return STD_ERROR;
+		}
+		
+		motorErr = motorSetMove(settings->motors[MOTOR_Z2], 
+								-((double)settings->motors[3]->data.position/ACCURACY),
+								&roundingError);
+		if(motorErr)
+		{
+			return STD_ERROR;
+		}
+	}
 
-	__disable_irq();
-	motorStart(settings->motors[0]);
-	motorStart(settings->motors[1]);
-	motorStart(settings->motors[2]);
-	motorStart(settings->motors[3]);
-	__enable_irq();
+#ifdef USE_INTERRUPTS
+	IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+	motorErr |= motorStart(settings->motors[0]);
+	motorErr |= motorStart(settings->motors[1]);
+	motorErr |= motorStart(settings->motors[2]);
+	motorErr |= motorStart(settings->motors[3]);
+
+	if(motorErr)
+	{
+#ifdef USE_INTERRUPTS
+		IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+		return STD_ERROR;
+	}
+
+#ifdef USE_INTERRUPTS
+	IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
 
 	settings->sdCommandState = BUSY;
-	return GCODE_OK;
-	//extern bool executing_SDcommand;
-	//executing_SDcommand = true;
-	/*
+
 	bool state;
 	do{
-		state = motorIsOn(&(motors[0])) | motorIsOn(&(motors[1])) | motorIsOn(&(motors[2])) | motorIsOn(&(motors[3]));
+		state = motorIsOn(settings->motors[MOTOR_X]) | 
+				motorIsOn(settings->motors[MOTOR_Y]) | 
+				motorIsOn(settings->motors[MOTOR_Z1]) | 
+				motorIsOn(settings->motors[MOTOR_Z2]);
 	}while(state);
-	*/
+
+	settings->sdCommandState = IDLE;
+
+	return stdErr;
 }
 
 /*
@@ -193,9 +266,11 @@ GCode_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 None
  */
-GCode_Err command_G90(GCodeCommand* cmd, DeviceSettings* settings) {
+Std_Err command_G90(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
 	settings->positioningMode = ABSOLUTE;
-	return GCODE_OK;
+	return STD_OK;
 }
 
 /*
@@ -206,9 +281,11 @@ GCode_Err command_G90(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 None
  */
-GCode_Err command_G91(GCodeCommand* cmd, DeviceSettings* settings) {
+Std_Err command_G91(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
 	settings->positioningMode = RELATIVE;
-	return GCODE_OK;
+	return STD_OK;
 }
 
 /*
@@ -220,16 +297,37 @@ GCode_Err command_G91(GCodeCommand* cmd, DeviceSettings* settings) {
  *   You can include the X, Y, Z, and E axes. 
  *   If you do not include one of these axes in the command, the position will remain unchanged.
  */
-GCode_Err command_G92(GCodeCommand* cmd, DeviceSettings* settings) {
+Std_Err command_G92(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	Std_Err stdErr= STD_OK;
+
 	if(cmd->usedFields._x == 1)
-		settings->motors[0]->data.position = cmd->x; //poprawic (ACCURACY)
+	{
+		/*TODO: improved accuracy*/
+		settings->motors[MOTOR_X]->data.position = cmd->data.x * ACCURACY;
+	}
+	
 	if(cmd->usedFields._y == 1)
-		settings->motors[1]->data.position = cmd->y; //poprawic (ACCURACY)
+	{
+		/*TODO: improved accuracy*/
+		settings->motors[MOTOR_Y]->data.position = cmd->data.y * ACCURACY;
+	}
+		
 	if(cmd->usedFields._z == 1)
-		settings->motors[2]->data.position = cmd->z; //poprawic (ACCURACY)
-	//if(cmd->usedFields._e == 1)
+	{
+		/*TODO: improved accuracy*/
+		settings->motors[MOTOR_Z1]->data.position = cmd->data.z * ACCURACY;
+		settings->motors[MOTOR_Z2]->data.position = cmd->data.z * ACCURACY;
+	}
+
+	/*TODO: write implementation for extruder*/
+	/*if(cmd->usedFields._e == 1)
+	{
 		//set extruder positoin
-	return GCODE_OK;
+	}*/
+		
+	return stdErr;
 }
 
 /*
@@ -241,8 +339,10 @@ GCode_Err command_G92(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
-GCode_Err command_M104(GCodeCommand* cmd, DeviceSettings* settings) {
-	return GCODE_OK;
+Std_Err command_M104(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	return STD_OK;
 }
 
 /*
@@ -254,8 +354,10 @@ GCode_Err command_M104(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 The S value specifies the extruder temperature in degrees Celsius. 
  */
-GCode_Err command_M109(GCodeCommand* cmd, DeviceSettings* settings) {
-	return GCODE_OK;
+Std_Err command_M109(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	return STD_OK;
 }
 
 /*
@@ -267,8 +369,10 @@ GCode_Err command_M109(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
-GCode_Err command_M140(GCodeCommand* cmd, DeviceSettings* settings) {
-	return GCODE_OK;
+Std_Err command_M140(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	return STD_OK;
 }
 
 /*
@@ -280,26 +384,30 @@ GCode_Err command_M140(GCodeCommand* cmd, DeviceSettings* settings) {
  *  Arguments:
  *	 The S value specifies the bed temperature in degrees Celsius.
  */
-GCode_Err command_M190(GCodeCommand* cmd, DeviceSettings* settings) {
-	return GCODE_OK;
+Std_Err command_M190(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	return STD_OK;
 }
 
 /*
  * COMMAND M106
- *  This command allows you to set the speed of your printer�s part cooling fan.
+ *  This command allows you to set the speed of your printers part cooling fan.
  *	This is an external cooling fan that is pointed towards the part that you are printing.
  *
  *  Arguments:
  *	 The S value sets the speed of the cooling fan in a range between 0 (off) and 255 (full power).
  */
-GCode_Err command_M106(GCodeCommand* cmd, DeviceSettings* settings) {
-	return GCODE_OK;
+Std_Err command_M106(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	/*TODO: check gCode state before start executing command*/
+	return STD_OK;
 }
 
 
 const struct {
 	char* name;
-	GCode_Err (*execute)(GCodeCommand*, DeviceSettings*);
+	Std_Err (*execute)(GCodeCommand*, DeviceSettings*);
 } commands[GCODE_COMMANDS_NUM] = {
 		{	"G1",	command_G1		},
 		{	"G28",	command_G28		},
@@ -319,41 +427,56 @@ const struct {
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-GCode_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT) {
+Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT)
+{
+	Std_Err stdErr = STD_ERROR;
 	char* token = NULL, * cmdName = NULL;
 	double val;
 
 	cmdName = strtok(cmd, " ");
 	token = strtok(NULL, " ");
 	memset(cmdOUT, 0, sizeof(GCodeCommand));
+
+	for (int i = 0; i < GCODE_COMMANDS_NUM; ++i) {
+		if (strcmp(cmdName, commands[i].name) == 0) {
+			cmdOUT->execute = commands[i].execute;
+			stdErr = STD_OK;
+			break;
+		}
+	}
+
+	if(stdErr == STD_ERROR)
+	{
+		return stdErr;
+	}
+
 	while (token != NULL) {
 		val = atoi(token + 1);
 		switch (token[0])
 		{
-		case 'X': cmdOUT->x = val; cmdOUT->usedFields._x = 1; break;
-		case 'Y': cmdOUT->y = val; cmdOUT->usedFields._y = 1; break;
-		case 'Z': cmdOUT->z = val; cmdOUT->usedFields._z = 1; break;
-		case 'E': cmdOUT->e = val; cmdOUT->usedFields._e = 1; break;
-		case 'F': cmdOUT->f = val; cmdOUT->usedFields._f = 1; break;
-		case 'S': cmdOUT->s = val; cmdOUT->usedFields._s = 1; break;
+		case 'X': cmdOUT->data.x = val; cmdOUT->usedFields._x = 1; break;
+		case 'Y': cmdOUT->data.y = val; cmdOUT->usedFields._y = 1; break;
+		case 'Z': cmdOUT->data.z = val; cmdOUT->usedFields._z = 1; break;
+		case 'E': cmdOUT->data.e = val; cmdOUT->usedFields._e = 1; break;
+		case 'F': cmdOUT->data.f = val; cmdOUT->usedFields._f = 1; break;
+		case 'S': cmdOUT->data.s = val; cmdOUT->usedFields._s = 1; break;
 		default: break;
 		}
 		token = strtok(NULL, " ");
 	}
 
-	for (int i = 0; i < GCODE_COMMANDS_NUM; ++i) {
-		if (strcmp(cmdName, commands[i].name) == 0) {
-			cmdOUT->execute = commands[i].execute;
-			break;
-		}
-	}
-	return GCODE_OK;
+	return stdErr;
 }
 
-GCode_Err executeGCodeCommand(GCodeCommand* cmd) {
-	if (cmd->execute == NULL)
-		return GCODE_ERROR;
+Std_Err executeGCodeCommand(GCodeCommand* cmd, DeviceSettings* settings)
+{
+	Std_Err stdErr;
 	
-	cmd->execute(cmd, &printerSettings);
-	return GCODE_OK;
+	if (cmd->execute == NULL)
+	{
+		return STD_PARAMETER_ERROR;
+	}
+	
+	stdErr = cmd->execute(cmd, settings);
+	return stdErr;
 }

@@ -134,7 +134,7 @@ void execute_command_SDcard(SDCard_Settings* settings){
 				motors[0].data.position, motors[1].data.position, motors[2].data.position, motors[3].data.position);
 		List_Push_C(BuffOUT_logs, data, size);
 #endif
-		executeGCodeCommand(&executingCmd);
+		executeGCodeCommand(&executingCmd, &printerSettings);
 	}
 
 	if(printerSettings.errMove){

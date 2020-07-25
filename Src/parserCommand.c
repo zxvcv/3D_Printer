@@ -328,7 +328,7 @@ Std_Err systemCmd_MotorsStepSizeSet(SystemCommand* cmd, DeviceSettings* settings
 
 Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings)
 {
-	Std_Err stdErr;
+	Std_Err stdErr = STD_OK;
 	/*TODO: distinguishing between errors*/
 	/*TODO: add forwarding SDcard error*/
 
@@ -345,7 +345,7 @@ Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings)
 #endif
 
 	settings->sd->executing_SDprogram = true;
-	return STD_OK;
+	return stdErr;
 }
 
 
