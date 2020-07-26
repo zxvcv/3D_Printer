@@ -6,8 +6,9 @@
 #define ACCURACY 1000
 
 using ::testing::_;
+using ::testing::Return;
 //using ::testing::WillRepeatedly;
-//using ::testing::Return;
+
 //using ::testing::SetArrayArgument;
 
 
@@ -30,6 +31,9 @@ public:
     MOCK_METHOD3(f_mount, FRESULT(FATFS* fs, const TCHAR* path, BYTE opt));
     MOCK_METHOD4(EEPROM_writeData, Std_Err(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size));
 
+    MOCK_METHOD3(motorSetMove, bool(MotorSettings* settings, double move, RoundingErrorData* roundingError));
+    MOCK_METHOD1(motorStart, bool(MotorSettings* settings));
+    MOCK_METHOD1(motorIsOn, bool(MotorSettings* settings));
 };
 
 class ParserCommand_test : public ::testing::Test {
@@ -178,7 +182,7 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_MultipleMotor_Correct
 
 TEST_F(ParserCommand_test, ParserCommand__MotorPositionMove_SingleMotor_Correct__test)
 {
-    /*TODO: imitation of innterrupts needed to use commented part of tests*/
+    /*TODO: make thise test better*/
     Std_Err stdErr = STD_OK;
     Fifo_Err fifoErr;
     uint8_t queueSize;
@@ -198,10 +202,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionMove_SingleMotor_Correct_
     EXPECT_FLOAT_EQ(cmd.arg[0], 5.0);
     EXPECT_FLOAT_EQ(cmd.arg[1], 0);
 
-    //EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
+    EXPECT_CALL(*mock, motorSetMove(settings->motors[0], 5.0, _)).WillOnce(Return(false));
+    EXPECT_CALL(*mock, motorStart(settings->motors[0])).WillOnce(Return(false));
+    EXPECT_CALL(*mock, motorIsOn(settings->motors[0])).WillOnce(Return(false));
     stdErr = executeSystemCommand(&cmd, settings);
-    //EXPECT_EQ(stdErr, STD_OK);
-    EXPECT_NE(stdErr, STD_OK);
+    EXPECT_EQ(stdErr, STD_OK);
     
     //queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
     //EXPECT_EQ(queueSize, 1);
@@ -321,7 +326,7 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionEnd_SingleMotor_Correct__
 
 TEST_F(ParserCommand_test, ParserCommand__MotorDistanceMove_SingleMotor_Correct__test)
 {
-    /*TODO: imitation of innterrupts needed to use commented part of tests*/
+    /*TODO: make thise test better*/
     Std_Err stdErr = STD_OK;
     Fifo_Err fifoErr;
     uint8_t queueSize;
@@ -341,10 +346,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDistanceMove_SingleMotor_Correct_
     EXPECT_FLOAT_EQ(cmd.arg[0], 5.0);
     EXPECT_FLOAT_EQ(cmd.arg[1], 0);
 
-    //EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
+    EXPECT_CALL(*mock, motorSetMove(settings->motors[0], 5.0, _)).WillOnce(Return(false));
+    EXPECT_CALL(*mock, motorStart(settings->motors[0])).WillOnce(Return(false));
+    EXPECT_CALL(*mock, motorIsOn(settings->motors[0])).WillOnce(Return(false));
     stdErr = executeSystemCommand(&cmd, settings);
-    //EXPECT_EQ(stdErr, STD_OK);
-    EXPECT_NE(stdErr, STD_OK);
+    EXPECT_EQ(stdErr, STD_OK);
     
     //queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
     //EXPECT_EQ(queueSize, 1);
@@ -657,6 +663,21 @@ extern "C"
     Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size)
     {
         ParserCommand_test::mock->EEPROM_writeData(settings, address, data, size);
+    }
+
+    bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError)
+    {
+        ParserCommand_test::mock->motorSetMove(settings, move, roundingError);
+    }
+
+    bool motorStart(MotorSettings* settings)
+    {
+        ParserCommand_test::mock->motorStart(settings);
+    }
+
+    bool motorIsOn(MotorSettings* settings)
+    {
+        ParserCommand_test::mock->motorIsOn(settings);
     }
 }
 

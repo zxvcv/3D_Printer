@@ -17,7 +17,6 @@ add_library(parserGCode_UT_lib
     ${SOURCE_DIR}/parserGCode.c
     ${SOURCE_DIR}/ProjectTypes.c
     ${SOURCE_DIR}/FIFO_void.c
-    ${SOURCE_DIR}/a4988_stepstick.c
     ${SOURCE_DIR}/EEPROM_24AA01.c
     ${SOURCE_DIR}/vectorOperations.c
 )

@@ -17,9 +17,8 @@
  *											INCLUDES
  * ####################################################################################################### */
 
-#include "managerBT.h"
-#include "parserCommand.h"
-#include "manager.h"
+#include "BT.h"
+
 
 
 /* #######################################################################################################
@@ -44,94 +43,102 @@
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-Std_Err execute_command_BT(DeviceSettings* settings)
+Std_Err init_operations_BT(BT_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
 	Fifo_Err fifoErr;
+	HAL_StatusTypeDef halStatus;
 
-	SystemCommand* cmd;
-	uint8_t listSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-
+	list_create(&(settings->Buff_InputCommandsBT), &fifoErr);
 	if(fifoErr != QUEUE_OK)
 	{
-		stdErr = translate_error_fifo_to_project(fifoErr);
-		return stdErr;
+		return translate_error_fifo_to_project(fifoErr);
 	}
 
-	if(listSize > 0)
+	list_create(&(settings->Buff_Bt_IN), &fifoErr);
+	if(fifoErr != QUEUE_OK)
 	{
-		cmd = (SystemCommand*)list_front(settings->bt->Buff_InputCommandsBT, &fifoErr);
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	list_create(&(settings->Buff_Bt_OUT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	halStatus = HAL_UART_Receive_IT(settings->huart, &(settings->recievedBT), 1);
+	if(halStatus != HAL_OK)
+	{
+		return translate_error_hal_to_project(halStatus);
+	}
+
+	return stdErr;
+}
+
+Std_Err send_command_BT(BT_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	Fifo_Err fifoErr;
+	HAL_StatusTypeDef halErr;
+	uint8_t* data;
+	uint8_t dataSize;
+
+	uint8_t listSize = list_getSize(settings->Buff_Bt_OUT, &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	if(!settings->transmissionBT && listSize > 0)
+	{
+		settings->transmissionBT = true;
+		data = (uint8_t*)list_front(settings->Buff_Bt_OUT, &fifoErr);
+		if(fifoErr != QUEUE_OK)
+		{
+			return translate_error_fifo_to_project(fifoErr);
+		}
+		
+		dataSize = list_getDataSize(settings->Buff_Bt_OUT, &fifoErr);
 		if(fifoErr != QUEUE_OK)
 		{
 			return translate_error_fifo_to_project(fifoErr);
 		}
 
-		stdErr = executeSystemCommand(cmd, settings);
+		halErr = HAL_UART_Transmit_IT(settings->huart, data, dataSize);
 
-		if(stdErr != STD_OK)
-		{
-			return stdErr;
-		}
-
-		list_pop_C(settings->bt->Buff_InputCommandsBT, &fifoErr);
-		stdErr = translate_error_fifo_to_project(fifoErr);
+		stdErr = translate_error_hal_to_project(halErr);
 	}
-	else
+	else if(settings->transmissionBT)
 	{
-		stdErr = STD_OK;
-	}
-	
+		stdErr = STD_BUSY_ERROR;
+	}	
+
 	return stdErr;
 }
 
-Std_Err parse_data_BT(DeviceSettings* settings)
+Std_Err deinit_operations_BT(BT_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
 	Fifo_Err fifoErr;
 
-	SystemCommand cmd;
-	uint8_t sizeTemp = 0;
-	uint8_t temp[25];
-
-	if(settings->EOL_BT_recieved)
+	list_delete_C(&(settings->Buff_InputCommandsBT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
 	{
-		settings->EOL_BT_recieved = false;
+		return translate_error_fifo_to_project(fifoErr);
+	}
 
-		do
-		{
-			temp[sizeTemp++] = *((uint8_t*)list_front(settings->bt->Buff_Bt_IN, &fifoErr));
-			if(fifoErr != QUEUE_OK)
-			{
-				return translate_error_fifo_to_project(fifoErr);
-			}
-			
-			list_pop_C(settings->bt->Buff_Bt_IN, &fifoErr);
-			if(fifoErr != QUEUE_OK)
-			{
-				return translate_error_fifo_to_project(fifoErr);
-			}
+	list_delete_C(&(settings->Buff_Bt_IN), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
 
-		}while(temp[sizeTemp - 1] != '\n');
-		temp[sizeTemp - 1] = '\0';
-
-		stdErr = parseSystemCommand((char*)temp, &cmd, settings);
-		
-#ifdef USE_INTERRUPTS
-		IRQ_DISABLE;
-#endif /* USE_INTERRUPTS */
-
-		list_push_C(settings->bt->Buff_InputCommandsBT, &cmd, sizeof(SystemCommand), &fifoErr);
-
-#ifdef USE_INTERRUPTS
-		IRQ_ENABLE;
-#endif /* USE_INTERRUPTS */
-		if(fifoErr != QUEUE_OK)
-		{
-			return translate_error_fifo_to_project(fifoErr);
-		}
-
+	list_delete_C(&(settings->Buff_Bt_OUT), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
 	}
 
 	return stdErr;
 }
-

@@ -25,7 +25,7 @@
 #include "EEPROM_24AA01.h"
 #include "ST7565.h"
 #include "diskio.h"
-#include "managerBT.h"
+#include "BT.h"
 #include "managerSDCard.h"
 
 

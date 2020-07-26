@@ -82,7 +82,7 @@ UART_HandleTypeDef huart2;
 
 void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
 
-#include "managerBT.h"
+#include "BT.h"
 Std_Err init_operations_BT(BT_Settings* settings);
 
 

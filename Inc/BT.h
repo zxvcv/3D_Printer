@@ -11,8 +11,8 @@
  *
  ********************************************************************************************************** */
 
-#ifndef MANAGER_BT_H_
-#define MANAGER_BT_H_
+#ifndef BT_H_
+#define BT_H_
 
 
 
@@ -21,8 +21,8 @@
  * ####################################################################################################### */
 
 #include <stdbool.h>
-#include "ProjectObjects.h"
-#include "ProjectTypes.h"
+#include "FIFO_void.h"
+#include "main.h"
 
 
 
@@ -36,6 +36,18 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
+typedef struct BT_Settings_Tag{
+	List* Buff_InputCommandsBT;
+	List* Buff_Bt_IN;
+	List* Buff_Bt_OUT;
+
+	UART_HandleTypeDef* huart;
+
+	uint8_t recievedBT;
+	bool EOL_BT_recieved;
+	bool transmissionBT;
+}BT_Settings;
+
 
 
 /* #######################################################################################################
@@ -48,9 +60,10 @@
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-Std_Err execute_command_BT(DeviceSettings* settings);
-Std_Err parse_data_BT(DeviceSettings* settings);
+Std_Err init_operations_BT(BT_Settings* settings);
+Std_Err send_command_BT(BT_Settings* settings);
+Std_Err deinit_operations_BT(BT_Settings* settings);
 
 
 
-#endif /*MANAGER_BT_H_*/
+#endif /*BT_H_*/

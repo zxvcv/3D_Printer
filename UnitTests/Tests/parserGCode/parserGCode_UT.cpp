@@ -7,6 +7,7 @@
 
 
 using ::testing::_;
+using ::testing::Return;
 
 
 extern "C"
@@ -25,6 +26,9 @@ class Mock_parserGCode {
 public:
     MOCK_METHOD3(HAL_GPIO_WritePin, void(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState));
 
+    MOCK_METHOD3(motorSetMove, bool(MotorSettings* settings, double move, RoundingErrorData* roundingError));
+    MOCK_METHOD1(motorStart, bool(MotorSettings* settings));
+    MOCK_METHOD1(motorIsOn, bool(MotorSettings* settings));
 };
 
 class ParserGCode_test : public ::testing::Test {
@@ -104,7 +108,7 @@ Mock_parserGCode* ParserGCode_test::mock;
 
 TEST_F(ParserGCode_test, ParserGCode__command_G1__test)
 {
-    /*TODO: imitation of innterrupts needed to use commented part of tests*/
+    /*TODO: make this test better*/
     Std_Err stdErr = STD_OK;
     char* sendCmd;
 
@@ -122,8 +126,11 @@ TEST_F(ParserGCode_test, ParserGCode__command_G1__test)
     EXPECT_FLOAT_EQ(cmd.data.f, 10);     EXPECT_EQ(cmd.usedFields._f, 1);
     EXPECT_FLOAT_EQ(cmd.data.s, 0);      EXPECT_EQ(cmd.usedFields._s, 0);
 
-    //stdErr = executeGCodeCommand(&cmd, settings);
-    //EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_CALL(*mock, motorSetMove(_, _, _)).WillRepeatedly(Return(false));
+    EXPECT_CALL(*mock, motorStart(_)).WillRepeatedly(Return(false));
+    EXPECT_CALL(*mock, motorIsOn(_)).WillRepeatedly(Return(false));
+    stdErr = executeGCodeCommand(&cmd, settings);
+    EXPECT_EQ(stdErr, STD_OK);
 
     //EXPECT_EQ(settings->motors[MOTOR_X].data.position, 0);
     //EXPECT_EQ(settings->motors[MOTOR_Y].data.position, 0);
@@ -133,7 +140,7 @@ TEST_F(ParserGCode_test, ParserGCode__command_G1__test)
 
 TEST_F(ParserGCode_test, ParserGCode__command_G28__test)
 {
-    /*TODO: imitation of innterrupts needed to use commented part of tests*/
+    /*TODO: make this test better*/
     Std_Err stdErr = STD_OK;
     char* sendCmd;
 
@@ -151,8 +158,11 @@ TEST_F(ParserGCode_test, ParserGCode__command_G28__test)
     EXPECT_FLOAT_EQ(cmd.data.f, 0);     EXPECT_EQ(cmd.usedFields._f, 0);
     EXPECT_FLOAT_EQ(cmd.data.s, 0);     EXPECT_EQ(cmd.usedFields._s, 0);
 
-    //stdErr = executeGCodeCommand(&cmd, settings);
-    //EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_CALL(*mock, motorSetMove(_, _, _)).WillRepeatedly(Return(false));
+    EXPECT_CALL(*mock, motorStart(_)).WillRepeatedly(Return(false));
+    EXPECT_CALL(*mock, motorIsOn(_)).WillRepeatedly(Return(false));
+    stdErr = executeGCodeCommand(&cmd, settings);
+    EXPECT_EQ(stdErr, STD_OK);
 
     //EXPECT_EQ(settings->motors[MOTOR_X].data.position, 0);
     //EXPECT_EQ(settings->motors[MOTOR_Y].data.position, 0);
@@ -461,6 +471,21 @@ extern "C"
     void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
     {
         ParserGCode_test::mock->HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
+    }
+
+    bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError)
+    {
+        ParserGCode_test::mock->motorSetMove(settings, move, roundingError);
+    }
+
+    bool motorStart(MotorSettings* settings)
+    {
+        ParserGCode_test::mock->motorStart(settings);
+    }
+
+    bool motorIsOn(MotorSettings* settings)
+    {
+        ParserGCode_test::mock->motorIsOn(settings);
     }
 }
 

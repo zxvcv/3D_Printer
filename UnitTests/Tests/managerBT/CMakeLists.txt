@@ -10,14 +10,16 @@ set(SOURCE_DIR ${APP_DIR}/Src)
 #***** library *****#
 include_directories(./stubs)
 include_directories(${APP_DIR}/Inc)
+include_directories(${APP_DIR}/Drivers/FATFS)
 
 add_library(managerBT_UT_lib 
     ${SOURCE_DIR}/managerBT.c
     ${SOURCE_DIR}/parserCommand.c
     ${SOURCE_DIR}/a4988_stepstick.c
-    ${SOURCE_DIR}/EEPROM_24AA01.c
-    ${SOURCE_DIR}/FIFO_void.c
     ${SOURCE_DIR}/ProjectTypes.c
+    ${SOURCE_DIR}/FIFO_void.c
+    ${SOURCE_DIR}/EEPROM_24AA01.c
+    ${SOURCE_DIR}/BT.c
 )
 
 

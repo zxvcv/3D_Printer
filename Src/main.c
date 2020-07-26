@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "manager.h"
+#include "managerBT.h"
 #include "ProjectObjects.h"
 /* USER CODE END Includes */
 
@@ -140,8 +141,8 @@ int main(void)
   while (1)
   {
 	  //System Commands
-	  parse_data_BT(printerSettings.bt);
-	  execute_command_BT(printerSettings.bt);
+	  parse_data_BT(&printerSettings);
+	  execute_command_BT(&printerSettings);
 	  send_command_BT(printerSettings.bt);
 
 
