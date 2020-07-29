@@ -46,13 +46,13 @@
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_manager(DeviceSettings* settings);
+Std_Err init_manager(DeviceSettings* settings);
 
-void clearAllMotorsRoundingErrors(DeviceSettings *settings);
+Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
 
-void getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
+Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
 
-void setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
+Std_Err setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
 
 
 
