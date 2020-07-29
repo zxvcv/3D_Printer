@@ -33,7 +33,13 @@
  *											EXTERNS
  * ####################################################################################################### */
 
-extern DeviceSettings printerSettings; /* TO DO delete this extern */
+
+
+/* #######################################################################################################
+ *										PRIVATE DATA
+ * ####################################################################################################### */
+
+GCodeCommand executingCmd; /*TODO: delete this */
 
 
 
@@ -47,74 +53,171 @@ extern DeviceSettings printerSettings; /* TO DO delete this extern */
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-void init_operations_SDcard(SDCard_Settings* settings){
-	Fifo_Err errors;
+/*TODO: rework LOG_ENABLE mode*/
+
+Std_Err init_operations_SDcard(SDCard_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	Fifo_Err fifoErr;
 
 	settings->end_SDprogram = false;
+	settings->eofRecieved = false;
 	settings->executing_SDprogram = false;
 	settings->executing_SDcommand = false;
 
 	settings->activeTab = 1;
+	settings->unactiveTab = 0;
 	settings->counterTab[0] = BYTES_TO_READ;
 	settings->counterTab[1] = BYTES_TO_READ;
+	settings->cnt = 0;
+	settings->bytesRead = 0;
 
-	list_create(&(settings->BuffIN_SDcmd), &errors);
+	list_create(&(settings->BuffIN_SDcmd), &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
 #ifdef LOG_ENABLE
-	list_create(settings->BuffOUT_logs, &errors);
-#endif
+	list_create(settings->BuffOUT_logs, &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+#endif /*LOG_ENABLE*/
+
+	return stdErr;
 }
 
+Std_Err parse_data_SDcard(SDCard_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	Fifo_Err fifoErr;
+	
+	uint8_t listSize;
 
-bool eofRecieved = false;
-UINT bytesRead = 0;
-uint8_t unactiveTab, cnt = 0;
-void parse_data_SDcard(SDCard_Settings* settings){
-	Fifo_Err errors;
+	listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
 
-	while(!settings->end_SDprogram && list_getSize(settings->BuffIN_SDcmd, &errors)<5 && settings->executing_SDprogram){
-		if(cnt >= bytesRead){
-			if(eofRecieved){ settings->end_SDprogram = true; return; }
+	while(!settings->end_SDprogram && listSize < 5 && settings->executing_SDprogram)
+	{
+		if(settings->cnt >= settings->bytesRead)
+		{
+			if(settings->eofRecieved)
+			{ 
+				settings->end_SDprogram = true;
+				/*TODO: check if this return value is correct*/
+				return STD_OK; 
+			}
 
 			settings->activeTab = settings->activeTab ? 0 : 1;
-			unactiveTab = settings->activeTab ? 0 : 1;
-			f_read(settings->file, settings->dataSDin[settings->activeTab], BYTES_TO_READ, &bytesRead);
-			if(BYTES_TO_READ > bytesRead) eofRecieved = true;
+			settings->unactiveTab = settings->activeTab ? 0 : 1;
+
+			f_read(settings->file, settings->dataSDin[settings->activeTab], BYTES_TO_READ, 
+				   &(settings->bytesRead));
+
+			if(BYTES_TO_READ > settings->bytesRead)
+			{
+				settings->eofRecieved = true;
+			}
+
 			settings->counterTab[settings->activeTab] = 0;
-			cnt = 0;
+			settings->cnt = 0;
 		}
 
-		while(cnt < bytesRead && settings->dataSDin[settings->activeTab][cnt] != '\n') ++cnt;
+		while(settings->cnt < settings->bytesRead && 
+			  settings->dataSDin[settings->activeTab][settings->cnt] != '\n')
+		{
+			++(settings->cnt);
+		}
 
-		if(settings->dataSDin[settings->activeTab][cnt] == '\n'){
+		if(settings->dataSDin[settings->activeTab][settings->cnt] == '\n')
+		{
 			uint8_t cmdData[BYTES_TO_READ];
 			uint8_t cmdLen = 0;
-			if(settings->counterTab[unactiveTab] < 50){
-				cmdLen = BYTES_TO_READ - settings->counterTab[unactiveTab];
-				memcpy(cmdData, settings->dataSDin[unactiveTab] + settings->counterTab[unactiveTab], cmdLen);
-				settings->counterTab[unactiveTab] += cmdLen;
+
+			if(settings->counterTab[settings->unactiveTab] < BYTES_TO_READ)
+			{
+				cmdLen = BYTES_TO_READ - settings->counterTab[settings->unactiveTab];
+
+				memcpy(	cmdData, 
+						settings->dataSDin[settings->unactiveTab] + settings->counterTab[settings->unactiveTab], 
+						cmdLen);
+
+				settings->counterTab[settings->unactiveTab] += cmdLen;
 			}
-			memcpy(cmdData + cmdLen, settings->dataSDin[settings->activeTab] + settings->counterTab[settings->activeTab], cnt - 1);
-			cmdLen += cnt - settings->counterTab[settings->activeTab];
-			settings->counterTab[settings->activeTab] = cnt + 1;
-			cmdData[cmdLen - 1] = '\0'; // cmdData[cmdLen - 2] = '\0'; powinno usunac  ostatni znak w komendzie ale pewny nie jestem
+
+			memcpy(	cmdData + cmdLen, 
+					settings->dataSDin[settings->activeTab] + settings->counterTab[settings->activeTab], 
+					settings->cnt - 1);
+			cmdLen += settings->cnt - settings->counterTab[settings->activeTab];
+			settings->counterTab[settings->activeTab] = settings->cnt + 1;
+			
+			/*TODO: make this function work with \r\n (Windows) and \n (Linux)*/
+			/*TODO: check below comment*/
+			/*cmdData[cmdLen - 2] = '\0'; powinno usunac  ostatni znak w komendzie ale pewny nie jestem*/
+			cmdData[cmdLen - 1] = '\0'; /*change '\n' to '\0'*/
+			//cmdData[cmdLen] = '\0';
 
 			GCodeCommand cmd;
-			parseGCodeCommand((char*)cmdData, &cmd);
-			list_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand), &errors);
+			stdErr = parseGCodeCommand((char*)cmdData, &cmd);
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
 
-			++cnt;
+			list_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand), &fifoErr);
+			if(fifoErr != QUEUE_OK)
+			{
+				return translate_error_fifo_to_project(fifoErr);
+			}
+
+			++(settings->cnt);
+		}
+
+		listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
+		if(fifoErr != QUEUE_OK)
+		{
+			return translate_error_fifo_to_project(fifoErr);
 		}
 	}
+
+	return stdErr;
 }
 
+Std_Err execute_command_SDcard(DeviceSettings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	Fifo_Err fifoErr;
 
-GCodeCommand executingCmd;
-void execute_command_SDcard(SDCard_Settings* settings){
-	Fifo_Err errors;
+	GCodeCommand* cmd;
+	uint8_t fifoSize;
 
-	if(settings->executing_SDprogram && list_getSize(settings->BuffIN_SDcmd, &errors) > 0 && !settings->executing_SDcommand){
-		memcpy(&executingCmd, list_front(settings->BuffIN_SDcmd, &errors), sizeof(GCodeCommand));
-		list_pop_C(settings->BuffIN_SDcmd, &errors);
+	fifoSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
+
+	if(settings->sd->executing_SDprogram && 
+		fifoSize > 0 && 
+		!settings->sd->executing_SDcommand)
+	{
+		cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
+		if(fifoErr != QUEUE_OK)
+		{
+			return translate_error_fifo_to_project(fifoErr);
+		}
+
+		memcpy(&(executingCmd), cmd, sizeof(GCodeCommand));
+		list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
+		if(fifoErr != QUEUE_OK)
+		{
+			return translate_error_fifo_to_project(fifoErr);
+		}
+
 #ifdef LOG_ENABLE
 		uint8_t data[100], size = 0;
 		size += sprintf(data, "[CMD%d] ", executingCmd.cmdNum); //command type
@@ -133,52 +236,80 @@ void execute_command_SDcard(SDCard_Settings* settings){
 		size = sprintf(data, "$PosBef: %10d, %10d, %10d, %10d\r\n",
 				motors[0].data.position, motors[1].data.position, motors[2].data.position, motors[3].data.position);
 		List_Push_C(BuffOUT_logs, data, size);
-#endif
-		executeGCodeCommand(&executingCmd, &printerSettings);
+#endif /*LOG_ENABLE*/
+
+		stdErr = executeGCodeCommand(&(executingCmd), settings);
 	}
 
-	if(printerSettings.errMove){
-		printerSettings.errMove = false;
-		settings->end_SDprogram = false;
-		settings->executing_SDprogram = false;
-		settings->executing_SDcommand = false;
+	if(settings->errMove)
+	{
+		settings->errMove = false;
+		settings->sd->end_SDprogram = false;
+		settings->sd->executing_SDprogram = false;
+		settings->sd->executing_SDcommand = false;
 
-		settings->activeTab = 1;
-		settings->counterTab[0] = BYTES_TO_READ;
-		settings->counterTab[1] = BYTES_TO_READ;
+		settings->sd->activeTab = 1;
+		settings->sd->counterTab[0] = BYTES_TO_READ;
+		settings->sd->counterTab[1] = BYTES_TO_READ;
 
-		while(list_getSize(settings->BuffIN_SDcmd, &errors) > 0)
-			list_pop_C(settings->BuffIN_SDcmd, &errors);
+		/*TODO: error handling for while below*/
+		while(list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr) > 0)
+		{
+			list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
+		}
 
-		f_close(settings->file);
+		f_close(settings->sd->file);
+
+		/*TODO: error handling for SDCard librabry*/
+
 #ifdef LOG_ENABLE
 		uint8_t data[100], size = 0;
 		size = sprintf(data, "[ERR]ERROR OCCURED WHILE MOVING HEAD\r\n[STOP]\r\n");
 		List_Push_C(BuffOUT_logs, data, size);
-#endif
+#endif /*LOG_ENABLE*/
+
+		stdErr = STD_ERROR;
 	}
+
+	return stdErr;
 }
 
-
 #ifdef LOG_ENABLE
-void send_logs_SDcard(){
-	if(List_GetSize(BuffOUT_logs) > 0){
+Std_Err send_logs_SDcard()
+{
+	if(List_GetSize(BuffOUT_logs) > 0)
+	{
 		UINT bytesWritten;
 		f_write(&logFile, List_Front(BuffOUT_logs), List_GetDataSize(BuffOUT_logs), &bytesWritten);
 		f_sync(&logFile); // could be done once per E.g. 10s, not every time
 		List_Pop_C(BuffOUT_logs);
 	}
 }
-#endif
+#endif /*LOG_ENABLE*/
 
+Std_Err reset_commands_SDcard(SDCard_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	Fifo_Err fifoErr;
+	uint8_t listSize;
 
-void reset_commands_SDcard(SDCard_Settings* settings){
-	Fifo_Err errors;
+	listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
+	if(fifoErr != QUEUE_OK)
+	{
+		return translate_error_fifo_to_project(fifoErr);
+	}
 
-	if(settings->end_SDprogram && settings->executing_SDprogram && !settings->executing_SDcommand && list_getSize(settings->BuffIN_SDcmd, &errors) == 0){
+	if(	settings->end_SDprogram && 
+		settings->executing_SDprogram && 
+		!settings->executing_SDcommand && 
+		listSize == 0)
+	{
 		settings->end_SDprogram = false;
 		settings->executing_SDprogram = false;
 		f_close(settings->file);
+
+		/*TODO: error handling for SDCard librabry*/
+
 #ifdef LOG_ENABLE
 		uint8_t data[100], size = 0;
 		size = sprintf(data, "[STOP]\r\n"); //command type
@@ -189,17 +320,38 @@ void reset_commands_SDcard(SDCard_Settings* settings){
 		while(List_GetSize(BuffOUT_logs) > 0)
 			send_logs_SDcard();
 		f_close(&logFile);
-#endif
+#endif /*LOG_ENABLE*/
 	}
+
+	return stdErr;
 }
 
-void detecting_endCommand_SDcard(SDCard_Settings* settings){
-	if(settings->executing_SDcommand){
-		bool flag = false;
+Std_Err detecting_endCommand_SDcard(DeviceSettings* settings)
+{
+	Std_Err stdErr = STD_OK;
+
+	bool flag;
+
+	if(settings->sd->executing_SDcommand)
+	{
+		flag = false;
+
 		for(int i=0; i<MOTORS_NUM; ++i)
-			flag |= printerSettings.motors[i]->flags.isOn;
+		{
+			flag |= settings->motors[i]->flags.isOn;
+		}
+			
 		if(!flag)
-			settings->executing_SDcommand = false;
+		{
+			settings->sd->executing_SDcommand = false;
+		}
 	}
+	else
+	{
+		stdErr = STD_BUSY_ERROR;
+	}
+	
+
+	return stdErr;
 }
 

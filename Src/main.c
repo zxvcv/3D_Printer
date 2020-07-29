@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "manager.h"
 #include "managerBT.h"
+#include "managerSDCard.h"
 #include "ProjectObjects.h"
 /* USER CODE END Includes */
 
@@ -148,14 +149,14 @@ int main(void)
 
 	  //SDcard Commands
 	  parse_data_SDcard(printerSettings.sd);
-	  execute_command_SDcard(printerSettings.sd);
+	  execute_command_SDcard(&printerSettings);
 
 #ifdef LOG_ENABLE
 	  send_logs_SDcard();
 #endif
 
 	  reset_commands_SDcard(printerSettings.sd);
-	  detecting_endCommand_SDcard(printerSettings.sd);
+	  detecting_endCommand_SDcard(&printerSettings);
 
 	/* USER CODE END WHILE */
 

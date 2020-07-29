@@ -19,6 +19,7 @@
 
 #include "manager.h"
 #include "main.h"
+#include "managerSDCard.h"
 
 
 

@@ -26,7 +26,7 @@
 #include "ST7565.h"
 #include "diskio.h"
 #include "BT.h"
-#include "managerSDCard.h"
+#include "SD.h"
 
 
 

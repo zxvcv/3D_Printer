@@ -23,6 +23,8 @@
 #include <stdbool.h>
 #include "FIFO_void.h"
 #include "diskio.h"
+#include "ProjectObjects.h"
+#include "SD.h"
 
 
 
@@ -30,32 +32,11 @@
  *											DEFINES
  * ####################################################################################################### */
 
-#define BYTES_TO_READ 50
-
 
 
 /* #######################################################################################################
  *											DATA TYPES
  * ####################################################################################################### */
-
-typedef struct SDCard_Settings_Tag{
-	FIL* file;
-
-	List* BuffIN_SDcmd;
-
-	uint8_t activeTab;
-	uint8_t dataSDin[2][BYTES_TO_READ];
-	uint8_t counterTab[2];
-
-	bool end_SDprogram;
-	bool executing_SDprogram;
-	bool executing_SDcommand;
-
-#ifdef LOG_ENABLE
-	FIL* logFile;
-	List* BuffOUT_logs = NULL;
-#endif /*LOG_ENABLE*/
-}SDCard_Settings;
 
 
 
@@ -69,14 +50,14 @@ typedef struct SDCard_Settings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-void init_operations_SDcard(SDCard_Settings* settings);
-void parse_data_SDcard(SDCard_Settings* settings);
-void execute_command_SDcard(SDCard_Settings* settings);
+Std_Err init_operations_SDcard(SDCard_Settings* settings);
+Std_Err parse_data_SDcard(SDCard_Settings* settings);
+Std_Err execute_command_SDcard(DeviceSettings* settings);
 #ifdef LOG_ENABLE
-void send_logs_SDcard();
-#endif
-void reset_commands_SDcard(SDCard_Settings* settings);
-void detecting_endCommand_SDcard(SDCard_Settings* settings);
+Std_Err send_logs_SDcard();
+#endif /*LOG_ENABLE*/
+Std_Err reset_commands_SDcard(SDCard_Settings* settings);
+Std_Err detecting_endCommand_SDcard(DeviceSettings* settings);
 
 
 
