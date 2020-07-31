@@ -20,7 +20,7 @@
 typedef struct SDCard_Settings_Tag{
 	FIL* file;
 
-	List* BuffIN_SDcmd;
+	Fifo_C* BuffIN_SDcmd;
 
 	uint8_t activeTab;
 	uint8_t unactiveTab;

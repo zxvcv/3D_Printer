@@ -73,7 +73,6 @@ uint8_t msgSize;
 Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr = STD_ERROR;
-	Fifo_Err fifoErr;
 
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 	{
@@ -85,8 +84,11 @@ Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
 				cmd->motor[i]->data.speed, 
 				cmd->motor[i]->device.maxSpeed);
 		
-		list_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1, &fifoErr);
-		stdErr = translate_error_fifo_to_project(fifoErr);
+		stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1);
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
 	}
 	
 	return stdErr;
@@ -290,7 +292,6 @@ Std_Err systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings)
 Std_Err systemCmd_MotorsStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr;
-	Fifo_Err fifoErr;
 	/*TODO: distinguishing between errors*/
 
 	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", 
@@ -300,9 +301,8 @@ Std_Err systemCmd_MotorsStepSizeRequest(SystemCommand* cmd, DeviceSettings* sett
 			(double)(settings->motors[3]->device.stepSize) / ACCURACY, 
 			(double)0);
 
-	list_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1, &fifoErr);
+	stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1);
 
-	stdErr = translate_error_fifo_to_project(fifoErr);
 	return stdErr;
 }
 

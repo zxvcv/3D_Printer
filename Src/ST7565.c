@@ -401,10 +401,11 @@ void ST7565_setbuffunit(ST7565R_Settings* settings, uint8_t x, uint8_t line, uin
 }
 
 void ST7565_begin(ST7565R_Settings* settings, uint8_t contrast) {
-	Fifo_Err errors;
+	//Std_Err stdErr;
 
-	list_create(&(settings->buffer), &errors);
-	ST7565_st7565_init(settings);
+  fifo_create(&(settings->buffer));
+	/*TODO: error handling*/
+  ST7565_st7565_init(settings);
 	ST7565_st7565_command(settings, CMD_DISPLAY_ON);
 	ST7565_st7565_command(settings, CMD_SET_ALLPTS_NORMAL);
 	ST7565_st7565_set_brightness(settings, contrast);
@@ -470,24 +471,28 @@ void ST7565_st7565_init(ST7565R_Settings* settings) {
 inline void ST7565_spiwrite(ST7565R_Settings* settings) {
   //shiftOut(sid, sclk, MSBFIRST, c);
   //while (SPI_GetFlagStatus(SPI2, SPI_FLAG_TXE) == RESET);
-	Fifo_Err errors;
+  //Std_Err stdErr;
+	DataToST7565* data = NULL;
 
-	DataToST7565* data = (DataToST7565*)list_front(settings->buffer, &errors);
+  fifo_front(settings->buffer, (void**)&data);
+  /*TODO: error handling*/
 	HAL_GPIO_WritePin(settings->IOa0.PORT, settings->IOa0.PIN, data->state_a0);
 
 	HAL_SPI_Transmit_IT(settings->spi, &(data->val), 1); //SPI_SendData(SPI2, c);
 }
 
 void ST7565_st7565_command(ST7565R_Settings* settings, uint8_t c) {
-	Fifo_Err errors;
+  //Std_Err stdErr;
 
+  /*TODO: add ifdef for irq*/
 	__disable_irq();
 	DataToST7565* data = (DataToST7565*)malloc(sizeof(DataToST7565));
 	__enable_irq();
 	data->state_a0 = false;
 	data->val = c;
-	list_push_NC(settings->buffer, data, &errors);
-	if(list_getSize(settings->buffer, &errors) <= 1)
+	fifo_push_NC(settings->buffer, data);
+  /*TODO: error handling*/
+	if(fifo_getSize(settings->buffer) <= 1)
 		ST7565_spiwrite(settings);
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_RESET);
@@ -496,15 +501,17 @@ void ST7565_st7565_command(ST7565R_Settings* settings, uint8_t c) {
 }
 
 void ST7565_st7565_data(ST7565R_Settings* settings, uint8_t c) {
-	Fifo_Err errors;
-
+	//Std_Err stdErr;
+  
+  /*TODO: add ifdef for irq*/
 	__disable_irq();
 	DataToST7565* data = (DataToST7565*)malloc(sizeof(DataToST7565));
 	__enable_irq();
 	data->state_a0 = true;
 	data->val = c;
-	list_push_NC(settings->buffer, data, &errors);
-	if(list_getSize(settings->buffer, &errors) <= 1)
+	fifo_push_NC(settings->buffer, data);
+  /*TODO: error handling*/
+	if(fifo_getSize(settings->buffer) <= 1)
 			ST7565_spiwrite(settings);
 
 	//HAL_GPIO_WritePin(lcd.IOa0.PORT, lcd.IOa0.PIN, GPIO_PIN_SET);

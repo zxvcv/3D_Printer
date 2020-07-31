@@ -100,7 +100,6 @@ Mock_managerBT* ManagerBT_test::mock;
 TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
 
     uint8_t queueSize;
     char* sendCmd;
@@ -112,15 +111,15 @@ TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
     /*parse*/
     for(int i=0; i<cmdLen; ++i)
     {
-        list_push_C(settings->bt->Buff_Bt_IN, &(cmdStr[i]), 1, &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_push_C(settings->bt->Buff_Bt_IN, &(cmdStr[i]), 1);
+        EXPECT_EQ(stdErr, STD_OK);
     }
 
     stdErr = parse_data_BT(settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    cmd = (SystemCommand*)list_front(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->bt->Buff_InputCommandsBT, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     EXPECT_EQ(cmd->motorsNum, 1);
     EXPECT_EQ(cmd->motor[0], settings->motors[0]);
@@ -132,14 +131,13 @@ TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
     stdErr = execute_command_BT(settings);
     EXPECT_EQ(stdErr, STD_OK);
 
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.400000 0.203000 0.203000 0.203000 0.000000\n");
 }
 

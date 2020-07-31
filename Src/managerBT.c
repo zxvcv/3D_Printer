@@ -47,23 +47,18 @@
 Std_Err execute_command_BT(DeviceSettings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 
-	SystemCommand* cmd;
-	uint8_t listSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
+	SystemCommand* cmd = NULL;
+	uint8_t listSize;
 
-	if(fifoErr != QUEUE_OK)
-	{
-		stdErr = translate_error_fifo_to_project(fifoErr);
-		return stdErr;
-	}
+	listSize = fifo_getSize(settings->bt->Buff_InputCommandsBT);
 
 	if(listSize > 0)
 	{
-		cmd = (SystemCommand*)list_front(settings->bt->Buff_InputCommandsBT, &fifoErr);
-		if(fifoErr != QUEUE_OK)
+		stdErr = fifo_front(settings->bt->Buff_InputCommandsBT, (void**)&cmd);
+		if(stdErr != STD_OK)
 		{
-			return translate_error_fifo_to_project(fifoErr);
+			return stdErr;
 		}
 
 		stdErr = executeSystemCommand(cmd, settings);
@@ -73,8 +68,7 @@ Std_Err execute_command_BT(DeviceSettings* settings)
 			return stdErr;
 		}
 
-		list_pop_C(settings->bt->Buff_InputCommandsBT, &fifoErr);
-		stdErr = translate_error_fifo_to_project(fifoErr);
+		stdErr = fifo_pop_C(settings->bt->Buff_InputCommandsBT);
 	}
 	else
 	{
@@ -87,10 +81,10 @@ Std_Err execute_command_BT(DeviceSettings* settings)
 Std_Err parse_data_BT(DeviceSettings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 
 	SystemCommand cmd;
 	uint8_t sizeTemp = 0;
+	uint8_t* data;
 	uint8_t temp[25];
 
 	if(settings->EOL_BT_recieved)
@@ -99,16 +93,17 @@ Std_Err parse_data_BT(DeviceSettings* settings)
 
 		do
 		{
-			temp[sizeTemp++] = *((uint8_t*)list_front(settings->bt->Buff_Bt_IN, &fifoErr));
-			if(fifoErr != QUEUE_OK)
+			stdErr = fifo_front(settings->bt->Buff_Bt_IN, (void*)&data);
+			temp[sizeTemp++] = *data;
+			if(stdErr != STD_OK)
 			{
-				return translate_error_fifo_to_project(fifoErr);
+				return stdErr;
 			}
 			
-			list_pop_C(settings->bt->Buff_Bt_IN, &fifoErr);
-			if(fifoErr != QUEUE_OK)
+			stdErr = fifo_pop_C(settings->bt->Buff_Bt_IN);
+			if(stdErr != STD_OK)
 			{
-				return translate_error_fifo_to_project(fifoErr);
+				return stdErr;
 			}
 
 		}while(temp[sizeTemp - 1] != '\n');
@@ -120,16 +115,11 @@ Std_Err parse_data_BT(DeviceSettings* settings)
 		IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-		list_push_C(settings->bt->Buff_InputCommandsBT, &cmd, sizeof(SystemCommand), &fifoErr);
+		stdErr = fifo_push_C(settings->bt->Buff_InputCommandsBT, &cmd, sizeof(SystemCommand));
 
 #ifdef USE_INTERRUPTS
 		IRQ_ENABLE;
 #endif /* USE_INTERRUPTS */
-		if(fifoErr != QUEUE_OK)
-		{
-			return translate_error_fifo_to_project(fifoErr);
-		}
-
 	}
 
 	return stdErr;

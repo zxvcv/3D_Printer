@@ -37,9 +37,9 @@
  * ####################################################################################################### */
 
 typedef struct BT_Settings_Tag{
-	List* Buff_InputCommandsBT;
-	List* Buff_Bt_IN;
-	List* Buff_Bt_OUT;
+	Fifo_C* Buff_InputCommandsBT;
+	Fifo_C* Buff_Bt_IN;
+	Fifo_C* Buff_Bt_OUT;
 
 	UART_HandleTypeDef* huart;
 

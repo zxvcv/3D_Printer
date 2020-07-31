@@ -60,7 +60,8 @@
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-Std_Err EEPROM_clear(EEPROMSettings *settings){
+Std_Err EEPROM_clear(EEPROMSettings *settings)
+{
 	Std_Err retVal = STD_ERROR;
 
 	if(settings->isReady)
@@ -85,7 +86,8 @@ Std_Err EEPROM_clear(EEPROMSettings *settings){
 	return retVal;
 }
 
-Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size){
+Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size)
+{
 	Std_Err retVal = STD_ERROR;
 
 	if(!settings->isReady)
@@ -120,7 +122,8 @@ Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *dat
 	return retVal;
 }
 
-Std_Err EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size){
+Std_Err EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size)
+{
 	Std_Err retVal = STD_OK;
 
 	if(!settings->isReady)

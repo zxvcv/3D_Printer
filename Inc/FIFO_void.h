@@ -41,23 +41,19 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct List_memb_Tag {
-	struct List_memb_Tag* next;
+typedef struct Fifo_memb_Tag {
+	struct Fifo_memb_Tag* next;
 	void* data;
 	uint8_t dataSize;
-}List_memb;
+}Fifo_memb;
 
-typedef struct List_Tag {
-	List_memb* begin;
+typedef struct Fifo_Tag {
+	Fifo_memb* begin;
 	uint8_t size;
-}List;
+}Fifo;
 
-typedef enum Fifo_Err_Tag {
-	QUEUE_OK,			//everything ok, no error occur
-	QUEUE_REF_ERR,		//reference to unknown object
-	QUEUE_ALLOC_ERR,	//allocation error
-	QUEUE_ERROR			//other error
-}Fifo_Err;
+typedef Fifo 	Fifo_C;
+typedef Fifo 	Fifo_NC;
 
 
 
@@ -87,7 +83,7 @@ typedef enum Fifo_Err_Tag {
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_create(List** list, Fifo_Err* errors);
+Std_Err fifo_create(Fifo** list);
 
 
 /* *********************************************************************************************************
@@ -113,7 +109,7 @@ void list_create(List** list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors);
+Std_Err fifo_push_C(Fifo_C* list, void* val, int valSize);
 
 
 /* *********************************************************************************************************
@@ -138,7 +134,7 @@ void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_push_NC(List* list, void* val, Fifo_Err* errors);
+Std_Err fifo_push_NC(Fifo_NC* list, void* val);
 
 
 /* *********************************************************************************************************
@@ -162,7 +158,7 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void* list_front(List* list, Fifo_Err* errors);
+Std_Err fifo_front(Fifo* list, void** data);
 
 
 /* *********************************************************************************************************
@@ -186,7 +182,7 @@ void* list_front(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_pop_C(List* list, Fifo_Err* errors);
+Std_Err fifo_pop_C(Fifo_C* list);
 
 
 /* *********************************************************************************************************
@@ -210,7 +206,7 @@ void list_pop_C(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_pop_NC(List* list, Fifo_Err* errors);
+Std_Err fifo_pop_NC(Fifo_NC* list);
 
 
 /* *********************************************************************************************************
@@ -234,7 +230,7 @@ void list_pop_NC(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_clear_C(List* list, Fifo_Err* errors);
+Std_Err fifo_clear_C(Fifo_C* list);
 
 
 /* *********************************************************************************************************
@@ -258,7 +254,7 @@ void list_clear_C(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_clear_NC(List* list, Fifo_Err* errors);
+Std_Err fifo_clear_NC(Fifo_NC* list);
 
 
 /* *********************************************************************************************************
@@ -284,13 +280,15 @@ void list_clear_NC(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_delete_C(List** list, Fifo_Err* errors);
+Std_Err fifo_delete_C(Fifo_C** list);
 
 
 /* *********************************************************************************************************
  * Function for deleting FIFO object
  *	Parameters:
- *		IN  @list	-	pointer to pointer with created FIFO object
+ *		IN  @list	-
+	if(errCheck != QUEUE_OK)
+		*errors = errCheck;	pointer to pointer with created FIFO object
  *		OUT @Fifo_Err	-	output error state
  *
  *	Return:
@@ -310,7 +308,7 @@ void list_delete_C(List** list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-void list_delete_NC(List** list, Fifo_Err* errors);
+Std_Err fifo_delete_NC(Fifo_NC** list);
 
 
 /* *********************************************************************************************************
@@ -334,7 +332,7 @@ void list_delete_NC(List** list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-uint8_t list_getSize(List* list, Fifo_Err* errors);
+uint8_t fifo_getSize(Fifo* list);
 
 
 /* *********************************************************************************************************
@@ -358,29 +356,8 @@ uint8_t list_getSize(List* list, Fifo_Err* errors);
  * OTHERS:
  * 		None
  ********************************************************************************************************** */
-uint8_t list_getDataSize(List* list, Fifo_Err* errors);
+uint8_t fifo_getDataSize(Fifo* list);
 
 
-/* *********************************************************************************************************
- * 	TO DO
- *	Parameters:
- 
- *
- *	Return:
- *		
- * =======================================================================================================
- * PRECONDITIONS:
- *		
- * =======================================================================================================
- * POSTCONDITIONS:
- *		
- * =======================================================================================================
- * COMMENTS:
- *		
- * =======================================================================================================
- * OTHERS:
- * 		
- ********************************************************************************************************** */
-Std_Err translate_error_fifo_to_project(Fifo_Err fifoErr);
 
 #endif /* FIFO_VOID_H */

@@ -71,13 +71,12 @@ public:
     virtual void TearDown()
     {
         Std_Err stdErr;
-        Fifo_Err fifoErr;
 
         stdErr = deinit_operations_BT(settings->bt);
         EXPECT_EQ(stdErr, STD_OK);
 
-        list_delete_C(&(settings->sd->BuffIN_SDcmd), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_delete_C(&(settings->sd->BuffIN_SDcmd));
+        EXPECT_EQ(stdErr, STD_OK);
 
         free(settings->sd);
         free(settings->bt);
@@ -113,7 +112,6 @@ Mock_managerSDCard* ManagerSDCard_test::mock;
 TEST_F(ManagerSDCard_test, ManagerSDCard__parse_data_SDcard_inOneBuff__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
 
     GCodeCommand* cmd;
     uint8_t listSize;
@@ -141,67 +139,61 @@ TEST_F(ManagerSDCard_test, ManagerSDCard__parse_data_SDcard_inOneBuff__test)
     stdErr = parse_data_SDcard(settings->sd);
     EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 5);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), 5);
 
     /*1st cmd G91*/
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
     
     checkGCommandValues(cmd, RELATIVE);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     /*2nd cmd G90*/
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
     
     checkGCommandValues(cmd, ABSOLUTE);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     /*3td cmd G91*/
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
     
     checkGCommandValues(cmd, RELATIVE);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     /*4th cmd G90*/
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
     
     checkGCommandValues(cmd, ABSOLUTE);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     /*5th cmd G91*/
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
     
     checkGCommandValues(cmd, RELATIVE);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     /*end*/
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), 0);
 }
 
 TEST_F(ManagerSDCard_test, ManagerSDCard__parse_data_SDcard_longWorkTest__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
 
-    uint8_t listSize;
     char cmdStr[] = 
     "G91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\n";
 
@@ -235,9 +227,7 @@ TEST_F(ManagerSDCard_test, ManagerSDCard__parse_data_SDcard_longWorkTest__test)
     stdErr = parse_data_SDcard(settings->sd);
     EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 5);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), 5);
 
     /*1st cmd G91*/
     checkGCommandParserValues(RELATIVE, 5);
@@ -293,9 +283,7 @@ TEST_F(ManagerSDCard_test, ManagerSDCard__parse_data_SDcard_longWorkTest__test)
 TEST_F(ManagerSDCard_test, ManagerSDCard__execute_command_SDcard_longWorkTest__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
 
-    uint8_t listSize;
     char cmdStr[] = 
     "G91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\nG90\r\nG91\r\n";
 
@@ -332,9 +320,7 @@ TEST_F(ManagerSDCard_test, ManagerSDCard__execute_command_SDcard_longWorkTest__t
     stdErr = parse_data_SDcard(settings->sd);
     EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 5);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), 5);
 
     /*1st cmd G91*/
     
@@ -391,15 +377,12 @@ TEST_F(ManagerSDCard_test, ManagerSDCard__execute_command_SDcard_longWorkTest__t
 TEST_F(ManagerSDCard_test, ManagerSDCard__reset_commands_SDcard__test)
 {
     Std_Err stdErr;
-    Fifo_Err fifoErr;
-    uint8_t listSize;
 
     settings->sd->end_SDprogram = true;
     settings->sd->executing_SDprogram = true;
     settings->sd->executing_SDcommand = false;
     
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(listSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), 0);
 
     EXPECT_CALL(*mock, f_close(settings->sd->file));
     stdErr = reset_commands_SDcard(settings->sd);
@@ -515,12 +498,10 @@ void ManagerSDCard_test::checkGCommandValues(GCodeCommand* cmd, uint8_t abs_rel)
 void ManagerSDCard_test::checkGCommandParserValues(uint8_t abs_rel, uint8_t listCorrectSize)
 {
     Std_Err stdErr;
-    Fifo_Err fifoErr;
-    uint8_t listSize;
     GCodeCommand* cmd;
 
-    cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     EXPECT_FLOAT_EQ(cmd->data.x, 0);     EXPECT_EQ(cmd->usedFields._x, 0);
     EXPECT_FLOAT_EQ(cmd->data.y, 0);     EXPECT_EQ(cmd->usedFields._y, 0);
@@ -534,22 +515,18 @@ void ManagerSDCard_test::checkGCommandParserValues(uint8_t abs_rel, uint8_t list
 
     EXPECT_EQ(settings->positioningMode, abs_rel);
     
-    list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+    EXPECT_EQ(stdErr, STD_OK);
 
     stdErr = parse_data_SDcard(settings->sd);
     EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, listCorrectSize);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), listCorrectSize);
 }
 
 void ManagerSDCard_test::checkGCommandExecuteValues(uint8_t abs_rel, uint8_t listCorrectSize)
 {
     Std_Err stdErr;
-    Fifo_Err fifoErr;
-    uint8_t listSize;
 
     stdErr = execute_command_SDcard(settings);
     EXPECT_EQ(stdErr, STD_OK);
@@ -559,9 +536,7 @@ void ManagerSDCard_test::checkGCommandExecuteValues(uint8_t abs_rel, uint8_t lis
     stdErr = parse_data_SDcard(settings->sd);
     EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, listCorrectSize);
+    EXPECT_EQ(fifo_getSize(settings->sd->BuffIN_SDcmd), listCorrectSize);
 } 
 
 

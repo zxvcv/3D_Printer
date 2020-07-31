@@ -9,19 +9,29 @@ extern "C"
 
 class Fifo_void_test : public ::testing::Test {
 public:
-    virtual void SetUp(){
+    Fifo_void_test(){}
+    ~Fifo_void_test(){}
+    
+    virtual void SetUp()
+    {
+        Std_Err stdErr;
+
         ASSERT_EQ(list, nullptr);
-        list_create(&list, &errors);
-        ASSERT_EQ(errors, QUEUE_OK);
+        stdErr = fifo_create(&list);
+        ASSERT_EQ(stdErr, STD_OK);
         ASSERT_NE(list, nullptr);
     }
-    virtual void TearDown(){
-        if(fifoType == COPY)
-            list_delete_C(&list, &errors);
-        else
-            list_delete_NC(&list, &errors);
 
-        ASSERT_EQ(errors, QUEUE_OK);
+    virtual void TearDown()
+    {
+        Std_Err stdErr;
+
+        if(fifoType == COPY)
+            stdErr = fifo_delete_C(&list);
+        else
+            stdErr = fifo_delete_NC(&list);
+
+        ASSERT_EQ(stdErr, STD_OK);
         ASSERT_EQ(list, nullptr);
     }
 
@@ -29,8 +39,7 @@ public:
         COPY,
         NON_COPY
     }fifoType;
-    List* list = NULL;
-    Fifo_Err errors = QUEUE_OK;
+    Fifo* list = NULL;
 
     void addValuesToQueue();
 
@@ -42,49 +51,59 @@ public:
 
 TEST_F(Fifo_void_test, listC_basicOperations_test) 
 {
+    Std_Err stdErr;
+    int* data = nullptr;
+
     fifoType = COPY;
 
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
-
+    EXPECT_EQ(fifo_getSize(list), 0);
+    
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        list_push_C(list, &(tab[i]), sizeof(tab[i]), &errors);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), i+1);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(*((int*)list_front(list, &errors)), tab[0]);
-        EXPECT_NE(((int*)list_front(list, &errors)), &(tab[0]));
-        EXPECT_EQ(errors, QUEUE_OK);
+        stdErr = fifo_push_C(list, &(tab[i]), sizeof(tab[i]));
+        EXPECT_EQ(stdErr, STD_OK);
+
+        EXPECT_EQ(fifo_getSize(list), i+1);
+        EXPECT_EQ(stdErr, STD_OK);
+
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_EQ(*data, tab[0]);
+
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_NE(data, &(tab[0]));
     }
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        EXPECT_EQ(*((int*)list_front(list, &errors)), tab[i]);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), TAB_SIZE-i);
-        EXPECT_EQ(errors, QUEUE_OK);
-        list_pop_C(list, &errors);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), TAB_SIZE-i-1);
-        EXPECT_EQ(errors, QUEUE_OK);
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_EQ(*data, tab[i]);
+
+        EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i);
+
+        stdErr = fifo_pop_C(list);
+        EXPECT_EQ(stdErr, STD_OK);
+
+        EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i-1);
     }
     
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), 0);
 }
 
 TEST_F(Fifo_void_test, listC_clear_test)
 {
+    Std_Err stdErr;
+
     fifoType = COPY;
 
     addValuesToQueue();
 
-    list_clear_C(list, &errors);
-    EXPECT_EQ(errors, QUEUE_OK);
+    stdErr = fifo_clear_C(list);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), 0);
 }
 
 TEST_F(Fifo_void_test, listC_getDataSize_test)
@@ -95,74 +114,87 @@ TEST_F(Fifo_void_test, listC_getDataSize_test)
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        EXPECT_EQ(list_getDataSize(list, &errors), sizeof(tab[i]));
-        EXPECT_EQ(errors, QUEUE_OK);
+        EXPECT_EQ(fifo_getDataSize(list), sizeof(tab[i]));
     }
 }
 
 TEST_F(Fifo_void_test, listC_uninitializedList_test)
 {
+    Std_Err stdErr;
+
     fifoType = COPY;
 
-    list_delete_C(&list, &errors);
-    ASSERT_EQ(errors, QUEUE_OK);
+    stdErr = fifo_delete_C(&list);
+    ASSERT_EQ(stdErr, STD_OK);
     ASSERT_EQ(list, nullptr);
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        list_push_C(list, &(tab[i]), sizeof(tab[i]), &errors);
-        EXPECT_EQ(errors, QUEUE_ERROR);
+        stdErr = fifo_push_C(list, &(tab[i]), sizeof(tab[i]));
+        ASSERT_EQ(stdErr, STD_ERROR);
     }
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_ERROR);
+    EXPECT_EQ(fifo_getSize(list), 0);
+
+    stdErr = fifo_create(&list);
+    ASSERT_EQ(stdErr, STD_OK);
+    ASSERT_NE(list, nullptr);
 }
 
 
 TEST_F(Fifo_void_test, listNC_basicOperations_test) 
 {
+    Std_Err stdErr;
+    int* data;
+
     fifoType = NON_COPY;
 
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), 0);
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        list_push_NC(list, &(tab[i]), &errors);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), i+1);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(*((int*)list_front(list, &errors)), tab[0]);
-        EXPECT_EQ(((int*)list_front(list, &errors)), &(tab[0]));
-        EXPECT_EQ(errors, QUEUE_OK);
+        stdErr = fifo_push_NC(list, &(tab[i]));
+        EXPECT_EQ(stdErr, STD_OK);
+
+        EXPECT_EQ(fifo_getSize(list), i+1);
+
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_EQ(*data, tab[0]);
+
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_EQ(data, &(tab[0]));
     }
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        EXPECT_EQ(*((int*)list_front(list, &errors)), tab[i]);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), TAB_SIZE-i);
-        EXPECT_EQ(errors, QUEUE_OK);
-        list_pop_NC(list, &errors);
-        EXPECT_EQ(errors, QUEUE_OK);
-        EXPECT_EQ(list_getSize(list, &errors), TAB_SIZE-i-1);
-        EXPECT_EQ(errors, QUEUE_OK);
+        stdErr = fifo_front(list, (void**)&data);
+        EXPECT_EQ(stdErr, STD_OK);
+        EXPECT_EQ(*data, tab[i]);
+
+        EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i);
+
+        stdErr = fifo_pop_NC(list);
+        EXPECT_EQ(stdErr, STD_OK);
+
+        EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i-1);
     }
     
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), 0);
 }
 
 TEST_F(Fifo_void_test, listNC_clear_test)
 {
+    Std_Err stdErr;
+
     fifoType = NON_COPY;
 
     addValuesToQueue();
 
-    list_clear_NC(list, &errors);
-    EXPECT_EQ(errors, QUEUE_OK);
+    stdErr = fifo_clear_NC(list);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), 0);
 }
 
 TEST_F(Fifo_void_test, listNC_getDataSize_test)
@@ -173,41 +205,46 @@ TEST_F(Fifo_void_test, listNC_getDataSize_test)
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        EXPECT_EQ(list_getDataSize(list, &errors), 0);
-        EXPECT_EQ(errors, QUEUE_OK);
+        EXPECT_EQ(fifo_getDataSize(list), 0);
     }
 }
 
 TEST_F(Fifo_void_test, listNC_uninitializedList_test)
 {
+    Std_Err stdErr;
+
     fifoType = NON_COPY;
 
-    list_delete_C(&list, &errors);
-    ASSERT_EQ(errors, QUEUE_OK);
+    stdErr = fifo_delete_C(&list);
+    ASSERT_EQ(stdErr, STD_OK);
     ASSERT_EQ(list, nullptr);
 
     for(int i=0; i<TAB_SIZE; ++i)
     {
-        list_push_NC(list, &(tab[i]), &errors);
-        EXPECT_EQ(errors, QUEUE_ERROR);
+        stdErr = fifo_push_NC(list, &(tab[i]));
+        EXPECT_EQ(stdErr, STD_ERROR);
     }
-    EXPECT_EQ(list_getSize(list, &errors), 0);
-    EXPECT_EQ(errors, QUEUE_ERROR);
+    EXPECT_EQ(fifo_getSize(list), 0);
+
+    stdErr = fifo_create(&list);
+    ASSERT_EQ(stdErr, STD_OK);
+    ASSERT_NE(list, nullptr);
 }
 
 /************************** PUBLIC FUNCTIONS **************************/
 
 void Fifo_void_test::addValuesToQueue()
 {
+    Std_Err stdErr;
+
     for(int i=0; i<TAB_SIZE; ++i)
     {
         if(fifoType == COPY)
-            list_push_C(list, &(tab[i]), sizeof(tab[i]), &errors);
+            stdErr = fifo_push_C(list, &(tab[i]), sizeof(tab[i]));
         else
-            list_push_NC(list, &(tab[i]), &errors);
+            stdErr = fifo_push_NC(list, &(tab[i]));
         
-        EXPECT_EQ(errors, QUEUE_OK);
+        EXPECT_EQ(stdErr, STD_OK);
     }
-    EXPECT_EQ(list_getSize(list, &errors), TAB_SIZE);
-    EXPECT_EQ(errors, QUEUE_OK);
+    EXPECT_EQ(fifo_getSize(list), TAB_SIZE);
 }

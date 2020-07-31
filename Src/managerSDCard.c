@@ -58,7 +58,6 @@ GCodeCommand executingCmd; /*TODO: delete this */
 Std_Err init_operations_SDcard(SDCard_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 
 	settings->end_SDprogram = false;
 	settings->eofRecieved = false;
@@ -72,17 +71,14 @@ Std_Err init_operations_SDcard(SDCard_Settings* settings)
 	settings->cnt = 0;
 	settings->bytesRead = 0;
 
-	list_create(&(settings->BuffIN_SDcmd), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_create(&(settings->BuffIN_SDcmd));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
+
 #ifdef LOG_ENABLE
-	list_create(settings->BuffOUT_logs, &fifoErr);
-	if(fifoErr != QUEUE_OK)
-	{
-		return translate_error_fifo_to_project(fifoErr);
-	}
+	stdErr = fifo_create(&(settings->BuffOUT_logs));
 #endif /*LOG_ENABLE*/
 
 	return stdErr;
@@ -91,15 +87,10 @@ Std_Err init_operations_SDcard(SDCard_Settings* settings)
 Std_Err parse_data_SDcard(SDCard_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 	
 	uint8_t listSize;
 
-	listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
-	if(fifoErr != QUEUE_OK)
-	{
-		return translate_error_fifo_to_project(fifoErr);
-	}
+	listSize = fifo_getSize(settings->BuffIN_SDcmd);
 
 	while(!settings->end_SDprogram && listSize < 5 && settings->executing_SDprogram)
 	{
@@ -168,20 +159,16 @@ Std_Err parse_data_SDcard(SDCard_Settings* settings)
 				return stdErr;
 			}
 
-			list_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand), &fifoErr);
-			if(fifoErr != QUEUE_OK)
+			stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
+			if(stdErr != STD_OK)
 			{
-				return translate_error_fifo_to_project(fifoErr);
+				return stdErr;
 			}
 
 			++(settings->cnt);
 		}
 
-		listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
-		if(fifoErr != QUEUE_OK)
-		{
-			return translate_error_fifo_to_project(fifoErr);
-		}
+		listSize = fifo_getSize(settings->BuffIN_SDcmd);
 	}
 
 	return stdErr;
@@ -190,32 +177,27 @@ Std_Err parse_data_SDcard(SDCard_Settings* settings)
 Std_Err execute_command_SDcard(DeviceSettings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 
-	GCodeCommand* cmd;
+	GCodeCommand* cmd = NULL;
 	uint8_t fifoSize;
 
-	fifoSize = list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr);
-	if(fifoErr != QUEUE_OK)
-	{
-		return translate_error_fifo_to_project(fifoErr);
-	}
+	fifoSize = fifo_getSize(settings->sd->BuffIN_SDcmd);
 
 	if(settings->sd->executing_SDprogram && 
 		fifoSize > 0 && 
 		!settings->sd->executing_SDcommand)
 	{
-		cmd = (GCodeCommand*)list_front(settings->sd->BuffIN_SDcmd, &fifoErr);
-		if(fifoErr != QUEUE_OK)
+		stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+		if(stdErr != STD_OK)
 		{
-			return translate_error_fifo_to_project(fifoErr);
+			return stdErr;
 		}
 
 		memcpy(&(executingCmd), cmd, sizeof(GCodeCommand));
-		list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
-		if(fifoErr != QUEUE_OK)
+		stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+		if(stdErr != STD_OK)
 		{
-			return translate_error_fifo_to_project(fifoErr);
+			return stdErr;
 		}
 
 #ifdef LOG_ENABLE
@@ -253,9 +235,13 @@ Std_Err execute_command_SDcard(DeviceSettings* settings)
 		settings->sd->counterTab[1] = BYTES_TO_READ;
 
 		/*TODO: error handling for while below*/
-		while(list_getSize(settings->sd->BuffIN_SDcmd, &fifoErr) > 0)
+		while(fifo_getSize(settings->sd->BuffIN_SDcmd) > 0)
 		{
-			list_pop_C(settings->sd->BuffIN_SDcmd, &fifoErr);
+			stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
 		}
 
 		f_close(settings->sd->file);
@@ -290,14 +276,9 @@ Std_Err send_logs_SDcard()
 Std_Err reset_commands_SDcard(SDCard_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 	uint8_t listSize;
 
-	listSize = list_getSize(settings->BuffIN_SDcmd, &fifoErr);
-	if(fifoErr != QUEUE_OK)
-	{
-		return translate_error_fifo_to_project(fifoErr);
-	}
+	listSize = fifo_getSize(settings->BuffIN_SDcmd);
 
 	if(	settings->end_SDprogram && 
 		settings->executing_SDprogram && 

@@ -49,7 +49,7 @@ public:
 
     virtual void SetUp()
     {
-        Fifo_Err fifoErr;
+        Std_Err stdErr;
 
         settings = (DeviceSettings*)malloc(sizeof(DeviceSettings));
         for(int i=0; i<MOTORS_NUM; ++i)
@@ -63,25 +63,25 @@ public:
         setupDevice(settings);
 
         //init_operations_BT(settings->bt);
-        list_create(&(settings->bt->Buff_InputCommandsBT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-	    list_create(&(settings->bt->Buff_Bt_IN), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-	    list_create(&(settings->bt->Buff_Bt_OUT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_create(&(settings->bt->Buff_InputCommandsBT));
+        EXPECT_EQ(stdErr, STD_OK);
+	    stdErr = fifo_create(&(settings->bt->Buff_Bt_IN));
+        EXPECT_EQ(stdErr, STD_OK);
+	    stdErr = fifo_create(&(settings->bt->Buff_Bt_OUT));
+        EXPECT_EQ(stdErr, STD_OK);
     }
 
     virtual void TearDown()
     {
-        Fifo_Err fifoErr;
+        Std_Err stdErr;
 
         //deinit_operations_BT(settings->bt);
-        list_delete_C(&(settings->bt->Buff_InputCommandsBT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-        list_delete_C(&(settings->bt->Buff_Bt_IN), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-        list_delete_C(&(settings->bt->Buff_Bt_OUT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_InputCommandsBT));
+        EXPECT_EQ(stdErr, STD_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_IN));
+        EXPECT_EQ(stdErr, STD_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_OUT));
+        EXPECT_EQ(stdErr, STD_OK);
         
         free(settings->sd);
         free(settings->eeprom);
@@ -115,8 +115,6 @@ Mock_parserCommand* ParserCommand_test::mock;
 TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -133,22 +131,17 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_MultipleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -166,17 +159,17 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_MultipleMotor_Correct
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 2);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 2);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
-    list_pop_C(settings->bt->Buff_Bt_OUT, &fifoErr);
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_pop_C(settings->bt->Buff_Bt_OUT);
+    EXPECT_EQ(stdErr, STD_OK);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
 
@@ -184,8 +177,6 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionMove_SingleMotor_Correct_
 {
     /*TODO: make thise test better*/
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -223,8 +214,6 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionMove_SingleMotor_Correct_
 TEST_F(ParserCommand_test, ParserCommand__MotorPositionValueSet_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -243,22 +232,19 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionValueSet_SingleMotor_Corr
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 10.000000 0.000000 20.000000 10.000000 50.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorPositionZero_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -278,22 +264,18 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionZero_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 10.000000 20.000000 10.000000 50.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorPositionEnd_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -313,14 +295,12 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionEnd_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 30.000000 10.000000 50.000000\n");
 }
 
@@ -328,8 +308,6 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDistanceMove_SingleMotor_Correct_
 {
     /*TODO: make thise test better*/
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -367,8 +345,6 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDistanceMove_SingleMotor_Correct_
 TEST_F(ParserCommand_test, ParserCommand__MotorSpeedSet_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -387,22 +363,19 @@ TEST_F(ParserCommand_test, ParserCommand__MotorSpeedSet_SingleMotor_Correct__tes
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 20.000000 50.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorSpeedMax_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -422,22 +395,18 @@ TEST_F(ParserCommand_test, ParserCommand__MotorSpeedMax_SingleMotor_Correct__tes
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 10.000000 40.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeRequest_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -454,22 +423,18 @@ TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeRequest_SingleMotor_Corr
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.203000 0.203000 0.203000 0.203000 0.000000\n");
 }
 
 TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeSet_SingleMotor_Correct__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -487,14 +452,12 @@ TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeSet_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 1);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 
-    sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.400000 0.203000 0.203000 0.203000 0.000000\n");
 }
 
@@ -503,8 +466,6 @@ TEST_F(ParserCommand_test, ParserCommand__SDCardProgramRun_SingleMotor_Correct__
     /*TODO: add LOG_ENABLE version*/
 
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -523,19 +484,14 @@ TEST_F(ParserCommand_test, ParserCommand__SDCardProgramRun_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 }
 
 TEST_F(ParserCommand_test, ParserCommand__WrongCommand__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t queueSize;
     char* sendCmd;
 
     SystemCommand cmd;
@@ -551,12 +507,9 @@ TEST_F(ParserCommand_test, ParserCommand__WrongCommand__test)
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
     
-    queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
-    queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
-    EXPECT_EQ(queueSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
 }
 
 

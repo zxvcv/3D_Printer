@@ -92,20 +92,15 @@ Mock_BT* BT_test::mock;
 TEST_F(BT_test, BT__send_command_BT_noCommandsWaiting__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t listSize;
 
-    listSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
     
     EXPECT_EQ(settings->bt->transmissionBT, false);
 
     stdErr = send_command_BT(settings->bt);
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 0);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
     
     EXPECT_EQ(settings->bt->transmissionBT, false);
 }
@@ -113,17 +108,13 @@ TEST_F(BT_test, BT__send_command_BT_noCommandsWaiting__test)
 TEST_F(BT_test, BT__send_command_BT_oneCommandWaiting__test)
 {
     Std_Err stdErr = STD_OK;
-    Fifo_Err fifoErr;
-    uint8_t listSize;
 
     char cmdStr[] = "SP M1 0.400000";
 
-    list_push_C(settings->bt->Buff_Bt_OUT, cmdStr, strlen(cmdStr), &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
+    stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, cmdStr, strlen(cmdStr));
+    EXPECT_EQ(stdErr, STD_OK);
 
-    listSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
     
     EXPECT_EQ(settings->bt->transmissionBT, false);
 
@@ -132,8 +123,7 @@ TEST_F(BT_test, BT__send_command_BT_oneCommandWaiting__test)
     stdErr = send_command_BT(settings->bt);
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(fifoErr, QUEUE_OK);
-    EXPECT_EQ(listSize, 1);
+    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
     
     EXPECT_EQ(settings->bt->transmissionBT, true);
 }

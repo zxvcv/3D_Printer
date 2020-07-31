@@ -111,7 +111,7 @@ typedef struct ST7565R_Settings{
 	IO_Pin IOrst;
 	IO_Pin IOa0;
 	SPI_HandleTypeDef* spi;
-	List* buffer;
+	Fifo_C* buffer;
 }ST7565R_Settings;
 
 typedef struct DataToST7565{

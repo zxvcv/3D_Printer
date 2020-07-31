@@ -44,7 +44,7 @@ public:
 
     virtual void SetUp()
     {
-        Fifo_Err fifoErr;
+        Std_Err stdErr;
 
         settings = (DeviceSettings*)malloc(sizeof(DeviceSettings));
         for(int i=0; i<MOTORS_NUM; ++i)
@@ -58,25 +58,25 @@ public:
         setupDevice(settings);
 
         //init_operations_BT(settings->bt);
-        list_create(&(settings->bt->Buff_InputCommandsBT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-	    list_create(&(settings->bt->Buff_Bt_IN), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-	    list_create(&(settings->bt->Buff_Bt_OUT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_create(&(settings->bt->Buff_InputCommandsBT));
+        EXPECT_EQ(stdErr, STD_OK);
+	    stdErr = fifo_create(&(settings->bt->Buff_Bt_IN));
+        EXPECT_EQ(stdErr, STD_OK);
+	    stdErr = fifo_create(&(settings->bt->Buff_Bt_OUT));
+        EXPECT_EQ(stdErr, STD_OK);
     }
 
     virtual void TearDown()
     {
-        Fifo_Err fifoErr;
+        Std_Err stdErr;
 
         //deinit_operations_BT(settings->bt);
-        list_delete_C(&(settings->bt->Buff_InputCommandsBT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-        list_delete_C(&(settings->bt->Buff_Bt_IN), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
-        list_delete_C(&(settings->bt->Buff_Bt_OUT), &fifoErr);
-        EXPECT_EQ(fifoErr, QUEUE_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_InputCommandsBT));
+        EXPECT_EQ(stdErr, STD_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_IN));
+        EXPECT_EQ(stdErr, STD_OK);
+        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_OUT));
+        EXPECT_EQ(stdErr, STD_OK);
         
         free(settings->sd);
         free(settings->eeprom);

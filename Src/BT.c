@@ -46,25 +46,24 @@
 Std_Err init_operations_BT(BT_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 	HAL_StatusTypeDef halStatus;
 
-	list_create(&(settings->Buff_InputCommandsBT), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_create(&(settings->Buff_InputCommandsBT));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
-	list_create(&(settings->Buff_Bt_IN), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_create(&(settings->Buff_Bt_IN));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
-	list_create(&(settings->Buff_Bt_OUT), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_create(&(settings->Buff_Bt_OUT));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
 	halStatus = HAL_UART_Receive_IT(settings->huart, &(settings->recievedBT), 1);
@@ -79,31 +78,22 @@ Std_Err init_operations_BT(BT_Settings* settings)
 Std_Err send_command_BT(BT_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 	HAL_StatusTypeDef halErr;
-	uint8_t* data;
+	uint8_t* data = NULL;
 	uint8_t dataSize;
 
-	uint8_t listSize = list_getSize(settings->Buff_Bt_OUT, &fifoErr);
-	if(fifoErr != QUEUE_OK)
-	{
-		return translate_error_fifo_to_project(fifoErr);
-	}
+	uint8_t listSize = fifo_getSize(settings->Buff_Bt_OUT);
 
 	if(!settings->transmissionBT && listSize > 0)
 	{
 		settings->transmissionBT = true;
-		data = (uint8_t*)list_front(settings->Buff_Bt_OUT, &fifoErr);
-		if(fifoErr != QUEUE_OK)
+		stdErr = fifo_front(settings->Buff_Bt_OUT, (void**)&data);
+		if(stdErr != STD_OK)
 		{
-			return translate_error_fifo_to_project(fifoErr);
+			return stdErr;
 		}
 		
-		dataSize = list_getDataSize(settings->Buff_Bt_OUT, &fifoErr);
-		if(fifoErr != QUEUE_OK)
-		{
-			return translate_error_fifo_to_project(fifoErr);
-		}
+		dataSize = fifo_getDataSize(settings->Buff_Bt_OUT);
 
 		halErr = HAL_UART_Transmit_IT(settings->huart, data, dataSize);
 
@@ -120,24 +110,23 @@ Std_Err send_command_BT(BT_Settings* settings)
 Std_Err deinit_operations_BT(BT_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	Fifo_Err fifoErr;
 
-	list_delete_C(&(settings->Buff_InputCommandsBT), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_delete_C(&(settings->Buff_InputCommandsBT));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
-	list_delete_C(&(settings->Buff_Bt_IN), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_delete_C(&(settings->Buff_Bt_IN));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
-	list_delete_C(&(settings->Buff_Bt_OUT), &fifoErr);
-	if(fifoErr != QUEUE_OK)
+	stdErr = fifo_delete_C(&(settings->Buff_Bt_OUT));
+	if(stdErr != STD_OK)
 	{
-		return translate_error_fifo_to_project(fifoErr);
+		return stdErr;
 	}
 
 	return stdErr;

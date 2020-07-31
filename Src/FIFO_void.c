@@ -42,9 +42,9 @@
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
-void list_create(List** list, Fifo_Err* errors)
+Std_Err fifo_create(Fifo** list)
 {
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if ((*list) == NULL)
 	{
@@ -52,7 +52,7 @@ void list_create(List** list, Fifo_Err* errors)
 		IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-		*list = (List*)malloc(sizeof(List));
+		*list = (Fifo*)malloc(sizeof(Fifo));
 
 #ifdef USE_INTERRUPTS
 		IRQ_ENABLE;
@@ -60,21 +60,23 @@ void list_create(List** list, Fifo_Err* errors)
 
 		if(*list == NULL)
 		{
-			*errors = QUEUE_ALLOC_ERR;
+			stdErr = STD_ALLOC_ERROR;
 		}
 		else
 		{
 			(*list)->begin = NULL;
 			(*list)->size = 0;
-			*errors = QUEUE_OK;
+			stdErr = STD_OK;
 		}
 	}
+
+	return stdErr;
 }
 
 
-void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
+Std_Err fifo_push_C(Fifo_C* list, void* val, int valSize)
 {
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if (list != NULL)
 	{
@@ -84,13 +86,13 @@ void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
 			IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-			list->begin = (List_memb*)malloc(sizeof(List_memb));
+			list->begin = (Fifo_memb*)malloc(sizeof(Fifo_memb));
 			if(list->begin == NULL)
 			{
 #ifdef USE_INTERRUPTS
 				IRQ_ENABLE;
 #endif /* USE_INTERRUPTS */
-				*errors = QUEUE_ALLOC_ERR;
+				stdErr = STD_ALLOC_ERROR;
 			}
 			else
 			{
@@ -105,13 +107,13 @@ void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
 				list->begin->dataSize = valSize;
 				list->size += 1;
 
-				*errors = QUEUE_OK;
+				stdErr = STD_OK;
 			}
 		}
 		else
 		{
-			List_memb* prev = NULL;
-			List_memb* memb = list->begin;
+			Fifo_memb* prev = NULL;
+			Fifo_memb* memb = list->begin;
 			while (memb != NULL)
 			{
 				prev = memb;
@@ -122,13 +124,13 @@ void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
 			IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-			prev->next = (List_memb*)malloc(sizeof(List_memb));
+			prev->next = (Fifo_memb*)malloc(sizeof(Fifo_memb));
 			if(list->begin == NULL)
 			{
 #ifdef USE_INTERRUPTS
 				IRQ_ENABLE;
 #endif /* USE_INTERRUPTS */
-				*errors = QUEUE_ALLOC_ERR;
+				stdErr = STD_ALLOC_ERROR;
 			}
 			else
 			{
@@ -143,16 +145,18 @@ void list_push_C(List* list, void* val, int valSize, Fifo_Err* errors)
 				prev->next->dataSize = valSize;
 				list->size += 1;
 
-				*errors = QUEUE_OK;
+				stdErr = STD_OK;
 			}
 		}
 	}
+
+	return stdErr;
 }
 
 
-void list_push_NC(List* list, void* val, Fifo_Err* errors)
+Std_Err fifo_push_NC(Fifo_NC* list, void* val)
 {
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if (list != NULL)
 	{
@@ -162,7 +166,7 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 			IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-			list->begin = (List_memb*)malloc(sizeof(List_memb));
+			list->begin = (Fifo_memb*)malloc(sizeof(Fifo_memb));
 
 #ifdef USE_INTERRUPTS
 			IRQ_ENABLE;
@@ -170,7 +174,7 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 
 			if(list->begin == NULL)
 			{
-				*errors = QUEUE_ALLOC_ERR;
+				stdErr = STD_ALLOC_ERROR;
 			}
 			else
 			{
@@ -179,13 +183,13 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 				list->begin->dataSize = 0;
 				list->size += 1;
 
-				*errors = QUEUE_OK;
+				stdErr = STD_OK;
 			}
 		}
 		else
 		{
-			List_memb* prev = NULL;
-			List_memb* memb = list->begin;
+			Fifo_memb* prev = NULL;
+			Fifo_memb* memb = list->begin;
 			while (memb != NULL)
 			{
 				prev = memb;
@@ -196,7 +200,7 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 			IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-			prev->next = (List_memb*)malloc(sizeof(List_memb));
+			prev->next = (Fifo_memb*)malloc(sizeof(Fifo_memb));
 
 #ifdef USE_INTERRUPTS
 			IRQ_ENABLE;
@@ -204,7 +208,7 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 
 			if(prev->next == NULL)
 			{
-				*errors = QUEUE_ALLOC_ERR;
+				stdErr = STD_ALLOC_ERROR;
 			}
 			else
 			{
@@ -213,45 +217,46 @@ void list_push_NC(List* list, void* val, Fifo_Err* errors)
 				prev->next->dataSize = 0;
 				list->size += 1;
 
-				*errors = QUEUE_OK;
+				stdErr = STD_OK;
 			}
 		}
 	}
+
+	return stdErr;
 }
 
 
-void* list_front(List* list, Fifo_Err* errors)
+Std_Err fifo_front(Fifo* list, void** data)
 {
-	void* retVal = NULL;
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if (list != NULL)
 	{
 		if(list->size == 0)
 		{
-			retVal = NULL;
-			*errors = QUEUE_REF_ERR;
+			(*data) = NULL;
+			stdErr = STD_REFERENCE_ERROR;
 		}
 		else
 		{
-			retVal = list->begin->data;
-			*errors = QUEUE_OK;
+			(*data) = list->begin->data;
+			stdErr = STD_OK;
 		}
 	}
 
-	return retVal;
+	return stdErr;
 }
 
 
-void list_pop_C(List* list, Fifo_Err* errors)
+Std_Err fifo_pop_C(Fifo_C* list)
 {
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if (list != NULL)
 	{
 		if(list->size == 0)
 		{
-			*errors = QUEUE_REF_ERR;
+			stdErr = STD_OK;
 		}
 		else if(list->size == 1)
 		{
@@ -269,11 +274,11 @@ void list_pop_C(List* list, Fifo_Err* errors)
 			list->begin = NULL;
 			list->size = 0;
 
-			*errors = QUEUE_OK;
+			stdErr = STD_OK;
 		}
 		else
 		{
-			List_memb* del = list->begin;
+			Fifo_memb* del = list->begin;
 			list->begin = list->begin->next;
 
 #ifdef USE_INTERRUPTS
@@ -289,21 +294,23 @@ void list_pop_C(List* list, Fifo_Err* errors)
 
 			list->size -= 1;
 
-			*errors = QUEUE_OK;
+			stdErr = STD_OK;
 		}
 	}
+
+	return stdErr;
 }
 
 
-void list_pop_NC(List* list, Fifo_Err* errors)
+Std_Err fifo_pop_NC(Fifo_NC* list)
 {
-	*errors = QUEUE_ERROR;
+	Std_Err stdErr = STD_ERROR;
 
 	if (list != NULL)
 	{
 		if(list->size == 0)
 		{
-			*errors = QUEUE_REF_ERR;
+			stdErr = STD_REFERENCE_ERROR;
 		}
 		else if(list->size == 1)
 		{
@@ -320,11 +327,11 @@ void list_pop_NC(List* list, Fifo_Err* errors)
 			list->begin = NULL;
 			list->size = 0;
 
-			*errors = QUEUE_OK;
+			stdErr = STD_OK;
 		}
 		else
 		{
-			List_memb* del = list->begin;
+			Fifo_memb* del = list->begin;
 			list->begin = list->begin->next;
 
 #ifdef USE_INTERRUPTS
@@ -339,81 +346,69 @@ void list_pop_NC(List* list, Fifo_Err* errors)
 
 			list->size -= 1;
 
-			*errors = QUEUE_OK;
+			stdErr = STD_OK;
 		}
 	}
+
+	return stdErr;
 }
 
 
-void list_clear_C(List* list, Fifo_Err* errors)
+Std_Err fifo_clear_C(Fifo_C* list)
 {
-	*errors = QUEUE_OK;
-	Fifo_Err errCheck;
+	Std_Err stdErr = STD_OK;
 
-	while (list_getSize(list, &errCheck) > 0)
+	if(list == NULL)
 	{
-		if(errCheck != QUEUE_OK)
-		{
-			*errors = errCheck;
-			break;
-		}
-
-		list_pop_C(list, &errCheck);
-
-		if(errCheck != QUEUE_OK)
-		{
-			*errors = errCheck;
-			break;
-		}
+		return STD_PARAMETER_ERROR;
 	}
 
-	if(errCheck != QUEUE_OK)
-		*errors = errCheck;
-
-}
-
-
-void list_clear_NC(List* list, Fifo_Err* errors)
-{
-	*errors = QUEUE_OK;
-	Fifo_Err errCheck;
-
-	while (list_getSize(list, &errCheck) > 0)
+	while (fifo_getSize(list) > 0)
 	{
-		if(errCheck != QUEUE_OK)
-		{
-			*errors = errCheck;
-			break;
-		}
+		stdErr = fifo_pop_C(list);
 
-		list_pop_NC(list, &errCheck);
-
-		if(errCheck != QUEUE_OK)
+		if(stdErr != STD_OK)
 		{
-			*errors = errCheck;
-			break;
+			return stdErr;
 		}
 	}
 
-	if(errCheck != QUEUE_OK)
-		*errors = errCheck;
-
+	return stdErr;
 }
 
 
-void list_delete_C(List** list, Fifo_Err* errors)
+Std_Err fifo_clear_NC(Fifo_NC* list)
 {
-	*errors = QUEUE_OK;
-	Fifo_Err errCheck;
+	Std_Err stdErr = STD_OK;
+
+	if(list == NULL)
+	{
+		return STD_PARAMETER_ERROR;
+	}
+
+	while (fifo_getSize(list) > 0)
+	{
+		stdErr = fifo_pop_NC(list);
+
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
+	}
+
+	return stdErr;
+}
+
+
+Std_Err fifo_delete_C(Fifo_C** list)
+{
+	Std_Err stdErr = STD_ERROR;
 
 	if ((*list) != NULL)
 	{
-		list_clear_C(*list, &errCheck);
-		if(errCheck != QUEUE_OK)
-		{
-			*errors = errCheck;
-		}
-		else
+		stdErr = fifo_clear_C(*list);
+
+		if(stdErr == STD_OK)
 		{
 #ifdef USE_INTERRUPTS
 			IRQ_DISABLE;
@@ -428,22 +423,20 @@ void list_delete_C(List** list, Fifo_Err* errors)
 			*list = NULL;
 		}
 	}
+
+	return stdErr;
 }
 
 
-void list_delete_NC(List** list, Fifo_Err* errors)
+Std_Err fifo_delete_NC(Fifo_NC** list)
 {
-	*errors = QUEUE_OK;
-	Fifo_Err errCheck;
+	Std_Err stdErr = STD_ERROR;
 
 	if ((*list) != NULL)
 	{
-		list_clear_NC(*list, &errCheck);
-		if(errCheck != QUEUE_OK)
-		{
-			*errors = errCheck;
-		}
-		else
+		stdErr = fifo_clear_NC(*list);
+		
+		if(stdErr == STD_OK)
 		{
 #ifdef USE_INTERRUPTS
 			IRQ_DISABLE;
@@ -456,66 +449,46 @@ void list_delete_NC(List** list, Fifo_Err* errors)
 #endif /* USE_INTERRUPTS */
 
 			*list = NULL;
-
-			*errors = QUEUE_OK;
 		}
 	}
+
+	return stdErr;
 }
 
 
-uint8_t list_getSize(List* list, Fifo_Err* errors)
+uint8_t fifo_getSize(Fifo* list)
 {
 	uint8_t retVal;
 
 	if (list == NULL)
 	{
 		retVal = 0;
-		*errors = QUEUE_ERROR;
 	}
 	else
 	{
 		retVal = list->size;
-		*errors = QUEUE_OK;
 	}
 
 	return retVal;
 }
 
 
-uint8_t list_getDataSize(List* list, Fifo_Err* errors)
+uint8_t fifo_getDataSize(Fifo* list)
 {
 	uint8_t retVal;
 
 	if (list == NULL)
 	{
 		retVal = 0;
-		*errors = QUEUE_ERROR;
 	}
 	else if(list->size <= 0)
 	{
 		retVal = 0;
-		*errors = QUEUE_REF_ERR;
 	}
 	else
 	{
 		retVal = list->begin->dataSize;
-		*errors = QUEUE_OK;
 	}
 
-	return retVal;
-}
-
-
-Std_Err translate_error_fifo_to_project(Fifo_Err fifoErr)
-{
-	Std_Err retVal;
-
-	switch(fifoErr){
-	case QUEUE_OK: retVal = STD_OK; break;
-	case QUEUE_ERROR: retVal = STD_ERROR; break;
-	case QUEUE_REF_ERR: retVal = STD_REFERENCE_ERROR; break;
-	case QUEUE_ALLOC_ERR: retVal = STD_ALLOC_ERROR; break;
-	default: retVal = STD_ERROR; break;
-	}
 	return retVal;
 }
