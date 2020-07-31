@@ -140,7 +140,7 @@ TEST_F(Manager_test, Manager__setMotorData_EEPROM__test)
     data.positionEnd = 3.0;
 
     EXPECT_CALL(*mock, EEPROM_writeData(settings->eeprom, 
-        settings->motors[0]->device.eepromDataAddress, (uint8_t*)&data, _));
+        settings->motors[0]->device.eepromDataAddress, (uint8_t*)(&data), _));
 
     stdErr = setMotorData_EEPROM(settings->motors[0], settings->eeprom, &data);
     EXPECT_EQ(stdErr, STD_OK);
