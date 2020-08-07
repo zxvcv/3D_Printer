@@ -103,24 +103,24 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-	fifo_pop_C(printerSettings.bt->Buff_Bt_OUT);
+	fifo_pop_C(printerSettings.outComm->Buff_OUT);
 	/*TODO: error handling*/
 
 #ifdef USE_INTERRUPTS
 	IRQ_ENABLE;
 #endif /* USE_INTERRUPTS */
 
-	if(0 == fifo_getSize(printerSettings.bt->Buff_Bt_OUT))
+	if(0 == fifo_getSize(printerSettings.outComm->Buff_OUT))
 	{
-		printerSettings.bt->transmissionBT = false;
+		printerSettings.outComm->transmission = false;
 	}
 	else
 	{
-		fifo_front(printerSettings.bt->Buff_Bt_OUT, (void**)&data);
+		fifo_front(printerSettings.outComm->Buff_OUT, (void**)&data);
 		/*TODO: error handling*/
 
-		HAL_UART_Transmit_IT(printerSettings.bt->huart,
-						data, fifo_getDataSize(printerSettings.bt->Buff_Bt_OUT));
+		HAL_UART_Transmit_IT(printerSettings.outComm->huart,
+						data, fifo_getDataSize(printerSettings.outComm->Buff_OUT));
 		/*TODO: error handling*/
 	}
 
@@ -132,17 +132,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	//Std_Err stdErr;
 	//HAL_StatusTypeDef halErr;
 
-	if(huart == printerSettings.bt->huart)
+	if(huart == printerSettings.outComm->huart)
 	{
-		fifo_push_C(printerSettings.bt->Buff_Bt_IN, &(printerSettings.bt->recievedBT), 1);
+		fifo_push_C(printerSettings.outComm->Buff_IN, &(printerSettings.outComm->recieved), 1);
 		/*TODO: error handling*/
 
-		if(printerSettings.bt->recievedBT == '\n')
+		if(printerSettings.outComm->recieved == '\n')
 		{
-			printerSettings.bt->EOL_BT_recieved = true;
+			printerSettings.outComm->EOL_recieved = true;
 		}
 			
-		HAL_UART_Receive_IT(printerSettings.bt->huart, &(printerSettings.bt->recievedBT), 1);
+		HAL_UART_Receive_IT(printerSettings.outComm->huart, &(printerSettings.outComm->recieved), 1);
 		/*TODO: error handling*/
 	}
 }

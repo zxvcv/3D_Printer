@@ -5,14 +5,11 @@
  *
  * =======================================================================================================
  * COMMENTS:
- * 		.
+ *
  * =======================================================================================================
  * EXAMPLE:
  *
  ********************************************************************************************************** */
-
-#ifndef MANAGER_BT_H_
-#define MANAGER_BT_H_
 
 
 
@@ -20,20 +17,12 @@
  *											INCLUDES
  * ####################################################################################################### */
 
-#include <stdbool.h>
-#include "ProjectObjects.h"
-#include "ProjectTypes.h"
+#include "outerCommunication.h"
 
 
 
 /* #######################################################################################################
  *											DEFINES
- * ####################################################################################################### */
-
-
-
-/* #######################################################################################################
- *											DATA TYPES
  * ####################################################################################################### */
 
 
@@ -45,12 +34,100 @@
 
 
 /* #######################################################################################################
- *										PUBLIC DECLARATIONS
+ *											DATA TYPES
  * ####################################################################################################### */
 
-Std_Err execute_command_BT(DeviceSettings* settings);
-Std_Err parse_data_BT(DeviceSettings* settings);
 
 
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
 
-#endif /*MANAGER_BT_H_*/
+Std_Err init_outer_operations(OuterComm_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	HAL_StatusTypeDef halStatus;
+
+	stdErr = fifo_create(&(settings->Buff_InputCommands));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = fifo_create(&(settings->Buff_IN));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = fifo_create(&(settings->Buff_OUT));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	halStatus = HAL_UART_Receive_IT(settings->huart, &(settings->recieved), 1);
+	if(halStatus != HAL_OK)
+	{
+		return translate_error_hal_to_project(halStatus);
+	}
+
+	return stdErr;
+}
+
+Std_Err send_outer_command(OuterComm_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+	HAL_StatusTypeDef halErr;
+	uint8_t* data = NULL;
+	uint8_t dataSize;
+
+	uint8_t listSize = fifo_getSize(settings->Buff_OUT);
+
+	if(!settings->transmission && listSize > 0)
+	{
+		settings->transmission = true;
+		stdErr = fifo_front(settings->Buff_OUT, (void**)&data);
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
+		
+		dataSize = fifo_getDataSize(settings->Buff_OUT);
+
+		halErr = HAL_UART_Transmit_IT(settings->huart, data, dataSize);
+
+		stdErr = translate_error_hal_to_project(halErr);
+	}
+	else if(settings->transmission)
+	{
+		stdErr = STD_BUSY_ERROR;
+	}	
+
+	return stdErr;
+}
+
+Std_Err deinit_outer_operations(OuterComm_Settings* settings)
+{
+	Std_Err stdErr = STD_OK;
+
+	stdErr = fifo_delete_C(&(settings->Buff_InputCommands));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = fifo_delete_C(&(settings->Buff_IN));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = fifo_delete_C(&(settings->Buff_OUT));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	return stdErr;
+}

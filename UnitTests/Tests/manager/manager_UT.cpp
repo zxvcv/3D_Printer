@@ -23,7 +23,7 @@ public:
     MOCK_METHOD3(HAL_GPIO_WritePin, void(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState));
     MOCK_METHOD4(EEPROM_readData, Std_Err(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size));
     MOCK_METHOD4(EEPROM_writeData, Std_Err(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size));
-    MOCK_METHOD1(init_operations_BT, Std_Err(BT_Settings* settings));
+    MOCK_METHOD1(init_outer_operations, Std_Err(OuterComm_Settings* settings));
     MOCK_METHOD1(init_operations_SDcard, Std_Err(SDCard_Settings* settings));
 };
 
@@ -80,7 +80,7 @@ TEST_F(Manager_test, Manager__init_manager__test)
 {
     Std_Err stdErr;
 
-    EXPECT_CALL(*mock, init_operations_BT(settings->bt))
+    EXPECT_CALL(*mock, init_outer_operations(settings->outComm))
         .WillOnce(Return(STD_OK));
     EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET));
     EXPECT_CALL(*mock, init_operations_SDcard(settings->sd))
@@ -206,9 +206,9 @@ extern "C"
         Manager_test::mock->EEPROM_writeData(settings, address, data, size);
     }
 
-    Std_Err init_operations_BT(BT_Settings* settings)
+    Std_Err init_outer_operations(OuterComm_Settings* settings)
     {
-        Manager_test::mock->init_operations_BT(settings);
+        Manager_test::mock->init_outer_operations(settings);
     }
 
     Std_Err init_operations_SDcard(SDCard_Settings* settings)

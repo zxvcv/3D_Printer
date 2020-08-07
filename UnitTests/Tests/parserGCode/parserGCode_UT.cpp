@@ -51,18 +51,18 @@ public:
         {
             settings->motors[i] = (MotorSettings*)malloc(sizeof(MotorSettings));
         }
-        settings->bt = (BT_Settings*)malloc(sizeof(BT_Settings));
+        settings->outComm = (OuterComm_Settings*)malloc(sizeof(OuterComm_Settings));
         settings->eeprom = (EEPROMSettings*)malloc(sizeof(EEPROMSettings));
         settings->sd = (SDCard_Settings*)malloc(sizeof(SDCard_Settings));
         
         setupDevice(settings);
 
-        //init_operations_BT(settings->bt);
-        stdErr = fifo_create(&(settings->bt->Buff_InputCommandsBT));
+        //init_outer_operations(settings->outComm);
+        stdErr = fifo_create(&(settings->outComm->Buff_InputCommands));
         EXPECT_EQ(stdErr, STD_OK);
-	    stdErr = fifo_create(&(settings->bt->Buff_Bt_IN));
+	    stdErr = fifo_create(&(settings->outComm->Buff_IN));
         EXPECT_EQ(stdErr, STD_OK);
-	    stdErr = fifo_create(&(settings->bt->Buff_Bt_OUT));
+	    stdErr = fifo_create(&(settings->outComm->Buff_OUT));
         EXPECT_EQ(stdErr, STD_OK);
     }
 
@@ -70,17 +70,17 @@ public:
     {
         Std_Err stdErr;
 
-        //deinit_operations_BT(settings->bt);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_InputCommandsBT));
+        //deinit_outer_operations(settings->outComm);
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_InputCommands));
         EXPECT_EQ(stdErr, STD_OK);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_IN));
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_IN));
         EXPECT_EQ(stdErr, STD_OK);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_OUT));
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_OUT));
         EXPECT_EQ(stdErr, STD_OK);
         
         free(settings->sd);
         free(settings->eeprom);
-        free(settings->bt);
+        free(settings->outComm);
         for(int i=0; i<MOTORS_NUM; ++i)
         {
             free(settings->motors[i]);
@@ -89,7 +89,7 @@ public:
     }
 
     void setupMotor(MotorSettings* motor);
-    void setupBT(BT_Settings* bt);
+    void setupOuterComm(OuterComm_Settings* settings);
     void setupEEPROM(EEPROMSettings* eeprom);
     void setupSD(SDCard_Settings* sd);
     void setupDevice(DeviceSettings* settings);
@@ -427,14 +427,14 @@ void ParserGCode_test::setupMotor(MotorSettings* motor)
     motor->device.positionEnd = 20 * ACCURACY;
 }
 
-void ParserGCode_test::setupBT(BT_Settings* bt)
+void ParserGCode_test::setupOuterComm(OuterComm_Settings* settings)
 {
-	bt->Buff_InputCommandsBT = NULL;
-	bt->Buff_Bt_IN = NULL;
-	bt->Buff_Bt_OUT = NULL;
-	bt->huart = &huart1;
-	bt->EOL_BT_recieved = false;
-	bt->transmissionBT = false;
+	settings->Buff_InputCommands = NULL;
+	settings->Buff_IN = NULL;
+	settings->Buff_OUT = NULL;
+	settings->huart = &huart1;
+	settings->EOL_recieved = false;
+	settings->transmission = false;
 }
 
 void ParserGCode_test::setupEEPROM(EEPROMSettings* eeprom)
@@ -457,7 +457,7 @@ void ParserGCode_test::setupDevice(DeviceSettings* settings)
         setupMotor(settings->motors[i]);
     }
 
-    setupBT(settings->bt);
+    setupOuterComm(settings->outComm);
     setupEEPROM(settings->eeprom);
     setupSD(settings->sd);
 }

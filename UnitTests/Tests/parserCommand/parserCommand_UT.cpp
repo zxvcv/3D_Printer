@@ -15,7 +15,7 @@ using ::testing::Return;
 extern "C"
 {
     #include "parserCommand.h"
-    #include "managerBT.h"
+    #include "managerOuterComm.h"
 }
 
 
@@ -56,18 +56,18 @@ public:
         {
             settings->motors[i] = (MotorSettings*)malloc(sizeof(MotorSettings));
         }
-        settings->bt = (BT_Settings*)malloc(sizeof(BT_Settings));
+        settings->outComm = (OuterComm_Settings*)malloc(sizeof(OuterComm_Settings));
         settings->eeprom = (EEPROMSettings*)malloc(sizeof(EEPROMSettings));
         settings->sd = (SDCard_Settings*)malloc(sizeof(SDCard_Settings));
         
         setupDevice(settings);
 
-        //init_operations_BT(settings->bt);
-        stdErr = fifo_create(&(settings->bt->Buff_InputCommandsBT));
+        //init_outer_operations(settings->outComm);
+        stdErr = fifo_create(&(settings->outComm->Buff_InputCommands));
         EXPECT_EQ(stdErr, STD_OK);
-	    stdErr = fifo_create(&(settings->bt->Buff_Bt_IN));
+	    stdErr = fifo_create(&(settings->outComm->Buff_IN));
         EXPECT_EQ(stdErr, STD_OK);
-	    stdErr = fifo_create(&(settings->bt->Buff_Bt_OUT));
+	    stdErr = fifo_create(&(settings->outComm->Buff_OUT));
         EXPECT_EQ(stdErr, STD_OK);
     }
 
@@ -75,17 +75,17 @@ public:
     {
         Std_Err stdErr;
 
-        //deinit_operations_BT(settings->bt);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_InputCommandsBT));
+        //deinit_outer_operations(settings->outComm);
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_InputCommands));
         EXPECT_EQ(stdErr, STD_OK);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_IN));
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_IN));
         EXPECT_EQ(stdErr, STD_OK);
-        stdErr = fifo_delete_C(&(settings->bt->Buff_Bt_OUT));
+        stdErr = fifo_delete_C(&(settings->outComm->Buff_OUT));
         EXPECT_EQ(stdErr, STD_OK);
         
         free(settings->sd);
         free(settings->eeprom);
-        free(settings->bt);
+        free(settings->outComm);
         for(int i=0; i<MOTORS_NUM; ++i)
         {
             free(settings->motors[i]);
@@ -95,7 +95,7 @@ public:
 
 
     void setupMotor(MotorSettings* motor);
-    void setupBT(BT_Settings* bt);
+    void setupOuterComm(OuterComm_Settings* settings);
     void setupEEPROM(EEPROMSettings* eeprom);
     void setupSD(SDCard_Settings* sd);
     void setupDevice(DeviceSettings* settings);
@@ -131,11 +131,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
 
@@ -159,16 +159,16 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDataRequest_MultipleMotor_Correct
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 2);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 2);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
-    stdErr = fifo_pop_C(settings->bt->Buff_Bt_OUT);
+    stdErr = fifo_pop_C(settings->outComm->Buff_OUT);
     EXPECT_EQ(stdErr, STD_OK);
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
@@ -199,14 +199,14 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionMove_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    //queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_OUT, &fifoErr);
     //EXPECT_EQ(queueSize, 1);
-    //queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_IN, &fifoErr);
     //EXPECT_EQ(queueSize, 0);
-    //queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_InputCommands, &fifoErr);
     //EXPECT_EQ(queueSize, 0);
 
-    //sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    //sendCmd = (char*)list_front(settings->outComm->Buff_OUT, &fifoErr);
     //std::cout << sendCmd << std::endl;
     //EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
@@ -233,11 +233,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionValueSet_SingleMotor_Corr
     EXPECT_EQ(stdErr, STD_OK);
     
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 10.000000 0.000000 20.000000 10.000000 50.000000\n");
 }
@@ -264,11 +264,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionZero_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 10.000000 20.000000 10.000000 50.000000\n");
 }
@@ -295,11 +295,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorPositionEnd_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 30.000000 10.000000 50.000000\n");
 }
@@ -330,14 +330,14 @@ TEST_F(ParserCommand_test, ParserCommand__MotorDistanceMove_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    //queueSize = list_getSize(settings->bt->Buff_Bt_OUT, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_OUT, &fifoErr);
     //EXPECT_EQ(queueSize, 1);
-    //queueSize = list_getSize(settings->bt->Buff_Bt_IN, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_IN, &fifoErr);
     //EXPECT_EQ(queueSize, 0);
-    //queueSize = list_getSize(settings->bt->Buff_InputCommandsBT, &fifoErr);
+    //queueSize = list_getSize(settings->outComm->Buff_InputCommands, &fifoErr);
     //EXPECT_EQ(queueSize, 0);
 
-    //sendCmd = (char*)list_front(settings->bt->Buff_Bt_OUT, &fifoErr);
+    //sendCmd = (char*)list_front(settings->outComm->Buff_OUT, &fifoErr);
     //std::cout << sendCmd << std::endl;
     //EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 0.000000 50.000000\n");
 }
@@ -364,11 +364,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorSpeedSet_SingleMotor_Correct__tes
     EXPECT_EQ(stdErr, STD_OK);
     
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 20.000000 50.000000\n");
 }
@@ -395,11 +395,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorSpeedMax_SingleMotor_Correct__tes
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "DT M1 0.000000 0.000000 20.000000 10.000000 40.000000\n");
 }
@@ -423,11 +423,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeRequest_SingleMotor_Corr
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.203000 0.203000 0.203000 0.203000 0.000000\n");
 }
@@ -452,11 +452,11 @@ TEST_F(ParserCommand_test, ParserCommand__MotorsStepSizeSet_SingleMotor_Correct_
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.400000 0.203000 0.203000 0.203000 0.000000\n");
 }
@@ -484,9 +484,9 @@ TEST_F(ParserCommand_test, ParserCommand__SDCardProgramRun_SingleMotor_Correct__
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 }
 
 TEST_F(ParserCommand_test, ParserCommand__WrongCommand__test)
@@ -507,9 +507,9 @@ TEST_F(ParserCommand_test, ParserCommand__WrongCommand__test)
     stdErr = executeSystemCommand(&cmd, settings);
     EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 }
 
 
@@ -543,14 +543,14 @@ void ParserCommand_test::setupMotor(MotorSettings* motor)
     motor->device.positionEnd = 20 * ACCURACY;
 }
 
-void ParserCommand_test::setupBT(BT_Settings* bt)
+void ParserCommand_test::setupOuterComm(OuterComm_Settings* settings)
 {
-	bt->Buff_InputCommandsBT = NULL;
-	bt->Buff_Bt_IN = NULL;
-	bt->Buff_Bt_OUT = NULL;
-	bt->huart = &huart1;
-	bt->EOL_BT_recieved = false;
-	bt->transmissionBT = false;
+	settings->Buff_InputCommands = NULL;
+	settings->Buff_IN = NULL;
+	settings->Buff_OUT = NULL;
+	settings->huart = &huart1;
+	settings->EOL_recieved = false;
+	settings->transmission = false;
 }
 
 void ParserCommand_test::setupEEPROM(EEPROMSettings* eeprom)
@@ -573,7 +573,7 @@ void ParserCommand_test::setupDevice(DeviceSettings* settings)
         setupMotor(settings->motors[i]);
     }
 
-    setupBT(settings->bt);
+    setupOuterComm(settings->outComm);
     setupEEPROM(settings->eeprom);
     setupSD(settings->sd);
 }

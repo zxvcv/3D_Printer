@@ -17,7 +17,7 @@ extern "C"
 {
     #include "managerSDCard.h"
     #include "ProjectObjects.h"
-    #include "BT.h"
+    #include "outerCommunication.h"
     #include "parserGCode.h"
 }
 
@@ -55,13 +55,13 @@ public:
         {
             settings->motors[i] = (MotorSettings*)malloc(sizeof(MotorSettings));
         }
-        settings->bt = (BT_Settings*)malloc(sizeof(BT_Settings));
+        settings->outComm = (OuterComm_Settings*)malloc(sizeof(OuterComm_Settings));
         settings->sd = (SDCard_Settings*)malloc(sizeof(SDCard_Settings));
         
         setupDevice(settings);
-        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->bt->huart, _, _))
+        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->outComm->huart, _, _))
                 .WillOnce(Return(HAL_OK));
-        stdErr = init_operations_BT(settings->bt);
+        stdErr = init_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
 
         stdErr = init_operations_SDcard(settings->sd);
@@ -72,14 +72,14 @@ public:
     {
         Std_Err stdErr;
 
-        stdErr = deinit_operations_BT(settings->bt);
+        stdErr = deinit_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
 
         stdErr = fifo_delete_C(&(settings->sd->BuffIN_SDcmd));
         EXPECT_EQ(stdErr, STD_OK);
 
         free(settings->sd);
-        free(settings->bt);
+        free(settings->outComm);
         for(int i=0; i<MOTORS_NUM; ++i)
         {
             free(settings->motors[i]);
@@ -89,7 +89,7 @@ public:
 
 
     void setupMotor(MotorSettings* motor);
-    void setupBT(BT_Settings* bt);
+    void setupOuterComm(OuterComm_Settings* settings);
     void setupSDCard(SDCard_Settings* sd);
     void setupDevice(DeviceSettings* settings);
 
@@ -440,14 +440,14 @@ void ManagerSDCard_test::setupMotor(MotorSettings* motor)
     motor->device.positionEnd = 20 * ACCURACY;
 }
 
-void ManagerSDCard_test::setupBT(BT_Settings* bt)
+void ManagerSDCard_test::setupOuterComm(OuterComm_Settings* settings)
 {
-	bt->Buff_InputCommandsBT = NULL;
-	bt->Buff_Bt_IN = NULL;
-	bt->Buff_Bt_OUT = NULL;
-	bt->huart = &huart1;
-	bt->EOL_BT_recieved = false;
-	bt->transmissionBT = false;
+	settings->Buff_InputCommands = NULL;
+	settings->Buff_IN = NULL;
+	settings->Buff_OUT = NULL;
+	settings->huart = &huart1;
+	settings->EOL_recieved = false;
+	settings->transmission = false;
 }
 
 void ManagerSDCard_test::setupSDCard(SDCard_Settings* sd)
@@ -471,7 +471,7 @@ void ManagerSDCard_test::setupDevice(DeviceSettings* settings)
         setupMotor(settings->motors[i]);
     }
 
-    setupBT(settings->bt);
+    setupOuterComm(settings->outComm);
     setupSDCard(settings->sd);
 
     settings->errMove = false;

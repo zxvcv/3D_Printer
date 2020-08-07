@@ -13,27 +13,27 @@ using ::testing::Return;
 
 extern "C"
 {
-    #include "BT.h"
+    #include "outerCommunication.h"
     #include "ProjectObjects.h"
     #include "FIFO_void.h"
 }
 
 
 
-class Mock_BT {
+class Mock_outerCommunication {
 public:
     MOCK_METHOD3(HAL_UART_Receive_IT, HAL_StatusTypeDef(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size));
     MOCK_METHOD3(HAL_UART_Transmit_IT, HAL_StatusTypeDef(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size));
     
 };
 
-class BT_test : public ::testing::Test {
+class OuterCommunication_test : public ::testing::Test {
 public:
-    BT_test()
+    OuterCommunication_test()
     {
-        mock = new Mock_BT();
+        mock = new Mock_outerCommunication();
     }
-    ~BT_test()
+    ~OuterCommunication_test()
     {
         delete mock;
     }
@@ -47,13 +47,13 @@ public:
         {
             settings->motors[i] = (MotorSettings*)malloc(sizeof(MotorSettings));
         }
-        settings->bt = (BT_Settings*)malloc(sizeof(BT_Settings));
+        settings->outComm = (OuterComm_Settings*)malloc(sizeof(OuterComm_Settings));
         
         setupDevice(settings);
 
-        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->bt->huart, _, _))
+        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->outComm->huart, _, _))
                 .WillOnce(Return(HAL_OK));
-        stdErr = init_operations_BT(settings->bt);
+        stdErr = init_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
     }
 
@@ -61,10 +61,10 @@ public:
     {
         Std_Err stdErr;
 
-        stdErr = deinit_operations_BT(settings->bt);
+        stdErr = deinit_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
 
-        free(settings->bt);
+        free(settings->outComm);
         for(int i=0; i<MOTORS_NUM; ++i)
         {
             free(settings->motors[i]);
@@ -74,65 +74,65 @@ public:
 
 
     void setupMotor(MotorSettings* motor);
-    void setupBT(BT_Settings* bt);
+    void setupOuterComm(OuterComm_Settings* settings);
     void setupDevice(DeviceSettings* settings);
 
 
     DeviceSettings* settings;
 
-    static Mock_BT* mock;
+    static Mock_outerCommunication* mock;
 };
 
-Mock_BT* BT_test::mock;
+Mock_outerCommunication* OuterCommunication_test::mock;
 
 
 
 /************************** TESTS **************************/
 
-TEST_F(BT_test, BT__send_command_BT_noCommandsWaiting__test)
+TEST_F(OuterCommunication_test, outerCommunication__send_outer_command_noCommandsWaiting__test)
 {
     Std_Err stdErr = STD_OK;
 
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 0);
     
-    EXPECT_EQ(settings->bt->transmissionBT, false);
+    EXPECT_EQ(settings->outComm->transmission, false);
 
-    stdErr = send_command_BT(settings->bt);
+    stdErr = send_outer_command(settings->outComm);
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 0);
     
-    EXPECT_EQ(settings->bt->transmissionBT, false);
+    EXPECT_EQ(settings->outComm->transmission, false);
 }
 
-TEST_F(BT_test, BT__send_command_BT_oneCommandWaiting__test)
+TEST_F(OuterCommunication_test, outerCommunication__send_outer_command_oneCommandWaiting__test)
 {
     Std_Err stdErr = STD_OK;
 
     char cmdStr[] = "SP M1 0.400000";
 
-    stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, cmdStr, strlen(cmdStr));
+    stdErr = fifo_push_C(settings->outComm->Buff_OUT, cmdStr, strlen(cmdStr));
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
     
-    EXPECT_EQ(settings->bt->transmissionBT, false);
+    EXPECT_EQ(settings->outComm->transmission, false);
 
-    EXPECT_CALL(*mock, HAL_UART_Transmit_IT(settings->bt->huart, _, _))
+    EXPECT_CALL(*mock, HAL_UART_Transmit_IT(settings->outComm->huart, _, _))
             .WillOnce(Return(HAL_OK));
-    stdErr = send_command_BT(settings->bt);
+    stdErr = send_outer_command(settings->outComm);
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
     
-    EXPECT_EQ(settings->bt->transmissionBT, true);
+    EXPECT_EQ(settings->outComm->transmission, true);
 }
 
 
 
 /************************** PUBLIC FUNCTIONS **************************/
 
-void BT_test::setupMotor(MotorSettings* motor)
+void OuterCommunication_test::setupMotor(MotorSettings* motor)
 {
     motor->IOreset.PORT = MOT1_RESET_GPIO_Port;
     motor->IOreset.PIN = MOT1_RESET_Pin;
@@ -159,24 +159,24 @@ void BT_test::setupMotor(MotorSettings* motor)
     motor->device.positionEnd = 20 * ACCURACY;
 }
 
-void BT_test::setupBT(BT_Settings* bt)
+void OuterCommunication_test::setupOuterComm(OuterComm_Settings* settings)
 {
-	bt->Buff_InputCommandsBT = NULL;
-	bt->Buff_Bt_IN = NULL;
-	bt->Buff_Bt_OUT = NULL;
-	bt->huart = &huart1;
-	bt->EOL_BT_recieved = false;
-	bt->transmissionBT = false;
+	settings->Buff_InputCommands = NULL;
+	settings->Buff_IN = NULL;
+	settings->Buff_OUT = NULL;
+	settings->huart = &huart1;
+	settings->EOL_recieved = false;
+	settings->transmission = false;
 }
 
-void BT_test::setupDevice(DeviceSettings* settings)
+void OuterCommunication_test::setupDevice(DeviceSettings* settings)
 {
     for(int i=0; i<MOTORS_NUM; ++i)
     {
         setupMotor(settings->motors[i]);
     }
 
-    setupBT(settings->bt);
+    setupOuterComm(settings->outComm);
 }
 
 
@@ -187,12 +187,12 @@ extern "C"
 {
     HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
     {
-        BT_test::mock->HAL_UART_Receive_IT(huart, pData, Size);
+        OuterCommunication_test::mock->HAL_UART_Receive_IT(huart, pData, Size);
     }
 
     HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
     {
-        BT_test::mock->HAL_UART_Transmit_IT(huart, pData, Size);
+        OuterCommunication_test::mock->HAL_UART_Transmit_IT(huart, pData, Size);
     }
 }
 

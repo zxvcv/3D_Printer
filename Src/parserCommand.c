@@ -84,7 +84,7 @@ Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
 				cmd->motor[i]->data.speed, 
 				cmd->motor[i]->device.maxSpeed);
 		
-		stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1);
+		stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize + 1);
 		if(stdErr != STD_OK)
 		{
 			return stdErr;
@@ -301,7 +301,7 @@ Std_Err systemCmd_MotorsStepSizeRequest(SystemCommand* cmd, DeviceSettings* sett
 			(double)(settings->motors[3]->device.stepSize) / ACCURACY, 
 			(double)0);
 
-	stdErr = fifo_push_C(settings->bt->Buff_Bt_OUT, (char*)buffMsg, msgSize + 1);
+	stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize + 1);
 
 	return stdErr;
 }

@@ -20,7 +20,7 @@ add_library(managerSDCard_UT_lib
     ${SOURCE_DIR}/ProjectTypes.c
     ${SOURCE_DIR}/FIFO_void.c
     ${SOURCE_DIR}/EEPROM_24AA01.c
-    ${SOURCE_DIR}/BT.c
+    ${SOURCE_DIR}/outerCommunication.c
     ${SOURCE_DIR}/vectorOperations.c
 )
 

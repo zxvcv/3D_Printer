@@ -82,8 +82,8 @@ UART_HandleTypeDef huart2;
 
 void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
 
-#include "BT.h"
-Std_Err init_operations_BT(BT_Settings* settings);
+#include "outerCommunication.h"
+Std_Err init_outer_operations(OuterComm_Settings* settings);
 
 
 #endif /* __STM32F3xx_HAL_H */

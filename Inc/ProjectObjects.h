@@ -25,7 +25,7 @@
 #include "EEPROM_24AA01.h"
 #include "ST7565.h"
 #include "diskio.h"
-#include "BT.h"
+#include "outerCommunication.h"
 #include "SD.h"
 
 
@@ -75,13 +75,13 @@ typedef struct DeviceSettings_Tag{
 
 	ST7565R_Settings* lcd;
 
-	BT_Settings* bt;
+	OuterComm_Settings* outComm;
 
 	bool errMove;
 
 	double speed;
 	uint8_t recievedBT;
-	bool EOL_BT_recieved;
+	bool EOL_recieved; /*TODO: check if it is not the same as EOL_resieved in outComm struct*/
 	bool transmissionBT;
 }DeviceSettings;
 

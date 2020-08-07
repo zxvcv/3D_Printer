@@ -5,14 +5,11 @@
  *
  * =======================================================================================================
  * COMMENTS:
- * 		.
+ *
  * =======================================================================================================
  * EXAMPLE:
  *
  ********************************************************************************************************** */
-
-#ifndef BT_H_
-#define BT_H_
 
 
 
@@ -20,33 +17,14 @@
  *											INCLUDES
  * ####################################################################################################### */
 
-#include <stdbool.h>
-#include "FIFO_void.h"
-#include "main.h"
-
+#include "managerOuterComm.h"
+#include "parserCommand.h"
+#include "manager.h"
 
 
 /* #######################################################################################################
  *											DEFINES
  * ####################################################################################################### */
-
-
-
-/* #######################################################################################################
- *											DATA TYPES
- * ####################################################################################################### */
-
-typedef struct BT_Settings_Tag{
-	Fifo_C* Buff_InputCommandsBT;
-	Fifo_C* Buff_Bt_IN;
-	Fifo_C* Buff_Bt_OUT;
-
-	UART_HandleTypeDef* huart;
-
-	uint8_t recievedBT;
-	bool EOL_BT_recieved;
-	bool transmissionBT;
-}BT_Settings;
 
 
 
@@ -57,13 +35,96 @@ typedef struct BT_Settings_Tag{
 
 
 /* #######################################################################################################
- *										PUBLIC DECLARATIONS
+ *											DATA TYPES
  * ####################################################################################################### */
 
-Std_Err init_operations_BT(BT_Settings* settings);
-Std_Err send_command_BT(BT_Settings* settings);
-Std_Err deinit_operations_BT(BT_Settings* settings);
 
 
+/* #######################################################################################################
+ *										PUBLIC DEFINITIONS
+ * ####################################################################################################### */
 
-#endif /*BT_H_*/
+Std_Err execute_outer_command(DeviceSettings* settings)
+{
+	Std_Err stdErr = STD_OK;
+
+	SystemCommand* cmd = NULL;
+	uint8_t listSize;
+
+	listSize = fifo_getSize(settings->outComm->Buff_InputCommands);
+
+	if(listSize > 0)
+	{
+		stdErr = fifo_front(settings->outComm->Buff_InputCommands, (void**)&cmd);
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
+
+		stdErr = executeSystemCommand(cmd, settings);
+
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
+
+		stdErr = fifo_pop_C(settings->outComm->Buff_InputCommands);
+	}
+	else
+	{
+		stdErr = STD_OK;
+	}
+	
+	return stdErr;
+}
+
+Std_Err parse_outer_data(DeviceSettings* settings)
+{
+	Std_Err stdErr = STD_OK;
+
+	SystemCommand cmd;
+	uint8_t sizeTemp = 0;
+	uint8_t* data;
+	uint8_t temp[25];
+
+	if(settings->EOL_recieved)
+	{
+		settings->EOL_recieved = false;
+
+		do
+		{
+			stdErr = fifo_front(settings->outComm->Buff_IN, (void*)&data);
+			temp[sizeTemp++] = *data;
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
+			
+			stdErr = fifo_pop_C(settings->outComm->Buff_IN);
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
+
+		}while(temp[sizeTemp - 1] != '\n');
+		temp[sizeTemp - 1] = '\0';
+
+		stdErr = parseSystemCommand((char*)temp, &cmd, settings);
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
+#ifdef USE_INTERRUPTS
+		IRQ_DISABLE;
+#endif /* USE_INTERRUPTS */
+
+		stdErr = fifo_push_C(settings->outComm->Buff_InputCommands, &cmd, sizeof(SystemCommand));
+
+#ifdef USE_INTERRUPTS
+		IRQ_ENABLE;
+#endif /* USE_INTERRUPTS */
+	}
+
+	return stdErr;
+}
+

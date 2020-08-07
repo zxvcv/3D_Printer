@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2)
 
-set(This BT_UT)
+set(This managerOuterComm_UT)
 
 #***** variables *****#
 set(APP_DIR ../../..)
@@ -12,26 +12,27 @@ include_directories(./stubs)
 include_directories(${APP_DIR}/Inc)
 include_directories(${APP_DIR}/Drivers/FATFS)
 
-add_library(BT_UT_lib 
-    ${SOURCE_DIR}/BT.c    
+add_library(managerOuterComm_UT_lib 
+    ${SOURCE_DIR}/managerOuterComm.c
     ${SOURCE_DIR}/parserCommand.c
     ${SOURCE_DIR}/a4988_stepstick.c
     ${SOURCE_DIR}/ProjectTypes.c
     ${SOURCE_DIR}/FIFO_void.c
     ${SOURCE_DIR}/EEPROM_24AA01.c
+    ${SOURCE_DIR}/outerCommunication.c
 )
 
 
 #***** test *****#
 add_executable(${This} 
-    BT_UT.cpp
+    managerOuterComm_UT.cpp
     ${SOURCE_DIR}/ProjectObjects.c
 )
 
 target_link_libraries(${This} PUBLIC
     gtest_main
     gmock_main
-    BT_UT_lib
+    managerOuterComm_UT_lib
 )
 
 add_test(

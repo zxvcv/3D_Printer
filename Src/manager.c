@@ -61,7 +61,7 @@ Std_Err init_manager(DeviceSettings* settings)
 {
 	Std_Err stdErr;
 
-	stdErr = init_operations_BT(settings->bt);
+	stdErr = init_outer_operations(settings->outComm);
 	if(stdErr != STD_OK)
 	{
 		return stdErr;

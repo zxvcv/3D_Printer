@@ -166,13 +166,13 @@ ST7565R_Settings lcd = { .IOcs = { .PORT = ST7565R_CS_GPIO_Port, .PIN = ST7565R_
 						 .buffer = NULL
 };
 
-BT_Settings bt = {
-		.Buff_InputCommandsBT = NULL,
-		.Buff_Bt_IN = NULL,
-		.Buff_Bt_OUT = NULL,
+OuterComm_Settings outComm = {
+		.Buff_InputCommands = NULL,
+		.Buff_IN = NULL,
+		.Buff_OUT = NULL,
 		.huart = &huart1,
-		.EOL_BT_recieved = false,
-		.transmissionBT = false
+		.EOL_recieved = false,
+		.transmission = false
 };
 
 FATFS fatfs;
@@ -207,11 +207,11 @@ DeviceSettings printerSettings = {
 		.motors = motors,
 		.eeprom = &eeprom,
 		.lcd = &lcd,
-		.bt = &bt,
+		.outComm = &outComm,
 		.errMove = false,
 		.speed = 0.0,
 		.recievedBT = 0,
-		.EOL_BT_recieved = false,
+		.EOL_recieved = false,
 		.transmissionBT = false
 };
 

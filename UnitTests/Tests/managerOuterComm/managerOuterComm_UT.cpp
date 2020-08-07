@@ -13,14 +13,14 @@ using ::testing::Return;
 
 extern "C"
 {
-    #include "managerBT.h"
-    #include "BT.h"
+    #include "managerOuterComm.h"
+    #include "outerCommunication.h"
     #include "parserCommand.h"
 }
 
 
 
-class Mock_managerBT {
+class Mock_managerOuterComm {
 public:
     MOCK_METHOD3(HAL_UART_Receive_IT, HAL_StatusTypeDef(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size));
     MOCK_METHOD3(HAL_UART_Transmit_IT, HAL_StatusTypeDef(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size));
@@ -35,13 +35,13 @@ public:
     MOCK_METHOD4(EEPROM_writeData, Std_Err(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size));
 };
 
-class ManagerBT_test : public ::testing::Test {
+class ManagerOuterComm_test : public ::testing::Test {
 public:
-    ManagerBT_test()
+    ManagerOuterComm_test()
     {
-        mock = new Mock_managerBT();
+        mock = new Mock_managerOuterComm();
     }
-    ~ManagerBT_test()
+    ~ManagerOuterComm_test()
     {
         delete mock;
     }
@@ -55,13 +55,13 @@ public:
         {
             settings->motors[i] = (MotorSettings*)malloc(sizeof(MotorSettings));
         }
-        settings->bt = (BT_Settings*)malloc(sizeof(BT_Settings));
+        settings->outComm = (OuterComm_Settings*)malloc(sizeof(OuterComm_Settings));
         
         setupDevice(settings);
 
-        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->bt->huart, _, _))
+        EXPECT_CALL(*mock, HAL_UART_Receive_IT(settings->outComm->huart, _, _))
                 .WillOnce(Return(HAL_OK));
-        stdErr = init_operations_BT(settings->bt);
+        stdErr = init_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
     }
 
@@ -69,10 +69,10 @@ public:
     {
         Std_Err stdErr;
 
-        stdErr = deinit_operations_BT(settings->bt);
+        stdErr = deinit_outer_operations(settings->outComm);
         EXPECT_EQ(stdErr, STD_OK);
 
-        free(settings->bt);
+        free(settings->outComm);
         for(int i=0; i<MOTORS_NUM; ++i)
         {
             free(settings->motors[i]);
@@ -82,22 +82,22 @@ public:
 
 
     void setupMotor(MotorSettings* motor);
-    void setupBT(BT_Settings* bt);
+    void setupOuterComm(OuterComm_Settings* settings);
     void setupDevice(DeviceSettings* settings);
 
 
     DeviceSettings* settings;
 
-    static Mock_managerBT* mock;
+    static Mock_managerOuterComm* mock;
 };
 
-Mock_managerBT* ManagerBT_test::mock;
+Mock_managerOuterComm* ManagerOuterComm_test::mock;
 
 
 
 /************************** TESTS **************************/
 
-TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
+TEST_F(ManagerOuterComm_test, ManagerOuterComm__parse_execute_outer_data__test)
 {
     Std_Err stdErr = STD_OK;
 
@@ -111,14 +111,16 @@ TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
     /*parse*/
     for(int i=0; i<cmdLen; ++i)
     {
-        stdErr = fifo_push_C(settings->bt->Buff_Bt_IN, &(cmdStr[i]), 1);
+        stdErr = fifo_push_C(settings->outComm->Buff_IN, &(cmdStr[i]), 1);
         EXPECT_EQ(stdErr, STD_OK);
     }
 
-    stdErr = parse_data_BT(settings);
+    settings->EOL_recieved = true;
+    stdErr = parse_outer_data(settings);
     EXPECT_EQ(stdErr, STD_OK);
     
-    stdErr = fifo_front(settings->bt->Buff_InputCommandsBT, (void**)&cmd);
+    ASSERT_GT(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
+    stdErr = fifo_front(settings->outComm->Buff_InputCommands, (void**)&cmd);
     EXPECT_EQ(stdErr, STD_OK);
 
     EXPECT_EQ(cmd->motorsNum, 1);
@@ -128,15 +130,15 @@ TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
 
     /*execute*/
     EXPECT_CALL(*mock, EEPROM_writeData(settings->eeprom, _, _, _));
-    stdErr = execute_command_BT(settings);
+    stdErr = execute_outer_command(settings);
     EXPECT_EQ(stdErr, STD_OK);
 
     
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_OUT), 1);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_Bt_IN), 0);
-    EXPECT_EQ(fifo_getSize(settings->bt->Buff_InputCommandsBT), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_OUT), 1);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_IN), 0);
+    EXPECT_EQ(fifo_getSize(settings->outComm->Buff_InputCommands), 0);
 
-    stdErr = fifo_front(settings->bt->Buff_Bt_OUT, (void**)&sendCmd);
+    stdErr = fifo_front(settings->outComm->Buff_OUT, (void**)&sendCmd);
     EXPECT_EQ(stdErr, STD_OK);
     EXPECT_STREQ(sendCmd, "SP 0.400000 0.203000 0.203000 0.203000 0.000000\n");
 }
@@ -145,7 +147,7 @@ TEST_F(ManagerBT_test, ManagerBT__parse_execute_data_BT__test)
 
 /************************** PUBLIC FUNCTIONS **************************/
 
-void ManagerBT_test::setupMotor(MotorSettings* motor)
+void ManagerOuterComm_test::setupMotor(MotorSettings* motor)
 {
     motor->IOreset.PORT = MOT1_RESET_GPIO_Port;
     motor->IOreset.PIN = MOT1_RESET_Pin;
@@ -172,24 +174,24 @@ void ManagerBT_test::setupMotor(MotorSettings* motor)
     motor->device.positionEnd = 20 * ACCURACY;
 }
 
-void ManagerBT_test::setupBT(BT_Settings* bt)
+void ManagerOuterComm_test::setupOuterComm(OuterComm_Settings* settings)
 {
-	bt->Buff_InputCommandsBT = NULL;
-	bt->Buff_Bt_IN = NULL;
-	bt->Buff_Bt_OUT = NULL;
-	bt->huart = &huart1;
-	bt->EOL_BT_recieved = false;
-	bt->transmissionBT = false;
+	settings->Buff_InputCommands = NULL;
+	settings->Buff_IN = NULL;
+	settings->Buff_OUT = NULL;
+	settings->huart = &huart1;
+	settings->EOL_recieved = false;
+	settings->transmission = false;
 }
 
-void ManagerBT_test::setupDevice(DeviceSettings* settings)
+void ManagerOuterComm_test::setupDevice(DeviceSettings* settings)
 {
     for(int i=0; i<MOTORS_NUM; ++i)
     {
         setupMotor(settings->motors[i]);
     }
 
-    setupBT(settings->bt);
+    setupOuterComm(settings->outComm);
 }
 
 
@@ -200,46 +202,46 @@ extern "C"
 {
     HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
     {
-        ManagerBT_test::mock->HAL_UART_Receive_IT(huart, pData, Size);
+        ManagerOuterComm_test::mock->HAL_UART_Receive_IT(huart, pData, Size);
     }
 
     HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
     {
-        ManagerBT_test::mock->HAL_UART_Transmit_IT(huart, pData, Size);
+        ManagerOuterComm_test::mock->HAL_UART_Transmit_IT(huart, pData, Size);
     }
 
     void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
     {
-        ManagerBT_test::mock->HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
+        ManagerOuterComm_test::mock->HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
     }
 
     HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
         uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout)
     {
-        ManagerBT_test::mock->HAL_I2C_Mem_Write(hi2c, DevAddress, MemAddress, MemAddSize, 
+        ManagerOuterComm_test::mock->HAL_I2C_Mem_Write(hi2c, DevAddress, MemAddress, MemAddSize, 
             pData, Size, Timeout);
     }
 
     HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
         uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout)
     {
-        ManagerBT_test::mock->HAL_I2C_Mem_Read(hi2c, DevAddress, MemAddress,  MemAddSize, 
+        ManagerOuterComm_test::mock->HAL_I2C_Mem_Read(hi2c, DevAddress, MemAddress,  MemAddSize, 
             pData, Size, Timeout);
     }
 
     FRESULT f_open(FIL* fp, const TCHAR* path,	BYTE mode)
     {
-        ManagerBT_test::mock->f_open(fp, path, mode);
+        ManagerOuterComm_test::mock->f_open(fp, path, mode);
     }
 
     FRESULT f_mount(FATFS* fs,	const TCHAR* path, BYTE opt)
     {
-        ManagerBT_test::mock->f_mount(fs, path, opt);
+        ManagerOuterComm_test::mock->f_mount(fs, path, opt);
     }
 
     Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size)
     {
-        ManagerBT_test::mock->EEPROM_writeData(settings, address, data, size);
+        ManagerOuterComm_test::mock->EEPROM_writeData(settings, address, data, size);
     }
 }
 
