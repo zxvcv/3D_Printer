@@ -98,11 +98,9 @@ void motorInit(MotorSettings* settings)
 	motorUpdatePins(settings);
 }
 
-bool motorUpdate(MotorSettings* settings)
+Std_Err motorUpdate(MotorSettings* settings)
 {
-	/*this is only function where returning false means error TODO: change this behaviour*/
-	/*TODO: distinguishing between errors*/
-	bool returnVal = false;
+	Std_Err retVal = STD_OK;
 
 	if(settings->flags.isOn && !settings->flags.reset && !settings->flags.sleep)
 	{
@@ -121,8 +119,6 @@ bool motorUpdate(MotorSettings* settings)
 			{
 				case HIGH:
 					settings->flags.stepPhase = LOW;
-					/*TODO: distinguishing between errors*/
-					returnVal = true;
 					break;
 				case LOW:
 					settings->flags.stepPhase = HIGH;
@@ -130,31 +126,28 @@ bool motorUpdate(MotorSettings* settings)
 						settings->data.position -= settings->device.stepSize;
 					else
 						settings->data.position += settings->device.stepSize;
-					/*TODO: distinguishing between errors*/
-					returnVal = true;
 					break;
 				default:
-					/*TODO: distinguishing between errors*/
-					returnVal = false;
+					retVal = STD_REFERENCE_ERROR;
 					break;
 			}
 
-			if(returnVal)
+			if(retVal == STD_OK)
 			{
 				motorUpdatePins(settings);
 			}
 		}
 	}
+	else
+	{
+		retVal = STD_ERROR;
+	}
 
-	/*TODO: distinguishing between errors*/
-	return returnVal;
+	return retVal;
 }
 
-bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError)
+Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError)
 {
-	/*TODO: distinguishing between errors*/
-	//bool returnVal = false;
-
 	const int _moveInt = (int)round(move * ACCURACY); //[mm/ACCURACY]
 	const int _position = settings->data.position;
 	const int _positionZero = settings->device.positionZero;
@@ -175,8 +168,7 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 		roundingError->moveError = 0;
 		roundingError->speedError = 0;
 
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_PARAMETER_ERROR;
 	}
 	double changeFreq = _speed / ((double)_stepSize / ACCURACY);
 	double changeTimeD = settings->device.timerFrequency / (changeFreq * 2);
@@ -206,8 +198,7 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 		roundingError->moveError = 0;
 		roundingError->speedError = 0;
 
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_PARAMETER_ERROR;
 	}
 	else if(abs(accuracy1) <= abs(accuracy2))
 	{
@@ -232,49 +223,41 @@ bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* round
 	else
 		settings->flags.direction = ((settings->device.isReversed)? COUNTER_CLOCKWISE : CLOCKWISE );
 
-
-	/*TODO: distinguishing between errors*/
-	return false;
+	return STD_OK;
 }
 
-bool motorStart(MotorSettings* settings)
+Std_Err motorStart(MotorSettings* settings)
 {
 	if(settings->counters.stepLeft <= 0 || settings->changeTime <= 0)
 	{
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_PARAMETER_ERROR;
 	}
 
 	if(settings->flags.reset)
 	{
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_ERROR;
 	}
 
 	if(settings->flags.stepPhase != LOW)
 	{
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_ERROR;
 	}
 
 	settings->flags.sleep = 0;
 	settings->flags.isOn = 1;
 
-	/*TODO: check if the "motorUpdate" function should be called here*/
 	motorUpdatePins(settings);
 
-	/*TODO: distinguishing between errors*/
-	return false;
+	return STD_OK;
 }
 
-bool motorStop(MotorSettings* settings)
+Std_Err motorStop(MotorSettings* settings)
 {
-	bool returnVal;
+	Std_Err retVal = STD_OK;
 
 	if(settings->flags.reset)
 	{
-		/*TODO: distinguishing between errors*/
-		return true;
+		return STD_ERROR;
 	}
 
 	settings->flags.isOn = 0;
@@ -282,31 +265,19 @@ bool motorStop(MotorSettings* settings)
 
 	if(settings->counters.stepLeft > 0 || settings->changeTime > 0)
 	{
-		/*TODO: move not end info/error*/
-		/*TODO: distinguishing between errors*/
-		returnVal = false;
-	}
-	else
-	{
-		/*TODO: move end ok info*/
-		/*TODO: distinguishing between errors*/
-		returnVal = false;
+		return STD_INTERRUPTED_ERROR;
 	}
 	
 	if(settings->flags.stepPhase != LOW)
 	{
 		settings->flags.stepPhase = LOW;
 
-		/*TODO: move 1step info*/
-		/*TODO: distinguishing between errors*/
-		returnVal = false;
+		retVal = STD_IO_ERROR;
 	}
 
-	/*TODO: check if the "motorUpdate" function should be called here*/
 	motorUpdatePins(settings);
 
-	/*TODO: distinguishing between errors*/
-	return returnVal;
+	return retVal;
 }
 
 bool motorIsOn(MotorSettings* settings)

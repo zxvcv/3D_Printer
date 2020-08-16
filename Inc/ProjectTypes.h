@@ -35,6 +35,9 @@
 #define MOTOR_Z2	3
 #define MOTOR_E		4
 
+#define USE_INTERRUPTS
+//#define LOG_ENABLE
+
 
 
 /* #######################################################################################################
@@ -48,7 +51,9 @@ typedef enum Std_Err_Tag{
 	STD_REFERENCE_ERROR,
 	STD_PARAMETER_ERROR,
 	STD_BUSY_ERROR,
-	STD_TIMEOUT_ERROR
+	STD_TIMEOUT_ERROR,
+	STD_INTERRUPTED_ERROR,
+	STD_IO_ERROR
 } Std_Err;
 
 typedef struct IO_Pin_Tag{
@@ -69,6 +74,8 @@ typedef struct IO_Pin_Tag{
  * ####################################################################################################### */
 
 Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
+
+char* get_std_err_string(HAL_StatusTypeDef halStatus);
 
 
 

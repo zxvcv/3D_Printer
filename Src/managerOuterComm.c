@@ -20,11 +20,19 @@
 #include "managerOuterComm.h"
 #include "parserCommand.h"
 #include "manager.h"
+#include "ProjectTypes.h"
+#include <stdio.h>
+
 
 
 /* #######################################################################################################
  *											DEFINES
  * ####################################################################################################### */
+
+#ifdef USE_INTERRUPTS
+#define IRQ_ENABLE __enable_irq()
+#define IRQ_DISABLE __disable_irq()
+#endif /* USE_INTERRUPTS */
 
 
 
@@ -37,6 +45,15 @@
 /* #######################################################################################################
  *											DATA TYPES
  * ####################################################################################################### */
+
+
+
+/* #######################################################################################################
+ *											PRIVATE DATA
+ * ####################################################################################################### */
+
+char buffMsg[100];
+uint8_t msgSize;
 
 
 
@@ -60,12 +77,19 @@ Std_Err execute_outer_command(DeviceSettings* settings)
 		{
 			return stdErr;
 		}
-
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);//debug
 		stdErr = executeSystemCommand(cmd, settings);
 
 		if(stdErr != STD_OK)
 		{
-			return stdErr;
+			/*TODO: log push error */
+			msgSize = sprintf(buffMsg, "<ERR> %s\n", get_std_err_string(stdErr));
+
+			stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
 		}
 
 		stdErr = fifo_pop_C(settings->outComm->Buff_InputCommands);
@@ -87,13 +111,13 @@ Std_Err parse_outer_data(DeviceSettings* settings)
 	uint8_t* data;
 	uint8_t temp[25];
 
-	if(settings->EOL_recieved)
+	if(settings->outComm->EOL_recieved)
 	{
-		settings->EOL_recieved = false;
+		settings->outComm->EOL_recieved = false;
 
 		do
 		{
-			stdErr = fifo_front(settings->outComm->Buff_IN, (void*)&data);
+			stdErr = fifo_front(settings->outComm->Buff_IN, (void**)&data);
 			temp[sizeTemp++] = *data;
 			if(stdErr != STD_OK)
 			{

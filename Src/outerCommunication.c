@@ -80,11 +80,8 @@ Std_Err send_outer_command(OuterComm_Settings* settings)
 	Std_Err stdErr = STD_OK;
 	HAL_StatusTypeDef halErr;
 	uint8_t* data = NULL;
-	uint8_t dataSize;
 
-	uint8_t listSize = fifo_getSize(settings->Buff_OUT);
-
-	if(!settings->transmission && listSize > 0)
+	if(!settings->transmission && fifo_getSize(settings->Buff_OUT) > 0)
 	{
 		settings->transmission = true;
 		stdErr = fifo_front(settings->Buff_OUT, (void**)&data);
@@ -92,10 +89,8 @@ Std_Err send_outer_command(OuterComm_Settings* settings)
 		{
 			return stdErr;
 		}
-		
-		dataSize = fifo_getDataSize(settings->Buff_OUT);
 
-		halErr = HAL_UART_Transmit_IT(settings->huart, data, dataSize);
+		halErr = HAL_UART_Transmit_IT(settings->huart, data, fifo_getDataSize(settings->Buff_OUT));
 
 		stdErr = translate_error_hal_to_project(halErr);
 	}

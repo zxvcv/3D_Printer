@@ -40,6 +40,24 @@
 
 
 /* #######################################################################################################
+ *											PRIVATE DATA
+ * ####################################################################################################### */
+
+char* errVal_string[9] = {
+	"STD_OK",
+	"STD_ERROR",
+	"STD_ALLOC_ERROR",
+	"STD_REFERENCE_ERROR",
+	"STD_PARAMETER_ERROR",
+	"STD_BUSY_ERROR",
+	"STD_TIMEOUT_ERROR",
+	"STD_INTERRUPTED_ERROR",
+	"STD_IO_ERROR"
+};
+
+
+
+/* #######################################################################################################
  *										PUBLIC DEFINITIONS
  * ####################################################################################################### */
 
@@ -57,3 +75,7 @@ Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus)
 	return retVal;
 }
 
+char* get_std_err_string(HAL_StatusTypeDef halStatus)
+{
+	return errVal_string[halStatus];
+}

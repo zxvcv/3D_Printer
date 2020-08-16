@@ -21,11 +21,18 @@
 #include <string.h>
 #include "manager.h"
 #include "parserGCode.h"
+#include "ProjectTypes.h"
+
 
 
 /* #######################################################################################################
  *											DEFINES
  * ####################################################################################################### */
+
+#ifdef USE_INTERRUPTS
+#define IRQ_ENABLE __enable_irq()
+#define IRQ_DISABLE __disable_irq()
+#endif /* USE_INTERRUPTS */
 
 
 

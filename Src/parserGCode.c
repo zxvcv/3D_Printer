@@ -33,6 +33,11 @@
 
 #define ACCURACY 1000
 
+#ifdef USE_INTERRUPTS
+#define IRQ_ENABLE __enable_irq()
+#define IRQ_DISABLE __disable_irq()
+#endif /* USE_INTERRUPTS */
+
 
 
 /* #######################################################################################################
@@ -65,7 +70,6 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 {
 	/*TODO: check gCode state before start executing command*/
 	Std_Err stdErr = STD_OK;
-	bool motorErr = false;
 	vect3D_d move;
 	move.x = 0;
 	move.y = 0;
@@ -73,23 +77,23 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 
 	if(settings->positioningMode == RELATIVE)
 	{
-		move.x = cmd->data.x + (double)settings->motors[0]->data.err.moveError / ACCURACY;
-		move.y = cmd->data.y + (double)settings->motors[1]->data.err.moveError / ACCURACY;
-		move.z = cmd->data.z + (double)settings->motors[2]->data.err.moveError / ACCURACY;
+		move.x = cmd->data.x + (double)settings->motors[MOTOR_X]->data.err.moveError / ACCURACY;
+		move.y = cmd->data.y + (double)settings->motors[MOTOR_Y]->data.err.moveError / ACCURACY;
+		move.z = cmd->data.z + (double)settings->motors[MOTOR_Z1]->data.err.moveError / ACCURACY;
 	}
 	else if(settings->positioningMode == ABSOLUTE)
 	{
-		move.x = cmd->usedFields._x == 1 ? cmd->data.x - (double)settings->motors[0]->data.position / ACCURACY
+		move.x = cmd->usedFields._x == 1 ? cmd->data.x - (double)settings->motors[MOTOR_X]->data.position / ACCURACY
 				// + (double)motors[0].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[0]->data.err.moveError / ACCURACY;
+				: (double)settings->motors[MOTOR_X]->data.err.moveError / ACCURACY;
 
-		move.y = cmd->usedFields._y == 1 ? cmd->data.y - (double)settings->motors[1]->data.position / ACCURACY
+		move.y = cmd->usedFields._y == 1 ? cmd->data.y - (double)settings->motors[MOTOR_Y]->data.position / ACCURACY
 				// + (double)motors[1].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[1]->data.err.moveError / ACCURACY;
+				: (double)settings->motors[MOTOR_Y]->data.err.moveError / ACCURACY;
 
-		move.z = cmd->usedFields._z == 1 ? cmd->data.z - (double)settings->motors[2]->data.position / ACCURACY
+		move.z = cmd->usedFields._z == 1 ? cmd->data.z - (double)settings->motors[MOTOR_Z1]->data.position / ACCURACY
 				// + (double)motors[2].data.err.roundingMoveError / ACCURACY
-				: (double)settings->motors[2]->data.err.moveError / ACCURACY;
+				: (double)settings->motors[MOTOR_Z1]->data.err.moveError / ACCURACY;
 
 		//clearAllMotorsRoundingErrors(&printerSettings);
 	}
@@ -101,10 +105,10 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 
 	vect3D_d velocity = getVelocity3D(move, settings->speed);
 
-	settings->motors[0]->data.speed = fabs(velocity.x);
-	settings->motors[1]->data.speed = fabs(velocity.y);
-	settings->motors[2]->data.speed = fabs(velocity.z);
-	settings->motors[3]->data.speed = fabs(velocity.z);
+	settings->motors[MOTOR_X]->data.speed = fabs(velocity.x);
+	settings->motors[MOTOR_Y]->data.speed = fabs(velocity.y);
+	settings->motors[MOTOR_Z1]->data.speed = fabs(velocity.z);
+	settings->motors[MOTOR_Z2]->data.speed = fabs(velocity.z);
 
 #ifdef LOG_ENABLE
 #include "FIFO_void.h"
@@ -116,31 +120,76 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 	List_Push_C(BuffOUT_logs, data, sizee);
 #endif /*LOG_ENABLE*/
 
-	motorErr |= motorSetMove(settings->motors[0], move.x, &(settings->motors[0]->data.err));
-	motorErr |= motorSetMove(settings->motors[1], move.y, &(settings->motors[1]->data.err));
-	motorErr |= motorSetMove(settings->motors[2], move.z, &(settings->motors[2]->data.err));
-	motorErr |= motorSetMove(settings->motors[3], move.z, &(settings->motors[3]->data.err));
-
-	if(motorErr)
+	stdErr = motorSetMove(settings->motors[MOTOR_X], move.x, &(settings->motors[MOTOR_X]->data.err));
+	if(stdErr != STD_OK)
 	{
-		/*TODO: check if field settings->errMove is needed*/
-		settings->errMove = true;
-		return STD_ERROR;
+		return stdErr;
+	}
+
+	stdErr = motorSetMove(settings->motors[MOTOR_Y], move.y, &(settings->motors[MOTOR_Y]->data.err));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = motorSetMove(settings->motors[MOTOR_Z1], move.z, &(settings->motors[MOTOR_Z1]->data.err));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
+	}
+
+	stdErr = motorSetMove(settings->motors[MOTOR_Z2], move.z, &(settings->motors[MOTOR_Z2]->data.err));
+	if(stdErr != STD_OK)
+	{
+		return stdErr;
 	}
 
 #ifdef USE_INTERRUPTS
 	IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-	motorErr |= motorStart(settings->motors[0]);
-	motorErr |= motorStart(settings->motors[1]);
-	motorErr |= motorStart(settings->motors[2]);
-	motorErr |= motorStart(settings->motors[3]);
-
-	if(motorErr)
+	stdErr = motorStart(settings->motors[MOTOR_X]);
+	if(stdErr != STD_OK)
 	{
-		settings->errMove = true;
-		return STD_ERROR;
+		for(int j=0; j < MOTORS_NUM; ++j)
+		{
+			motorStop(settings->motors[j]);
+		}
+
+		return stdErr;
+	}
+
+	stdErr = motorStart(settings->motors[MOTOR_Y]);
+	if(stdErr != STD_OK)
+	{
+		for(int j=0; j < MOTORS_NUM; ++j)
+		{
+			motorStop(settings->motors[j]);
+		}
+
+		return stdErr;
+	}
+
+	stdErr = motorStart(settings->motors[MOTOR_Z1]);
+	if(stdErr != STD_OK)
+	{
+		for(int j=0; j < MOTORS_NUM; ++j)
+		{
+			motorStop(settings->motors[j]);
+		}
+
+		return stdErr;
+	}
+
+	stdErr = motorStart(settings->motors[MOTOR_Z2]);
+	if(stdErr != STD_OK)
+	{
+		for(int j=0; j < MOTORS_NUM; ++j)
+		{
+			motorStop(settings->motors[j]);
+		}
+
+		return stdErr;
 	}
 
 #ifdef USE_INTERRUPTS
@@ -226,10 +275,10 @@ Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
 	IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
-	motorErr |= motorStart(settings->motors[0]);
-	motorErr |= motorStart(settings->motors[1]);
-	motorErr |= motorStart(settings->motors[2]);
-	motorErr |= motorStart(settings->motors[3]);
+	motorErr |= motorStart(settings->motors[MOTOR_X]);
+	motorErr |= motorStart(settings->motors[MOTOR_Y]);
+	motorErr |= motorStart(settings->motors[MOTOR_Z1]);
+	motorErr |= motorStart(settings->motors[MOTOR_Z2]);
 
 	if(motorErr)
 	{

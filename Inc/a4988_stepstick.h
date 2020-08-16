@@ -122,13 +122,13 @@ void motorUpdatePins(MotorSettings* settings);
 
 void motorInit(MotorSettings* settings);
 
-bool motorUpdate(MotorSettings* settings);
+Std_Err motorUpdate(MotorSettings* settings);
 
-bool motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError);
+Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError);
 
-bool motorStart(MotorSettings* settings);
+Std_Err motorStart(MotorSettings* settings);
 
-bool motorStop(MotorSettings* settings);
+Std_Err motorStop(MotorSettings* settings);
 
 bool motorIsOn(MotorSettings* settings);
 

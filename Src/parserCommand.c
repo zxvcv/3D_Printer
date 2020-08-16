@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "diskio.h"
+#include "ProjectTypes.h"
 
 
 
@@ -84,7 +85,7 @@ Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
 				cmd->motor[i]->data.speed, 
 				cmd->motor[i]->device.maxSpeed);
 		
-		stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize + 1);
+		stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
 		if(stdErr != STD_OK)
 		{
 			return stdErr;
@@ -97,18 +98,17 @@ Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
 Std_Err systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr;
-	/*TODO: distinguishing between errors*/
-	bool motorErr = false;
 
 	double move = cmd->arg[0] - ((double)cmd->motor[0]->data.position / ACCURACY);
 	
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 	{
-		motorErr |= motorSetMove(cmd->motor[i], move, &(settings->motors[i]->data.err));
-	}
-	if(motorErr)
-	{
-		return STD_ERROR;
+		stdErr = motorSetMove(cmd->motor[i], move, &(settings->motors[i]->data.err));
+
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
 	}
 
 #ifdef USE_INTERRUPTS
@@ -117,11 +117,16 @@ Std_Err systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings
 
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 	{
-		motorErr |= motorStart(cmd->motor[i]);
-	}
-	if(motorErr)
-	{
-		return STD_ERROR;
+		stdErr = motorStart(cmd->motor[i]);
+
+		if(stdErr != STD_OK)
+		{
+			for(int j=0; j < cmd->motorsNum && j < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++j)\
+			{
+				motorStop(cmd->motor[j]);
+			}
+			return stdErr;
+		}
 	}
 
 #ifdef USE_INTERRUPTS
@@ -168,6 +173,7 @@ Std_Err systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings
 			cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONZERO, 
 			(uint8_t*)(&argInt), 
 			sizeof(argInt));
+	/*TODO: read data form EEPROM again*/
 	if(stdErr != STD_OK)
 	{
 		return stdErr;
@@ -200,18 +206,17 @@ Std_Err systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings)
 Std_Err systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr;
-	/*TODO: distinguishing between errors*/
-	bool motorErr = false;
 	
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 	{
-		motorErr |= motorSetMove(cmd->motor[i], 
+		stdErr = motorSetMove(cmd->motor[i],
 				cmd->arg[0] + (double)settings->motors[i]->data.err.moveError / ACCURACY, 
 				&(settings->motors[i]->data.err));
-	}
-	if(motorErr)
-	{
-		return STD_ERROR;
+
+		if(stdErr != STD_OK)
+		{
+			return stdErr;
+		}
 	}
 
 #ifdef USE_INTERRUPTS
@@ -220,11 +225,16 @@ Std_Err systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings
 
 	for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
 	{
-		motorErr |= motorStart(cmd->motor[i]);
-	}
-	if(motorErr)
-	{
-		return STD_ERROR;
+		stdErr = motorStart(cmd->motor[i]);
+
+		if(stdErr != STD_OK)
+		{
+			for(int j=0; j < cmd->motorsNum && j < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++j)\
+			{
+				motorStop(cmd->motor[j]);
+			}
+			return stdErr;
+		}
 	}
 
 #ifdef USE_INTERRUPTS
@@ -289,24 +299,22 @@ Std_Err systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings)
 	return stdErr;
 }
 
-Std_Err systemCmd_MotorsStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr;
 	/*TODO: distinguishing between errors*/
 
-	msgSize = sprintf(buffMsg, "SP %f %f %f %f %f\n", 
-			(double)(settings->motors[0]->device.stepSize) / ACCURACY, 
-			(double)(settings->motors[1]->device.stepSize) / ACCURACY,
-			(double)(settings->motors[2]->device.stepSize) / ACCURACY, 
-			(double)(settings->motors[3]->device.stepSize) / ACCURACY, 
-			(double)0);
+	msgSize = sprintf(buffMsg, "SP M%d %f\n",
+					cmd->motor[0]->device.motorNum,
+					(double)(settings->motors[0]->device.stepSize) / ACCURACY
+					);
 
 	stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize + 1);
 
 	return stdErr;
 }
 
-Std_Err systemCmd_MotorsStepSizeSet(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err systemCmd_MotorStepSizeSet(SystemCommand* cmd, DeviceSettings* settings)
 {
 	Std_Err stdErr;
 	/*TODO: distinguishing between errors*/
@@ -322,7 +330,7 @@ Std_Err systemCmd_MotorsStepSizeSet(SystemCommand* cmd, DeviceSettings* settings
 		return stdErr;
 	}
 
-	stdErr = systemCmd_MotorsStepSizeRequest(cmd, settings);
+	stdErr = systemCmd_MotorStepSizeRequest(cmd, settings);
 	return stdErr;
 }
 
@@ -361,8 +369,8 @@ const struct {
 		{	"DM",	systemCmd_MotorDistanceMove		},
 		{	"SS",	systemCmd_MotorSpeedSet			},
 		{	"SM",	systemCmd_MotorSpeedMax			},
-		{	"SR",	systemCmd_MotorsStepSizeRequest	},
-		{	"SP",	systemCmd_MotorsStepSizeSet		},
+		{	"SR",	systemCmd_MotorStepSizeRequest	},
+		{	"SP",	systemCmd_MotorStepSizeSet		},
 		{	"CR",	systemCmd_SDCardProgramRun		}
 };
 

@@ -22,6 +22,7 @@
 
 #include "interrupts.h"
 #include "ProjectObjects.h"
+#include "ProjectTypes.h"
 
 
 
@@ -97,8 +98,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	//HAL_StatusTypeDef halErr;
 	uint8_t* data;
 
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-
 #ifdef USE_INTERRUPTS
 	IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
@@ -110,11 +109,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	IRQ_ENABLE;
 #endif /* USE_INTERRUPTS */
 
-	if(0 == fifo_getSize(printerSettings.outComm->Buff_OUT))
-	{
-		printerSettings.outComm->transmission = false;
-	}
-	else
+	if(fifo_getSize(printerSettings.outComm->Buff_OUT) > 1)
 	{
 		fifo_front(printerSettings.outComm->Buff_OUT, (void**)&data);
 		/*TODO: error handling*/
@@ -123,8 +118,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 						data, fifo_getDataSize(printerSettings.outComm->Buff_OUT));
 		/*TODO: error handling*/
 	}
-
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	else
+	{
+		printerSettings.outComm->transmission = false;
+	}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -134,6 +131,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if(huart == printerSettings.outComm->huart)
 	{
+
 		fifo_push_C(printerSettings.outComm->Buff_IN, &(printerSettings.outComm->recieved), 1);
 		/*TODO: error handling*/
 
