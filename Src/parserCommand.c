@@ -309,7 +309,7 @@ Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* setti
 					(double)(settings->motors[0]->device.stepSize) / ACCURACY
 					);
 
-	stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize + 1);
+	stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
 
 	return stdErr;
 }
@@ -339,10 +339,8 @@ Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings)
 	Std_Err stdErr = STD_OK;
 	/*TODO: distinguishing between errors*/
 	/*TODO: add forwarding SDcard error*/
-
 	f_mount(settings->fatfs, "", 0);
-	extern FIL file;
-	f_open(&file, "fl.txt", FA_READ);
+	f_open(settings->sd->file, "fl.txt", FA_READ);
 #ifdef LOG_ENABLE
 #include "manager.h"
 	extern FIL logFile;

@@ -113,10 +113,6 @@ int main(void)
 	init_deviceSettings(&printerSettings);
 	for(int i=0; i<MOTORS_NUM; ++i)
 		motorInit(printerSettings.motors[i]);
-	//motorInit(printerSettings.motors[0]);
-	//motorInit(printerSettings.motors[1]);
-	//motorInit(printerSettings.motors[2]);
-	//motorInit(printerSettings.motors[3]);
 	HAL_TIM_Base_Start_IT(&htim6);
 
 	//ST7565_begin(printerSettings.lcd, 0x08);
@@ -139,12 +135,12 @@ int main(void)
 		getMotorData_EEPROM(printerSettings.motors[i], printerSettings.eeprom);
 
 	init_manager(&printerSettings);
-
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	//HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);//debug
+	//HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);//debug
 	while (1)
 	{
 		//System Commands

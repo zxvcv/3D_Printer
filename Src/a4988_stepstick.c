@@ -165,8 +165,8 @@ Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* ro
 		settings->counters.stepLeft = 0;
 		settings->counters.changeTime = 0;
 		settings->changeTime = 0;
-		roundingError->moveError = 0;
-		roundingError->speedError = 0;
+		//roundingError->moveError = 0;
+		//roundingError->speedError = 0;
 
 		return STD_PARAMETER_ERROR;
 	}
@@ -195,8 +195,8 @@ Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* ro
 		settings->counters.stepLeft = 0;
 		settings->counters.changeTime = 0;
 		settings->changeTime = 0;
-		roundingError->moveError = 0;
-		roundingError->speedError = 0;
+		//roundingError->moveError = 0;
+		//roundingError->speedError = 0;
 
 		return STD_PARAMETER_ERROR;
 	}

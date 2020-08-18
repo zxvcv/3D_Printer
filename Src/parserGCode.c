@@ -24,6 +24,10 @@
 #include "vectorOperations.h"
 #include "manager.h"
 #include "ProjectTypes.h"
+/* DEBUG TEMP CODE [1] */
+#include "FIFO_void.h"
+#include <stdio.h>
+/* END DEBUG TEMP CODE [1] */
 
 
 
@@ -120,6 +124,23 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 	List_Push_C(BuffOUT_logs, data, sizee);
 #endif /*LOG_ENABLE*/
 
+	/* DEBUG TEMP CODE [0] */
+	uint8_t data[100], dataSize;
+	dataSize = sprintf((char*)data, "BEFORE POSITION: %10d, %10d, %10d, %10d\n", settings->motors[MOTOR_X]->data.position,
+																		  settings->motors[MOTOR_Y]->data.position,
+																		  settings->motors[MOTOR_Z1]->data.position,
+																		  settings->motors[MOTOR_Z2]->data.position);
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	/* END DEBUG TEMP CODE [1] */
+
+	/* DEBUG TEMP CODE [1] */
+	dataSize = sprintf((char*)data, "DATA_MOVE: %10.5f, %10.5f, %10.5f, %10.5f\n", move.x, move.y, move.z, move.z);
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	dataSize = sprintf((char*)data, "DATA_VELOCITY: %10.5f, %10.5f, %10.5f, %10.5f\n", velocity.x, velocity.y, velocity.z, velocity.z);
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	//fifo_push_C(settings->outComm->Buff_OUT, data, dataSize);
+	/* END DEBUG TEMP CODE [1] */
+
 	stdErr = motorSetMove(settings->motors[MOTOR_X], move.x, &(settings->motors[MOTOR_X]->data.err));
 	if(stdErr != STD_OK)
 	{
@@ -144,12 +165,21 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 		return stdErr;
 	}
 
+	/* DEBUG TEMP CODE [2] */
+	dataSize = sprintf((char*)data, "ERROR_MOVE: %10d, %10d, %10d, %10d\n", settings->motors[MOTOR_X]->data.err.moveError,
+																	   settings->motors[MOTOR_Y]->data.err.moveError,
+																	   settings->motors[MOTOR_Z1]->data.err.moveError,
+																	   settings->motors[MOTOR_Z2]->data.err.moveError);
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	//fifo_push_C(settings->outComm->Buff_OUT, data, dataSize);
+	/* END DEBUG TEMP CODE [2] */
+
 #ifdef USE_INTERRUPTS
 	IRQ_DISABLE;
 #endif /* USE_INTERRUPTS */
 
 	stdErr = motorStart(settings->motors[MOTOR_X]);
-	if(stdErr != STD_OK)
+	if(stdErr != STD_OK && stdErr != STD_PARAMETER_ERROR)
 	{
 		for(int j=0; j < MOTORS_NUM; ++j)
 		{
@@ -160,7 +190,7 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 	}
 
 	stdErr = motorStart(settings->motors[MOTOR_Y]);
-	if(stdErr != STD_OK)
+	if(stdErr != STD_OK && stdErr != STD_PARAMETER_ERROR)
 	{
 		for(int j=0; j < MOTORS_NUM; ++j)
 		{
@@ -171,7 +201,7 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 	}
 
 	stdErr = motorStart(settings->motors[MOTOR_Z1]);
-	if(stdErr != STD_OK)
+	if(stdErr != STD_OK && stdErr != STD_PARAMETER_ERROR)
 	{
 		for(int j=0; j < MOTORS_NUM; ++j)
 		{
@@ -182,7 +212,7 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 	}
 
 	stdErr = motorStart(settings->motors[MOTOR_Z2]);
-	if(stdErr != STD_OK)
+	if(stdErr != STD_OK && stdErr != STD_PARAMETER_ERROR)
 	{
 		for(int j=0; j < MOTORS_NUM; ++j)
 		{
@@ -191,6 +221,8 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 
 		return stdErr;
 	}
+
+	stdErr = STD_OK;
 
 #ifdef USE_INTERRUPTS
 	IRQ_ENABLE;
@@ -205,6 +237,18 @@ Std_Err command_G1(GCodeCommand* cmd, DeviceSettings* settings)
 				motorIsOn(settings->motors[MOTOR_Z2]);
 	}while(state);
 
+	/* DEBUG TEMP CODE [4] */
+	dataSize = sprintf((char*)data, "AFTER POSITION: %10d, %10d, %10d, %10d\n", settings->motors[MOTOR_X]->data.position,
+																		  settings->motors[MOTOR_Y]->data.position,
+																		  settings->motors[MOTOR_Z1]->data.position,
+																		  settings->motors[MOTOR_Z2]->data.position);
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	dataSize = sprintf((char*)data, "--------------------------\n");
+	HAL_UART_Transmit(settings->outComm->huart, data, dataSize, 1000);
+	//fifo_push_C(settings->outComm->Buff_OUT, data, dataSize);
+	/* END DEBUG TEMP CODE [4] */
+
+	/*TODO: check is it correct*/
 	settings->sdCommandState = BUSY;
 	return stdErr;
 }
@@ -225,15 +269,15 @@ Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
 	RoundingErrorData roundingError;
 	
 	//temporarty, in final version it could be maxSpeed of exry axis
-	settings->motors[0]->data.speed = settings->speed;
-	settings->motors[1]->data.speed = settings->speed;
-	settings->motors[2]->data.speed = settings->speed;
-	settings->motors[3]->data.speed = settings->speed;
+	settings->motors[MOTOR_X]->data.speed = settings->speed;
+	settings->motors[MOTOR_Y]->data.speed = settings->speed;
+	settings->motors[MOTOR_Z1]->data.speed = settings->speed;
+	settings->motors[MOTOR_Z2]->data.speed = settings->speed;
 
 	if(cmd->usedFields._x == 1)
 	{
 		motorErr = motorSetMove(settings->motors[MOTOR_X], 
-								-((double)settings->motors[0]->data.position/ACCURACY), 
+								-((double)settings->motors[MOTOR_X]->data.position/ACCURACY),
 								&roundingError);
 		if(motorErr)
 		{
@@ -244,7 +288,7 @@ Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
 	if(cmd->usedFields._y == 1)
 	{
 		motorErr = motorSetMove(settings->motors[MOTOR_Y], 
-								-((double)settings->motors[1]->data.position/ACCURACY),
+								-((double)settings->motors[MOTOR_Y]->data.position/ACCURACY),
 								&roundingError);
 		if(motorErr)
 		{
@@ -255,7 +299,7 @@ Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
 	if(cmd->usedFields._z == 1)
 	{
 		motorErr = motorSetMove(settings->motors[MOTOR_Z1],
-								 -((double)settings->motors[2]->data.position/ACCURACY),
+								 -((double)settings->motors[MOTOR_Z1]->data.position/ACCURACY),
 								 &roundingError);
 		if(motorErr)
 		{
@@ -263,7 +307,7 @@ Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
 		}
 		
 		motorErr = motorSetMove(settings->motors[MOTOR_Z2], 
-								-((double)settings->motors[3]->data.position/ACCURACY),
+								-((double)settings->motors[MOTOR_Z2]->data.position/ACCURACY),
 								&roundingError);
 		if(motorErr)
 		{

@@ -57,12 +57,12 @@
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct RoundingErrorData{
+typedef struct RoundingErrorData_Tag{
 	int moveError;
 	double speedError;
 } RoundingErrorData;
 
-typedef struct MotorData{
+typedef struct MotorData_Tag{
 	int position; //pos * ACCURACY
 	double speed;
 	RoundingErrorData err;

@@ -77,7 +77,7 @@ Std_Err execute_outer_command(DeviceSettings* settings)
 		{
 			return stdErr;
 		}
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);//debug
+
 		stdErr = executeSystemCommand(cmd, settings);
 
 		if(stdErr != STD_OK)

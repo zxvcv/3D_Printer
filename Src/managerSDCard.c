@@ -22,6 +22,7 @@
 #include "manager.h"
 #include "parserGCode.h"
 #include "ProjectTypes.h"
+#include <stdio.h> //debug
 
 
 
@@ -47,6 +48,8 @@
  * ####################################################################################################### */
 
 GCodeCommand executingCmd; /*TODO: delete this */
+char buffMsg[100]; //debug
+uint8_t msgSize; //debug
 
 
 
@@ -228,6 +231,17 @@ Std_Err execute_command_SDcard(DeviceSettings* settings)
 #endif /*LOG_ENABLE*/
 
 		stdErr = executeGCodeCommand(&(executingCmd), settings);
+		if(stdErr != STD_OK) //debug
+		{
+			/*TODO: log push error */
+			msgSize = sprintf(buffMsg, "<ERR> %s\n", get_std_err_string(stdErr));
+
+			HAL_UART_Transmit(settings->outComm->huart, (uint8_t*)buffMsg, msgSize, 1000);
+			if(stdErr != STD_OK)
+			{
+				return stdErr;
+			}
+		}
 	}
 
 	if(settings->errMove)
@@ -283,19 +297,16 @@ Std_Err send_logs_SDcard()
 Std_Err reset_commands_SDcard(SDCard_Settings* settings)
 {
 	Std_Err stdErr = STD_OK;
-	uint8_t listSize;
-
-	listSize = fifo_getSize(settings->BuffIN_SDcmd);
 
 	if(	settings->end_SDprogram && 
 		settings->executing_SDprogram && 
 		!settings->executing_SDcommand && 
-		listSize == 0)
+		fifo_getSize(settings->BuffIN_SDcmd) == 0)
 	{
 		settings->end_SDprogram = false;
 		settings->executing_SDprogram = false;
 		f_close(settings->file);
-
+		//settings->file = NULL;
 		/*TODO: error handling for SDCard librabry*/
 
 #ifdef LOG_ENABLE
