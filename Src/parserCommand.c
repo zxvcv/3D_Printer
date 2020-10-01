@@ -306,7 +306,7 @@ Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* setti
 
 	msgSize = sprintf(buffMsg, "SP M%d %f\n",
 					cmd->motor[0]->device.motorNum,
-					(double)(settings->motors[0]->device.stepSize) / ACCURACY
+					(double)(cmd->motor[0]->device.stepSize) / ACCURACY
 					);
 
 	stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
