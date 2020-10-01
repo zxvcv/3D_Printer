@@ -160,7 +160,7 @@ Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* ro
 	const int _stepSize = settings->device.stepSize;
 
 	/* speed */
-	if(_speed <= 0 || _speed > settings->device.maxSpeed)
+	if((_speed <= 0 || _speed > settings->device.maxSpeed) && (_absMove > _stepSize / 2))
 	{
 		settings->counters.stepLeft = 0;
 		settings->counters.changeTime = 0;

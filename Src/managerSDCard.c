@@ -152,10 +152,15 @@ Std_Err parse_data_SDcard(SDCard_Settings* settings)
 
 			memcpy(	cmdData + cmdLen, 
 					settings->dataSDin[settings->activeTab] + settings->counterTab[settings->activeTab], 
-					settings->cnt - 1);
+					settings->cnt);
+			//TODO: when settings->cnt is 0 program crashes (settings->cnt-1=-1) (check if above solution is better)
+			/*memcpy(	cmdData + cmdLen,
+					settings->dataSDin[settings->activeTab] + settings->counterTab[settings->activeTab],
+					settings->cnt - 1);*/
+
 			cmdLen += settings->cnt - settings->counterTab[settings->activeTab];
 			settings->counterTab[settings->activeTab] = settings->cnt + 1;
-			
+
 			/*TODO: make this function work with \r\n (Windows) and \n (Linux)*/
 			/*TODO: check below comment*/
 			/*cmdData[cmdLen - 2] = '\0'; powinno usunac  ostatni znak w komendzie ale pewny nie jestem*/
@@ -164,6 +169,7 @@ Std_Err parse_data_SDcard(SDCard_Settings* settings)
 
 			GCodeCommand cmd;
 			stdErr = parseGCodeCommand((char*)cmdData, &cmd);
+
 			if(stdErr != STD_OK)
 			{
 				return stdErr;
