@@ -1,27 +1,32 @@
-cmake_minimum_required(VERSION 3.10.2)
+# Copyright (c) 2020-2021 Paweł Piskorz
+# Licensed under the Eclipse Public License 2.0
+# See attached LICENSE file
 
-set(This 3D_Printer_Embedded)
-
-project(${This} VERSION 0.1)
-
+cmake_minimum_required(VERSION 3.16.3)
+project(3D_Printer_UT VERSION 0.1.0)
 enable_testing()
 
-add_subdirectory(googletest)
+#####################################   LOCAL VARIABLES   #########################################
+set(COMPONENTS_DIR ../Components)
+set(TESTS_DIR Tests)
 
 
-#test will be a program
-#tested code will be a library for this program
+
+#####################################   SUBDIRECTORIES   ##########################################
+add_subdirectory(googletest ../bld_googletest)
 
 
-#***** tests *****#
-add_subdirectory(Tests/fifo)
-add_subdirectory(Tests/vectorOperations)
-add_subdirectory(Tests/a4988_stepstick)
-add_subdirectory(Tests/EEPROM_24AA01)
-add_subdirectory(Tests/parserCommand)
-add_subdirectory(Tests/parserGCode)
-add_subdirectory(Tests/managerBT)
-add_subdirectory(Tests/BT)
-add_subdirectory(Tests/managerSDCard)
-add_subdirectory(Tests/manager)
-add_subdirectory(Tests/interrupts)
+
+#####################################   TESTS   ###################################################
+list(APPEND TESTS
+    FIFO_void
+    Error_Codes
+    #---add new tests here---
+)
+
+
+
+#####################################   TEST ADD   ################################################
+foreach(TEST IN LISTS TESTS)
+    add_subdirectory(${COMPONENTS_DIR}/${TEST}/tests ${TESTS_DIR}/${TEST})
+endforeach()

@@ -1,0 +1,4 @@
+bld/
+build/
+bld_googletest/
+googletest/
