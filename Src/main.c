@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -18,14 +18,11 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <managerOuterComm.h>
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "manager.h"
-#include "managerSDCard.h"
-#include "ProjectObjects.h"
+#include "../Components/FIFO_void/header/FIFO_void.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +51,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-extern DeviceSettings printerSettings;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,90 +78,49 @@ static void MX_I2C1_Init(void);
   */
 int main(void)
 {
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_SPI2_Init();
-	MX_USART2_UART_Init();
-	MX_TIM6_Init();
-	MX_SPI3_Init();
-	MX_USART1_UART_Init();
-	MX_I2C1_Init();
-	/* USER CODE BEGIN 2 */
-	init_deviceSettings(&printerSettings);
-	for(int i=0; i<MOTORS_NUM; ++i)
-		motorInit(printerSettings.motors[i]);
-	HAL_TIM_Base_Start_IT(&htim6);
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_SPI2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM6_Init();
+  MX_SPI3_Init();
+  MX_USART1_UART_Init();
+  MX_I2C1_Init();
+  /* USER CODE BEGIN 2 */
 
-	//ST7565_begin(printerSettings.lcd, 0x08);
-	//ST7565_clear_display(printerSettings.lcd);
-	/*
-	ST7565_clear();
-	drawInterface();
-	InterfaceValues val = { .instruction = 0,
-			  	  	  	  	.numOfInstructions = 0,
-							.posX = 0.0,
-							.posY = 0.0,
-							.posZ = 0.0,
-							.tmpH = 0.0,
-							.tmpB = 0.0
-	};
-	updateValues(&val);
-	*/
-	//reading data form EEPROM
-	for(int i=0; i<MOTORS_NUM; ++i)
-		getMotorData_EEPROM(printerSettings.motors[i], printerSettings.eeprom);
+  /* USER CODE END 2 */
 
-	init_manager(&printerSettings);
-	/* USER CODE END 2 */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  Fifo_C* fifo;
+  fifo_create(&fifo);
+  while (1)
+  {
+    /* USER CODE END WHILE */
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
-	//HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);//debug
-	//HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);//debug
-	while (1)
-	{
-		//System Commands
-		parse_outer_data(&printerSettings);
-		execute_outer_command(&printerSettings);
-		send_outer_command(printerSettings.outComm);
-
-
-		//SDcard Commands
-		parse_data_SDcard(printerSettings.sd);
-		execute_command_SDcard(&printerSettings);
-
-#ifdef LOG_ENABLE
-		send_logs_SDcard();
-#endif
-
-		reset_commands_SDcard(printerSettings.sd);
-		detecting_endCommand_SDcard(&printerSettings);
-
-		/* USER CODE END WHILE */
-
-		/* USER CODE BEGIN 3 */
-	}
-	/* USER CODE END 3 */
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -534,7 +490,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -550,7 +509,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
