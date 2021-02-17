@@ -7,10 +7,10 @@ extern "C"
     #include "FIFO_void.h"
 }
 
-class Fifo_void_test : public ::testing::Test {
+class FIFO_void_test : public ::testing::Test {
 public:
-    Fifo_void_test(){}
-    ~Fifo_void_test(){}
+    FIFO_void_test(){}
+    ~FIFO_void_test(){}
     
     virtual void SetUp()
     {
@@ -49,7 +49,7 @@ public:
 
 /************************** TESTS **************************/
 
-TEST_F(Fifo_void_test, listC_basicOperations_test) 
+TEST_F(FIFO_void_test, listC_basicOperations) 
 {
     Std_Err stdErr;
     int* data = nullptr;
@@ -92,7 +92,7 @@ TEST_F(Fifo_void_test, listC_basicOperations_test)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(Fifo_void_test, listC_clear_test)
+TEST_F(FIFO_void_test, listC_clear)
 {
     Std_Err stdErr;
 
@@ -106,7 +106,7 @@ TEST_F(Fifo_void_test, listC_clear_test)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(Fifo_void_test, listC_getDataSize_test)
+TEST_F(FIFO_void_test, listC_getDataSize)
 {
     fifoType = COPY;
 
@@ -118,7 +118,7 @@ TEST_F(Fifo_void_test, listC_getDataSize_test)
     }
 }
 
-TEST_F(Fifo_void_test, listC_uninitializedList_test)
+TEST_F(FIFO_void_test, listC_uninitializedList)
 {
     Std_Err stdErr;
 
@@ -140,8 +140,7 @@ TEST_F(Fifo_void_test, listC_uninitializedList_test)
     ASSERT_NE(list, nullptr);
 }
 
-
-TEST_F(Fifo_void_test, listNC_basicOperations_test) 
+TEST_F(FIFO_void_test, listNC_basicOperations) 
 {
     Std_Err stdErr;
     int* data;
@@ -183,7 +182,7 @@ TEST_F(Fifo_void_test, listNC_basicOperations_test)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(Fifo_void_test, listNC_clear_test)
+TEST_F(FIFO_void_test, listNC_clear)
 {
     Std_Err stdErr;
 
@@ -197,7 +196,7 @@ TEST_F(Fifo_void_test, listNC_clear_test)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(Fifo_void_test, listNC_getDataSize_test)
+TEST_F(FIFO_void_test, listNC_getDataSize)
 {
     fifoType = NON_COPY;
 
@@ -209,7 +208,7 @@ TEST_F(Fifo_void_test, listNC_getDataSize_test)
     }
 }
 
-TEST_F(Fifo_void_test, listNC_uninitializedList_test)
+TEST_F(FIFO_void_test, listNC_uninitializedList)
 {
     Std_Err stdErr;
 
@@ -233,7 +232,7 @@ TEST_F(Fifo_void_test, listNC_uninitializedList_test)
 
 /************************** PUBLIC FUNCTIONS **************************/
 
-void Fifo_void_test::addValuesToQueue()
+void FIFO_void_test::addValuesToQueue()
 {
     Std_Err stdErr;
 
