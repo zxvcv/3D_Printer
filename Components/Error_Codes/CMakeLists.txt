@@ -16,11 +16,16 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/Error_Codes.c
 )
 
-target_include_directories(${LOCAL_TARGET} INTERFACE
+target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
+)
+
+target_link_libraries(${LOCAL_TARGET}
+    HAL_Drivers
 )
 
 
 
 #####################################   COMPILATION OPTIONS   #####################################
+include(../../cmake/compile_definitions.cmake)
 include(../../cmake/compile_options.cmake)

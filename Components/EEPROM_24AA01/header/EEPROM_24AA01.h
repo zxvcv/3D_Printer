@@ -6,24 +6,28 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Error_Codes
- *      TODO: (...)
+ * NAME: EEPROM_24AA01
+ *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
- *      TODO: (...)
+ *      [[COMPONENT_COMMENTS]]
  * ============================================================================================
  * EXAMPLE:
- *      TODO: (...)
+ *      None
+ *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef ERROR_CODES_H_
-#define ERROR_CODES_H_
+#ifndef EEPROM_24AA01_H_
+#define EEPROM_24AA01_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include <stdbool.h>
+#include <stdint.h>
+#include "Error_Codes.h"
 #include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -49,22 +53,10 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef enum Std_Err_Tag{
-    STD_OK                  = 0,
-    STD_ERROR               = 1,
-    STD_ALLOC_ERROR         = 2,
-    STD_REFERENCE_ERROR     = 3,
-    STD_PARAMETER_ERROR     = 4,
-    STD_BUSY_ERROR          = 5,
-    STD_TIMEOUT_ERROR       = 6,
-    STD_INTERRUPTED_ERROR   = 7,
-    STD_IO_ERROR            = 8
-} Std_Err;
-
-typedef struct Err_Msg_Tag{
-    Std_Err err;
-    const char* msg;
-} Err_Msg;
+typedef struct EEPROMSettings{
+    bool isReady;
+    I2C_HandleTypeDef* i2c;
+} EEPROMSettings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -73,11 +65,13 @@ typedef struct Err_Msg_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Err_Msg get_std_error_message(Std_Err err, const char *msg);
+Std_Err EEPROM_clear(EEPROMSettings *settings);
 
-Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
+Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size);
+
+Std_Err EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *dataOUT, int size);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* ERROR_CODES_H_ */
+#endif /* EEPROM_24AA01_H_ */
