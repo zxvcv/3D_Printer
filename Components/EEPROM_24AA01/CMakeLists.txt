@@ -15,20 +15,19 @@ set(HEADER_DIR header)
 #####################################   COMPILATION OPTIONS   #####################################
 add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/EEPROM_24AA01.c
-
-    ${HEADER_DIR}/EEPROM_24AA01.h
 )
 
-target_include_directories(${LOCAL_TARGET} PRIVATE
+target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
 )
 
-add_dependencies(${LOCAL_TARGET}
+target_link_libraries(${LOCAL_TARGET}
     Error_Codes
-    Drivers
+    HAL_Drivers
 )
 
 
 
 #####################################   COMPILATION OPTIONS   #####################################
+include(../../cmake/compile_definitions.cmake)
 include(../../cmake/compile_options.cmake)

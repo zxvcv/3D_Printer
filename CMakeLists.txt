@@ -16,11 +16,8 @@ set(CMAKE_C_EXTENSIONS OFF)
 #####################################   LOCAL VARIABLES   #########################################
 set(LOCAL_TARGET ${PROJECT_NAME})
 set(COMPONENTS_DIR Components)
-
-
-
-#####################################   GENERATED FILES LIST   ####################################
 set(LDSCRIPT STM32F303RETx_FLASH.ld)
+<<<<<<< HEAD
 set(STM32CUBEMX_GENERATED_FILES
     Src/main.c
     Src/stm32f3xx_it.c
@@ -52,6 +49,8 @@ set(STM32CUBEMX_GENERATED_FILES
 
     startup_stm32f303xe.s
 )
+=======
+>>>>>>> feature_#11
 
 
 
@@ -65,6 +64,10 @@ list(APPEND LIBRARIES
 
 
 #####################################   SUBDIRECTORIES   ##########################################
+<<<<<<< HEAD
+=======
+add_subdirectory(Drivers) #HAL_Drivers
+>>>>>>> feature_#11
 foreach(LIBRARY IN LISTS LIBRARIES)
     add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
 endforeach()
@@ -73,10 +76,19 @@ endforeach()
 
 #####################################   EXECUTABLE   ##############################################
 add_executable(${LOCAL_TARGET}
-    ${STM32CUBEMX_GENERATED_FILES}
+    Src/main.c
+    Src/stm32f3xx_it.c
+    Src/stm32f3xx_hal_msp.c
+    Src/system_stm32f3xx.c
+
+    Inc/main.h
+    Inc/stm32f3xx_hal_conf.h
+    Inc/stm32f3xx_it.h
+
+    startup_stm32f303xe.s
 )
 
-target_include_directories(${LOCAL_TARGET} PRIVATE
+target_include_directories(${LOCAL_TARGET} PUBLIC
     Inc
     Drivers/STM32F3xx_HAL_Driver/Inc
     Drivers/STM32F3xx_HAL_Driver/Inc/Legacy
@@ -84,7 +96,12 @@ target_include_directories(${LOCAL_TARGET} PRIVATE
     Drivers/CMSIS/Include
 )
 
+<<<<<<< HEAD
 target_link_libraries(${LOCAL_TARGET} PUBLIC
+=======
+target_link_libraries(${LOCAL_TARGET}
+    HAL_Drivers
+>>>>>>> feature_#11
     ${LIBRARIES}
 )
 

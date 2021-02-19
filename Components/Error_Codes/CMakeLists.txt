@@ -16,7 +16,7 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/Error_Codes.c
 )
 
-target_include_directories(${LOCAL_TARGET} INTERFACE
+target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
 )
 

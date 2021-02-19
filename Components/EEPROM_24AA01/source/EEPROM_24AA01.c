@@ -15,7 +15,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "../header/EEPROM_24AA01.h"
+#include "EEPROM_24AA01.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

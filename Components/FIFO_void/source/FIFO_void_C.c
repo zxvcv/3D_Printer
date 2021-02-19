@@ -17,7 +17,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "../header/FIFO_void.h"
+#include "FIFO_void.h"
 #include <string.h>
 /*[[COMPONENT_INCLUDES_C]]*/
 
