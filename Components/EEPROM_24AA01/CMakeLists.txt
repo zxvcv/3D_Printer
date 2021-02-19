@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET FIFO_void)
+set(LOCAL_TARGET EEPROM_24AA01)
 set(COMPONENTS_DIR ..)
 set(SOURCE_DIR source)
 set(HEADER_DIR header)
@@ -14,9 +14,7 @@ set(HEADER_DIR header)
 
 #####################################   COMPILATION OPTIONS   #####################################
 add_library(${LOCAL_TARGET}
-    ${SOURCE_DIR}/FIFO_void_C.c
-    ${SOURCE_DIR}/FIFO_void_NC.c
-    ${SOURCE_DIR}/FIFO_void_Shared.c
+    ${SOURCE_DIR}/EEPROM_24AA01.c
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
@@ -24,6 +22,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 )
 
 target_link_libraries(${LOCAL_TARGET}
+    HAL_Drivers
     Error_Codes
 )
 
