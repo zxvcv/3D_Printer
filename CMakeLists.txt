@@ -17,40 +17,6 @@ set(CMAKE_C_EXTENSIONS OFF)
 set(LOCAL_TARGET ${PROJECT_NAME})
 set(COMPONENTS_DIR Components)
 set(LDSCRIPT STM32F303RETx_FLASH.ld)
-<<<<<<< HEAD
-set(STM32CUBEMX_GENERATED_FILES
-    Src/main.c
-    Src/stm32f3xx_it.c
-    Src/stm32f3xx_hal_msp.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_i2c.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_i2c_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_gpio.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_dma.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_cortex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_flash.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_flash_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_exti.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_spi.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_spi_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim_ex.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart.c
-    Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart_ex.c
-    Src/system_stm32f3xx.c
-
-    Inc/main.h
-    Inc/stm32f3xx_hal_conf.h
-    Inc/stm32f3xx_it.h
-
-    startup_stm32f303xe.s
-)
-=======
->>>>>>> feature_#11
 
 
 
@@ -58,16 +24,14 @@ set(STM32CUBEMX_GENERATED_FILES
 list(APPEND LIBRARIES
     FIFO_void
     Error_Codes
+    EEPROM_24AA01
     #---add new libs here---
 )
 
 
 
 #####################################   SUBDIRECTORIES   ##########################################
-<<<<<<< HEAD
-=======
 add_subdirectory(Drivers) #HAL_Drivers
->>>>>>> feature_#11
 foreach(LIBRARY IN LISTS LIBRARIES)
     add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
 endforeach()
@@ -90,25 +54,14 @@ add_executable(${LOCAL_TARGET}
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
     Inc
-    Drivers/STM32F3xx_HAL_Driver/Inc
-    Drivers/STM32F3xx_HAL_Driver/Inc/Legacy
-    Drivers/CMSIS/Device/ST/STM32F3xx/Include
-    Drivers/CMSIS/Include
 )
 
-<<<<<<< HEAD
-target_link_libraries(${LOCAL_TARGET} PUBLIC
-=======
 target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
->>>>>>> feature_#11
     ${LIBRARIES}
 )
 
-target_compile_definitions(${LOCAL_TARGET} PRIVATE
-    -DUSE_HAL_DRIVER
-    -DSTM32F303xE
-)
+include(cmake/compile_definitions.cmake)
 
 
 
