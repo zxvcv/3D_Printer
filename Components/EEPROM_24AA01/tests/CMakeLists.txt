@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET EEPROM_24AA01)
+set(LOCAL_TARGET EEPROM_24AA01_UT)
 set(TEST_COMPONENT_LIB ${LOCAL_TARGET}lib)
 set(COMPONENTS_DIR ..)
 set(SOURCE_DIR ${COMPONENTS_DIR}/source)
@@ -28,11 +28,12 @@ add_library(${TEST_COMPONENT_LIB}
 
 #####################################   TEST   ####################################################
 add_executable(${LOCAL_TARGET}
-    #TODO:(...)
+    EEPROM_24AA01_UT.cpp
 )
 
 target_link_libraries(${LOCAL_TARGET} PUBLIC
     gtest_main
+    gmock_main
     ${TEST_COMPONENT_LIB}
 )
 

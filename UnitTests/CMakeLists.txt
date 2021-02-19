@@ -21,6 +21,7 @@ add_subdirectory(googletest ../bld_googletest)
 list(APPEND TESTS
     FIFO_void
     Error_Codes
+    EEPROM_24AA01
     #---add new tests here---
 )
 
