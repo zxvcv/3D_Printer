@@ -35,8 +35,6 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_HAL_DIR}/stm32f3xx_hal_tim_ex.c
     ${SOURCE_HAL_DIR}/stm32f3xx_hal_uart.c
     ${SOURCE_HAL_DIR}/stm32f3xx_hal_uart_ex.c
-
-    ../Inc/stm32f3xx_hal_conf.h
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC

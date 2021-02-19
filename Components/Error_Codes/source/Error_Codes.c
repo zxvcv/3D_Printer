@@ -15,7 +15,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "../header/Error_Codes.h"
+#include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

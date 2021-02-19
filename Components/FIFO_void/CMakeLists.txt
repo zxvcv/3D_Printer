@@ -19,11 +19,11 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/FIFO_void_Shared.c
 )
 
-target_include_directories(${LOCAL_TARGET} INTERFACE
+target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
 )
 
-add_dependencies(${LOCAL_TARGET}
+target_link_libraries(${LOCAL_TARGET}
     Error_Codes
 )
 

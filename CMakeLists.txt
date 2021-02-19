@@ -16,12 +16,30 @@ set(CMAKE_C_EXTENSIONS OFF)
 #####################################   LOCAL VARIABLES   #########################################
 set(LOCAL_TARGET ${PROJECT_NAME})
 set(COMPONENTS_DIR Components)
-
-
-
-#####################################   GENERATED FILES LIST   ####################################
 set(LDSCRIPT STM32F303RETx_FLASH.ld)
-set(STM32CUBEMX_GENERATED_FILES
+
+
+
+#####################################   LIBRARIES   ###############################################
+list(APPEND LIBRARIES
+    FIFO_void
+    Error_Codes
+    #EEPROM_24AA01
+    #---add new libs here---
+)
+
+
+
+#####################################   SUBDIRECTORIES   ##########################################
+add_subdirectory(Drivers)
+foreach(LIBRARY IN LISTS LIBRARIES)
+    add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
+endforeach()
+
+
+
+#####################################   EXECUTABLE   ##############################################
+add_executable(${LOCAL_TARGET}
     Src/main.c
     Src/stm32f3xx_it.c
     Src/stm32f3xx_hal_msp.c
@@ -34,39 +52,11 @@ set(STM32CUBEMX_GENERATED_FILES
     startup_stm32f303xe.s
 )
 
-
-
-#####################################   LIBRARIES   ###############################################
-list(APPEND LIBRARIES
-    FIFO_void
-    Error_Codes
-    EEPROM_24AA01
-    #---add new libs here---
-)
-
-
-
-#####################################   SUBDIRECTORIES   ##########################################
-add_subdirectory(Drivers)
-foreach(LIBRARY IN LISTS LIBRARIES)
-    add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
-endforeach()
-
-list(APPEND CMAKE_FIND_ROOT_PATH
+target_include_directories(${LOCAL_TARGET} PUBLIC
     Inc
 )
 
-
-#####################################   EXECUTABLE   ##############################################
-add_executable(${LOCAL_TARGET}
-    ${STM32CUBEMX_GENERATED_FILES}
-)
-
-target_include_directories(${LOCAL_TARGET} PRIVATE
-    Inc
-)
-
-target_link_libraries(${LOCAL_TARGET} PUBLIC
+target_link_libraries(${LOCAL_TARGET}
     Drivers
     ${LIBRARIES}
 )
