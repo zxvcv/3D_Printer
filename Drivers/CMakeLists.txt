@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET Drivers)
+set(LOCAL_TARGET HAL_Drivers)
 set(HAL_DRIVER_DIR STM32F3xx_HAL_Driver)
 set(CMSIS_DRIVER_DIR CMSIS)
 set(SOURCE_HAL_DIR ${HAL_DRIVER_DIR}/Src)

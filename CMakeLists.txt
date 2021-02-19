@@ -24,14 +24,14 @@ set(LDSCRIPT STM32F303RETx_FLASH.ld)
 list(APPEND LIBRARIES
     FIFO_void
     Error_Codes
-    #EEPROM_24AA01
+    EEPROM_24AA01
     #---add new libs here---
 )
 
 
 
 #####################################   SUBDIRECTORIES   ##########################################
-add_subdirectory(Drivers)
+add_subdirectory(Drivers) #HAL_Drivers
 foreach(LIBRARY IN LISTS LIBRARIES)
     add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
 endforeach()
@@ -57,7 +57,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 )
 
 target_link_libraries(${LOCAL_TARGET}
-    Drivers
+    HAL_Drivers
     ${LIBRARIES}
 )
 

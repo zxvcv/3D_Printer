@@ -23,10 +23,11 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     Error_Codes
-    Drivers
+    HAL_Drivers
 )
 
 
 
 #####################################   COMPILATION OPTIONS   #####################################
+include(../../cmake/compile_definitions.cmake)
 include(../../cmake/compile_options.cmake)

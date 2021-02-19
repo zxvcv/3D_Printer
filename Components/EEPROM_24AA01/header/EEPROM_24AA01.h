@@ -27,10 +27,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../../../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h"
-#include "../../../Inc/main.h"
-#include "../../../Inc/stm32f3xx_hal_conf.h"
-#include "../../Error_Codes/header/Error_Codes.h"
+#include "Error_Codes.h"
+#include "main.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
