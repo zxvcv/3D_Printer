@@ -30,4 +30,5 @@ target_link_libraries(${LOCAL_TARGET}
 
 
 #####################################   COMPILATION OPTIONS   #####################################
+include(../../cmake/compile_definitions.cmake)
 include(../../cmake/compile_options.cmake)

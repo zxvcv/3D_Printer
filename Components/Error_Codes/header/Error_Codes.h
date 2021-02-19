@@ -24,6 +24,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -73,6 +74,8 @@ typedef struct Err_Msg_Tag{
  * ############################################################################################ */
 
 Err_Msg get_std_error_message(Std_Err err, const char *msg);
+
+Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
