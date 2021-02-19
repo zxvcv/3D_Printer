@@ -29,7 +29,7 @@ add_library(${TEST_COMPONENT_LIB}
 
 
 #####################################   TEST   ####################################################
-add_executable(${LOCAL_TARGET} 
+add_executable(${LOCAL_TARGET}
     FIFO_void_UT.cpp
 )
 
