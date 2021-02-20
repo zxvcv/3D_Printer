@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
 set(LOCAL_TARGET HAL_Drivers)
+set(MAIN_APP_DIR ..)
 set(HAL_DRIVER_DIR STM32F3xx_HAL_Driver)
 set(CMSIS_DRIVER_DIR CMSIS)
 set(SOURCE_HAL_DIR ${HAL_DRIVER_DIR}/Src)
@@ -14,7 +15,13 @@ set(HEADER_CMSIS_DIR ${CMSIS_DRIVER_DIR}/Include)
 
 
 
-#####################################   COMPILATION OPTIONS   #####################################
+#####################################   INCLUDES   ################################################
+include(${MAIN_APP_DIR}/cmake/f_compile_definitions.cmake)
+include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
+
+
+
+#####################################   CREATE TARGET   ###########################################
 add_library(${LOCAL_TARGET}
     ${SOURCE_HAL_DIR}/stm32f3xx_hal.c
     ${SOURCE_HAL_DIR}/stm32f3xx_hal_i2c.c
@@ -47,7 +54,6 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 
 
-#####################################   COMPILATION OPTIONS   #####################################
-include(../cmake/compile_definitions.cmake)
-
-include(../cmake/compile_options.cmake)
+#####################################   COMPILATION SETTINGS   ####################################
+set_target_compile_definitions(${LOCAL_TARGET})
+set_target_compile_options(${LOCAL_TARGET})

@@ -6,9 +6,15 @@ cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
 set(LOCAL_TARGET EEPROM_24AA01)
-set(COMPONENTS_DIR ..)
+set(MAIN_APP_DIR ../..)
 set(SOURCE_DIR source)
 set(HEADER_DIR header)
+
+
+
+#####################################   INCLUDES   ################################################
+include(${MAIN_APP_DIR}/cmake/f_compile_definitions.cmake)
+include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 
 
 
@@ -28,6 +34,6 @@ target_link_libraries(${LOCAL_TARGET}
 
 
 
-#####################################   COMPILATION OPTIONS   #####################################
-include(../../cmake/compile_definitions.cmake)
-include(../../cmake/compile_options.cmake)
+#####################################   COMPILATION SETTINGS   ####################################
+set_target_compile_definitions(${LOCAL_TARGET})
+set_target_compile_options(${LOCAL_TARGET})

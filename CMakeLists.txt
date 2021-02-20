@@ -5,6 +5,12 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(3D_Printer VERSION 0.1.0)
 
+#####################################   INCLUDES   ################################################
+include(cmake/f_compile_definitions.cmake)
+include(cmake/f_compile_options.cmake)
+
+
+
 #####################################   LANGUAGE AND STANDARD   ###################################
 enable_language(C ASM)
 set(CMAKE_C_STANDARD 99)
@@ -61,12 +67,11 @@ target_link_libraries(${LOCAL_TARGET}
     ${LIBRARIES}
 )
 
-include(cmake/compile_definitions.cmake)
 
 
-
-#####################################   COMPILATION SETTINGS   #####################################
-include(cmake/compile_options.cmake)
+#####################################   COMPILATION SETTINGS   ####################################
+set_target_compile_definitions(${LOCAL_TARGET})
+set_target_compile_options(${LOCAL_TARGET})
 
 target_link_options(${LOCAL_TARGET} PRIVATE
     -T${CMAKE_SOURCE_DIR}/${LDSCRIPT}
