@@ -20,31 +20,31 @@
 #define BYTES_TO_READ 50
 
 typedef struct SDCard_Settings_Tag{
-	FIL* file;
+    FIL* file;
 
-	Fifo_C* BuffIN_SDcmd;
+    Fifo_C* BuffIN_SDcmd;
 
-	uint8_t activeTab;
-	uint8_t unactiveTab;
-	uint8_t dataSDin[2][BYTES_TO_READ];
-	uint8_t counterTab[2];
-	UINT bytesRead;
-	uint8_t cnt;
+    uint8_t activeTab;
+    uint8_t unactiveTab;
+    uint8_t dataSDin[2][BYTES_TO_READ];
+    uint8_t counterTab[2];
+    UINT bytesRead;
+    uint8_t cnt;
 
-	bool eofRecieved;
-	bool end_SDprogram;
-	bool executing_SDprogram;
-	bool executing_SDcommand;
+    bool eofRecieved;
+    bool end_SDprogram;
+    bool executing_SDprogram;
+    bool executing_SDcommand;
 
 #ifdef LOG_ENABLE
-	FIL* logFile;
-	List* BuffOUT_logs = NULL;
+    FIL* logFile;
+    List* BuffOUT_logs = NULL;
 #endif /*LOG_ENABLE*/
 }SDCard_Settings;
 
 typedef struct SD_Card{
-	SPI_HandleTypeDef* spi;
-	IO_Pin cs;
+    SPI_HandleTypeDef* spi;
+    IO_Pin cs;
 }SD_Card;
 
 /* MMC/SD command (in SPI mode) */

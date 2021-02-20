@@ -36,6 +36,8 @@ list(APPEND LIBRARIES
     A4988_stepstick
     GCode_Parser
     Buffered_Communication
+    SD_Card
+    Command_Parser
     #---add new libs here---
 )
 
