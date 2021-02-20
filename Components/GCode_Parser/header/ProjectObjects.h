@@ -5,14 +5,14 @@
  *
  * =======================================================================================================
  * COMMENTS:
- * 		.
+ *
  * =======================================================================================================
  * EXAMPLE:
  *
  ********************************************************************************************************** */
 
-#ifndef OUTER_COMMUNICATION_H_
-#define OUTER_COMMUNICATION_H_
+#ifndef PROJECT_OBJECTS_H_
+#define PROJECT_OBJECTS_H_
 
 
 
@@ -21,8 +21,11 @@
  * ####################################################################################################### */
 
 #include <stdbool.h>
-#include "FIFO_void.h"
-#include "main.h"
+#include "a4988_stepstick.h"
+#include "EEPROM_24AA01.h"
+#include "diskio.h"
+#include "Buffered_Communication.h"
+#include "SD.h"
 
 
 
@@ -30,23 +33,53 @@
  *											DEFINES
  * ####################################################################################################### */
 
+#define MOTORS_NUM 4
+
 
 
 /* #######################################################################################################
  *											DATA TYPES
  * ####################################################################################################### */
 
-typedef struct OuterCommunication_Settings_Tag{
-	Fifo_C* Buff_InputCommands;
-	Fifo_C* Buff_IN;
-	Fifo_C* Buff_OUT;
+typedef struct MotorData_EEPROM{
+	double maxSpeed;
 
-	UART_HandleTypeDef* huart;
+	int stepSize;
 
-	uint8_t recieved;
-	bool EOL_recieved;
-	bool transmission;
-}OuterComm_Settings;
+	int positionZero;
+	int positionEnd;
+}MotorData_EEPROM;
+
+typedef struct DeviceSettings_Tag{
+	enum {
+		RELATIVE,
+		ABSOLUTE
+	}positioningMode;
+
+	enum {
+		IDLE,
+		BUSY
+	}sdCommandState;
+
+	FATFS* fatfs;
+
+	SDCard_Settings* sd;
+
+	MotorSettings* motors[MOTORS_NUM];
+
+	EEPROMSettings* eeprom;
+
+	//ST7565R_Settings* lcd;
+
+	OuterComm_Settings* outComm;
+
+	bool errMove;
+
+	double speed;
+	uint8_t recievedBT;
+	bool EOL_recieved; /*TODO: check if it is not the same as EOL_resieved in outComm struct*/
+	bool transmissionBT;
+}DeviceSettings;
 
 
 
@@ -60,10 +93,8 @@ typedef struct OuterCommunication_Settings_Tag{
  *										PUBLIC DECLARATIONS
  * ####################################################################################################### */
 
-Std_Err init_outer_operations(OuterComm_Settings* settings);
-Std_Err send_outer_command(OuterComm_Settings* settings);
-Std_Err deinit_outer_operations(OuterComm_Settings* settings);
+void init_deviceSettings(DeviceSettings* settings);
 
 
 
-#endif /*OUTER_COMMUNICATION_H_*/
+#endif /*PROJECT_OBJECTS_H_*/

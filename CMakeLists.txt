@@ -34,6 +34,8 @@ list(APPEND LIBRARIES
     IOpin
     Vector_Math
     A4988_stepstick
+    GCode_Parser
+    Buffered_Communication
     #---add new libs here---
 )
 
