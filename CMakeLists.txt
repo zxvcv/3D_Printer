@@ -32,6 +32,7 @@ list(APPEND LIBRARIES
     Error_Codes
     EEPROM_24AA01
     IOpin
+    Vector_Math
     #---add new libs here---
 )
 
