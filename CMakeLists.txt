@@ -33,6 +33,7 @@ list(APPEND LIBRARIES
     EEPROM_24AA01
     IOpin
     Vector_Math
+    A4988_stepstick
     #---add new libs here---
 )
 

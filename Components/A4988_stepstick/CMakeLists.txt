@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET IOpin)
+set(LOCAL_TARGET A4988_stepstick)
 set(MAIN_APP_DIR ../..)
 set(SOURCE_DIR source)
 set(HEADER_DIR header)
@@ -20,7 +20,7 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 
 #####################################   CREATE TARGET   ###########################################
 add_library(${LOCAL_TARGET}
-    ${SOURCE_DIR}/IOpin.c
+    ${SOURCE_DIR}/A4988_stepstick.c
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
@@ -29,6 +29,8 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
+    Error_Codes
+    IOpin
 )
 
 
