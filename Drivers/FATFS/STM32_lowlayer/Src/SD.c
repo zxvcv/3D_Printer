@@ -5,22 +5,21 @@
  *  Author: tmf
  */
 
-#include "main.h"
 #include "SD.h"
 #include "diskio.h"
 #include <stdbool.h>
 #include <string.h>
 
-uint8_t SD_Status;               //Co aktualnie jest podpiête
+uint8_t SD_Status;               //Co aktualnie jest podpiï¿½te
 uint8_t SD_Type;                 //Typ karty - SD lub SDHC
 
 void SPI_SD_CS(SD_Card* sd, _Bool SS_en){
 	if(SS_en){
-		HAL_GPIO_WritePin(sd->cs.PORT, sd->cs.PIN, GPIO_PIN_RESET);	//Aktywuj kartê SD
-		SD_WaitForReady(sd);       //Zaczekaj a¿ karta bêdzie gotowa
+		HAL_GPIO_WritePin(sd->cs.PORT, sd->cs.PIN, GPIO_PIN_RESET);	//Aktywuj kartï¿½ SD
+		SD_WaitForReady(sd);       //Zaczekaj aï¿½ karta bï¿½dzie gotowa
 	} else {
 		HAL_GPIO_WritePin(sd->cs.PORT, sd->cs.PIN, GPIO_PIN_SET);
-		SPI_RW_Byte(sd, 0xff);        //Karta ulega deaktywacji po otrzymaniu kolejnego zbocza sygna³u SCK
+		SPI_RW_Byte(sd, 0xff);        //Karta ulega deaktywacji po otrzymaniu kolejnego zbocza sygnaï¿½u SCK
 	}
 }
 
@@ -57,15 +56,15 @@ _Bool SD_WaitForReady(SD_Card* sd)
 {
 	uint16_t counter=500;              //Czekamy maksymalnie ok. 500 ms
 	SPI_RW_Byte(sd, 0xff);
-	do									//Zaczekaj na gotowoœæ karty - sygna³ CS musi byæ wczeœniej aktywowany
+	do									//Zaczekaj na gotowoï¿½ï¿½ karty - sygnaï¿½ CS musi byï¿½ wczeï¿½niej aktywowany
 	{
 		if(SPI_RW_Byte(sd, 0xff) == 0xff) break;
 		HAL_Delay(1);
 	} while (--counter);
-	return counter ? true : false;      //Czy wyst¹pi³ timeout?
+	return counter ? true : false;      //Czy wystï¿½piï¿½ timeout?
 }
 
-void SD_CRC7(uint8_t *crc, uint8_t byte)  //Wylicza CRC7 dla karty, pocz¹tkowo crc=0
+void SD_CRC7(uint8_t *crc, uint8_t byte)  //Wylicza CRC7 dla karty, poczï¿½tkowo crc=0
 {
 	for (uint8_t i=0; i < 8; i++)
 	{
@@ -85,13 +84,13 @@ uint8_t SD_SendCMD(SD_Card* sd, uint8_t cmd, uint32_t arg)
 	if(cmd & 0x80)
 	{
 		cmd&=0x7F;            //Skasuj najstarszy bit polecenia
-		res=SD_SendCMD(sd, CMD55, 0);  //Kolejne polecenie nale¿y do grupy ACMD
-		if(res > 0x01) return res; //Polecenie CMD55 zakoñczy³o siê b³êdem
+		res=SD_SendCMD(sd, CMD55, 0);  //Kolejne polecenie naleï¿½y do grupy ACMD
+		if(res > 0x01) return res; //Polecenie CMD55 zakoï¿½czyï¿½o siï¿½ bï¿½ï¿½dem
 	}
-	SPI_SD_CS(sd, false);         //Deaktywuj kartê
-	SPI_SD_CS(sd, true);          //Aktywuj kartê
+	SPI_SD_CS(sd, false);         //Deaktywuj kartï¿½
+	SPI_SD_CS(sd, true);          //Aktywuj kartï¿½
 
-	cmd|=0x40;                //najstarsze dwa bity zawsze s¹ równe 01
+	cmd|=0x40;                //najstarsze dwa bity zawsze sï¿½ rï¿½wne 01
 	SPI_RW_Byte(sd, cmd);
 	SD_CRC7(&crc, cmd);
 	for(uint8_t i=0; i<4; i++)
@@ -100,18 +99,18 @@ uint8_t SD_SendCMD(SD_Card* sd, uint8_t cmd, uint32_t arg)
 		SD_CRC7(&crc, (arg >> 24) & 0xff);
 		arg<<=8;
 	}
-	crc=(crc << 1) | 1;        //CRC7 dla SD jest przesuniête o jeden bit w lewo i ma ustawiony najm³odszy bit
-	SPI_RW_Byte(sd, crc);          //Wyœlij CRC polecenia
+	crc=(crc << 1) | 1;        //CRC7 dla SD jest przesuniï¿½te o jeden bit w lewo i ma ustawiony najmï¿½odszy bit
+	SPI_RW_Byte(sd, crc);          //Wyï¿½lij CRC polecenia
 
-	uint8_t i=10;         //OdpowiedŸ mo¿e nadejœæ od 1 do 10 bajtów po poleceniu
+	uint8_t i=10;         //Odpowiedï¿½ moï¿½e nadejï¿½ï¿½ od 1 do 10 bajtï¿½w po poleceniu
 	do
 	{
 		res=SPI_RW_Byte(sd, 0xff);
 	} while ((res & 0x80) && --i);
-	return res;                //Po wys³aniu polecenia karta pozostaje wybrana w celu odczytu/zapisu kolejnych bajtów
+	return res;                //Po wysï¿½aniu polecenia karta pozostaje wybrana w celu odczytu/zapisu kolejnych bajtï¿½w
 }
 
-uint32_t SD_GetR7(SD_Card* sd)  //Pobierz odpowiedŸ typu R7
+uint32_t SD_GetR7(SD_Card* sd)  //Pobierz odpowiedï¿½ typu R7
 {
 	uint32_t R7=0;
 	for(uint8_t i=0; i<4; i++)
@@ -144,8 +143,8 @@ _Bool SD_CardInitV1(SD_Card* sd)
 	  else HAL_Delay(10);
 	}
 	if(i == 255) return false;      //Karta nie akceptuje polecenia - uszkodzona?
-	SD_GetR7(sd);                     //Co prawda mamy odpowiedŸ R3, ale jej d³ugoœæ jest taka sama jak R7
-	SD_SendCMD(sd, CMD16, 512);         //D³ugoœæ bloku 512 bajtów
+	SD_GetR7(sd);                     //Co prawda mamy odpowiedï¿½ R3, ale jej dï¿½ugoï¿½ï¿½ jest taka sama jak R7
+	SD_SendCMD(sd, CMD16, 512);         //Dï¿½ugoï¿½ï¿½ bloku 512 bajtï¿½w
 	SD_Status=0;
 	SD_Type=CT_SD1;
 	return true;
@@ -156,7 +155,7 @@ _Bool SD_CardInitV2(SD_Card* sd)
 	uint8_t i;
 
 	if(SD_GetR7(sd) != 0x1aa)
-	 return false;  //B³edne napiêcie pracy karty
+	 return false;  //Bï¿½edne napiï¿½cie pracy karty
 
 	for(i=0; i<255; i++)
 	{
@@ -176,12 +175,12 @@ _Bool SD_CardInitV2(SD_Card* sd)
 
 _Bool SD_CardInit(SD_Card* sd)
 {
-	SPI_SetInitBaudrate(sd);     //Kartê nale¿y zainicjowaæ przy SCK równym 400 kHz
-	SPI_SD_CS(sd, false);                      //Deaktywuj kartê
+	SPI_SetInitBaudrate(sd);     //Kartï¿½ naleï¿½y zainicjowaï¿½ przy SCK rï¿½wnym 400 kHz
+	SPI_SD_CS(sd, false);                      //Deaktywuj kartï¿½
 
 	for(uint8_t i=0; i<10; i++)
 	{
-		SPI_RW_Byte(sd, 0xff);                 //Wyœlij co najmniej 74 takty SCK dla inicjalizacji karty
+		SPI_RW_Byte(sd, 0xff);                 //Wyï¿½lij co najmniej 74 takty SCK dla inicjalizacji karty
 	}
 
 	uint8_t i=10, ret;
@@ -189,12 +188,12 @@ _Bool SD_CardInit(SD_Card* sd)
 	{
 		ret=SD_SendCMD(sd, CMD0, 0);
 
-	} while ((ret != SD_R1_Idle) && --i);  //Zaczekaj na prawid³ow¹ odpowiedŸ ze strony karty
+	} while ((ret != SD_R1_Idle) && --i);  //Zaczekaj na prawidï¿½owï¿½ odpowiedï¿½ ze strony karty
 
 	if(!i)
 	{
-		SD_Status=STA_NODISK;              //Brak karty lub inny b³¹d
-		return false;                      //Niedoczekaliœmy siê
+		SD_Status=STA_NODISK;              //Brak karty lub inny bï¿½ï¿½d
+		return false;                      //Niedoczekaliï¿½my siï¿½
 	}
 
 	i=10;
@@ -204,9 +203,9 @@ _Bool SD_CardInit(SD_Card* sd)
 	} while ((ret & 0xc0) && --i);
 
 	_Bool result;
-	if(ret==0x05) result=SD_CardInitV1(sd); else result=SD_CardInitV2(sd); //Z jak¹ kart¹ mamy do czynienia
+	if(ret==0x05) result=SD_CardInitV1(sd); else result=SD_CardInitV2(sd); //Z jakï¿½ kartï¿½ mamy do czynienia
 	if(result==false) SD_Status=STA_NODISK;
-	SPI_SetMaxBaudrate(sd);  //Prze³¹cz interfejs na maksymaln¹ szybkoœæ pracy
+	SPI_SetMaxBaudrate(sd);  //Przeï¿½ï¿½cz interfejs na maksymalnï¿½ szybkoï¿½ï¿½ pracy
 	return result;
 }
 
@@ -218,17 +217,17 @@ _Bool SD_Rec_Datablock(SD_Card* sd, uint8_t *buff, uint16_t size)
 	do
 	{
 		HAL_Delay(1);
-		//_delay_us(500);                  //Zanim blok danych bêdzie gotowy potrzebujemy chwilkê
+		//_delay_us(500);                  //Zanim blok danych bï¿½dzie gotowy potrzebujemy chwilkï¿½
 		rec=SPI_RW_Byte(sd, 0xff);
 	} while((rec == 0xff) && timeout--); //Czekamy na otrzymanie 0xfe, ale max 100 ms
 
-	if(rec != 0xfe) return false;		 //B³¹d - nie ma pocz¹tku danych
+	if(rec != 0xfe) return false;		 //Bï¿½ï¿½d - nie ma poczï¿½tku danych
 
 	do {						         //Odbierz blok danych
 		*buff=SPI_RW_Byte(sd, 0xff);
 		buff++;
 	} while(--size);
-	SPI_RW_Byte(sd, 0xff);                   //Odbierz CRC bloku danych - obowi¹zkowe
+	SPI_RW_Byte(sd, 0xff);                   //Odbierz CRC bloku danych - obowiï¿½zkowe
 	SPI_RW_Byte(sd, 0xff);
 	return true;
 }
@@ -243,7 +242,7 @@ uint8_t SD_disk_read(SD_Card* sd, uint8_t *buff, uint32_t sector, uint8_t count)
 		if((SD_SendCMD(sd, CMD17, sector) == 0) && SD_Rec_Datablock(sd, buff, 512))
 		count=0;
 	} else
-	{				//Odczytujemy kilka sektorów na raz
+	{				//Odczytujemy kilka sektorï¿½w na raz
 		if(SD_SendCMD(sd, CMD18, sector) == 0)
 		{
 			do
@@ -260,25 +259,25 @@ uint8_t SD_disk_read(SD_Card* sd, uint8_t *buff, uint32_t sector, uint8_t count)
 	return count ? RES_ERROR : RES_OK;
 }
 
-_Bool SD_Sendblock(SD_Card* sd, const uint8_t *buff, uint8_t token)  //Wyœlij 512-bajtowy blok danych i zakoñcz go tokenem
+_Bool SD_Sendblock(SD_Card* sd, const uint8_t *buff, uint8_t token)  //Wyï¿½lij 512-bajtowy blok danych i zakoï¿½cz go tokenem
 {
 	uint8_t resp;
 	uint16_t counter;
 
-	if(SD_WaitForReady(sd) == false) return false; //Zaczekaj na gotowoœæ karty
+	if(SD_WaitForReady(sd) == false) return false; //Zaczekaj na gotowoï¿½ï¿½ karty
 
-	SPI_RW_Byte(sd, token);					//Wyœlij token pocz¹tku/koñca danych
-	if(token != 0xfd)                   //0xfd to token koñca danych - po nim nic nie wysy³amy
+	SPI_RW_Byte(sd, token);					//Wyï¿½lij token poczï¿½tku/koï¿½ca danych
+	if(token != 0xfd)                   //0xfd to token koï¿½ca danych - po nim nic nie wysyï¿½amy
 	{
 		counter=512;
 		do
 		{
-			SPI_RW_Byte(sd, *buff++);       //Wyœlij dane
+			SPI_RW_Byte(sd, *buff++);       //Wyï¿½lij dane
 		} while(--counter);
-		SPI_RW_Byte(sd, 0xff);				//Musimy wys³aæ CRC16, nawet jeœli karta go nie sprawdza
+		SPI_RW_Byte(sd, 0xff);				//Musimy wysï¿½aï¿½ CRC16, nawet jeï¿½li karta go nie sprawdza
 		SPI_RW_Byte(sd, 0xff);
-		resp=SPI_RW_Byte(sd, 0xff);			//Odczytaj odpoweidŸ karty
-		if((resp & 0x1F) != 0x05) return false;	//SprawdŸ czy karta zaakceptowa³a dane
+		resp=SPI_RW_Byte(sd, 0xff);			//Odczytaj odpoweidï¿½ karty
+		if((resp & 0x1F) != 0x05) return false;	//Sprawdï¿½ czy karta zaakceptowaï¿½a dane
 	}
 	return true;
 }
@@ -292,7 +291,7 @@ uint8_t SD_disk_write(SD_Card* sd, const uint8_t *buff, uint32_t sector, uint8_t
 	{	//Zapisujemy pojedynczy sektor
 		if((SD_SendCMD(sd, CMD24, sector) == 0) && SD_Sendblock(sd, buff, 0xfe)) count=0;
 	} else
-	{				//Zapisujemy kilka sektorów na raz
+	{				//Zapisujemy kilka sektorï¿½w na raz
 		SD_SendCMD(sd, ACMD23, count);
 		if(SD_SendCMD(sd, CMD25, sector) == 0)
 		 {
@@ -301,7 +300,7 @@ uint8_t SD_disk_write(SD_Card* sd, const uint8_t *buff, uint32_t sector, uint8_t
 				if (!SD_Sendblock(sd, buff, 0xfc)) break;
 				buff += 512;
 			} while (--count);
-			if (!SD_Sendblock(sd, 0, 0xfd)) count=1;	//Token koñca wielobajtowego bloku danych
+			if (!SD_Sendblock(sd, 0, 0xfd)) count=1;	//Token koï¿½ca wielobajtowego bloku danych
 		}
 	}
 	SPI_SD_CS(sd, false);

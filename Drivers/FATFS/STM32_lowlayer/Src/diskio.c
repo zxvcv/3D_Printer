@@ -98,14 +98,14 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	if(SD_Status != 0) return RES_NOTRDY;    //Pamiêæ niezainicjowana
+	if(SD_Status != 0) return RES_NOTRDY;    //Pamiï¿½ï¿½ niezainicjowana
 
 	DRESULT res=RES_OK;
 
 	switch(cmd)
 	{
 		case GET_SECTOR_SIZE:
-			*((DWORD*)buff)=512;         //D³ugoœæ sektora 512 bajtów
+			*((DWORD*)buff)=512;         //Dï¿½ugoï¿½ï¿½ sektora 512 bajtï¿½w
 			break;
 		case GET_SECTOR_COUNT:
 		{
@@ -119,15 +119,15 @@ DRESULT disk_ioctl (
 				if(csd->CSD_Struct == 0)
 					size=(csd->C_Size + 1) * (1ULL << csd->Read_Bl_Len) * (1UL << (csd->C_Size_mult + 2));
 				else
-					size=(((SD_CSDRegv2*)csd)->C_Size + 1) * 524288ULL;  //C_Size zawiera liczbê bloków po 512 kB
-				*((DWORD*)buff)=size/512;      //Zwracami liczbê 512-bajtowych sektorów
+					size=(((SD_CSDRegv2*)csd)->C_Size + 1) * 524288ULL;  //C_Size zawiera liczbï¿½ blokï¿½w po 512 kB
+				*((DWORD*)buff)=size/512;      //Zwracami liczbï¿½ 512-bajtowych sektorï¿½w
 			}
 			else
 				res=RES_NOTRDY;
 		}
 			break;
 		case GET_BLOCK_SIZE:
-			*((DWORD*)buff)=1;           //Ile mo¿na na raz skasowaæ sektorów
+			*((DWORD*)buff)=1;           //Ile moï¿½na na raz skasowaï¿½ sektorï¿½w
 			break;
 		case CTRL_SYNC:	break;
 		case CTRL_TRIM:	break;
@@ -141,6 +141,6 @@ DRESULT disk_ioctl (
 
 DWORD get_fattime (void)
 {
-	return 0;  //B³êdnie, nale¿y tu zwróciæ poprawn¹ datê
+	return 0;  //Bï¿½ï¿½dnie, naleï¿½y tu zwrï¿½ciï¿½ poprawnï¿½ datï¿½
 }
 

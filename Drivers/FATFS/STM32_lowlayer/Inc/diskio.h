@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "../Drivers/FATFS/ff.h"			/* Obtains integer types */
+#include "ff.h"			/* Obtains integer types */
 
 /* Status of Disk Functions */
 typedef BYTE	DSTATUS;

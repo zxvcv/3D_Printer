@@ -31,13 +31,14 @@ list(APPEND LIBRARIES
     FIFO_void
     Error_Codes
     EEPROM_24AA01
+    IOpin
     #---add new libs here---
 )
 
 
 
 #####################################   SUBDIRECTORIES   ##########################################
-add_subdirectory(Drivers) #HAL_Drivers
+add_subdirectory(Drivers) #HAL_Drivers, FATFS_Driver
 foreach(LIBRARY IN LISTS LIBRARIES)
     add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
 endforeach()
@@ -64,6 +65,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
+    FATFS_Driver
     ${LIBRARIES}
 )
 

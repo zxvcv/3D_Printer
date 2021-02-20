@@ -12,8 +12,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "diskio.h"
+#include "main.h"
 #include "FIFO_void.h"
-#include "ProjectTypes.h"
+#include "IOpin.h"
+
 
 #define BYTES_TO_READ 50
 
