@@ -24,6 +24,8 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+extern char buffMsg[100];
+extern uint8_t msgSize;
 /*[[COMPONENT_DEFINES_C]]*/
 
 

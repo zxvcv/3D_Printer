@@ -49,6 +49,10 @@ const struct {
         {   "SP",   systemCmd_MotorStepSizeSet      },
         {   "CR",   systemCmd_SDCardProgramRun      }
 };
+
+//[TODO]: delete folowint variables
+char buffMsg[100];
+uint8_t msgSize;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 

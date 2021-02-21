@@ -54,6 +54,10 @@ endforeach()
 #####################################   EXECUTABLE   ##############################################
 add_executable(${LOCAL_TARGET}
     Src/main.c
+    Src/Interrupts.c
+    Src/Manager.c
+    Src/Project_Objects.c
+    
     Src/stm32f3xx_it.c
     Src/stm32f3xx_hal_msp.c
     Src/system_stm32f3xx.c

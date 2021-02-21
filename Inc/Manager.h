@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Command_Parser
+ * NAME: Manager
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,16 +16,17 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#ifndef MANAGER_H_
+#define MANAGER_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include "Error_Codes.h"
+#include "Project_Objects.h"
 #include "Command_Parser.h"
-#include <stdio.h>
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -34,17 +35,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define ACCURACY 1000
-
-#define _OFFSET_MAXSPEED 0
-#define _OFFSET_STEPSIZE _OFFSET_MAXSPEED+sizeof(double)
-#define _OFFSET_POSITIONZERO _OFFSET_STEPSIZE+sizeof(int)
-#define _OFFSET_POSITIONEND _OFFSET_POSITIONZERO+sizeof(int)
-
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -66,39 +56,22 @@
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DECLARATIONS                                    *
- * ############################################################################################ */
-
-Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionValueSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings);
-
-
-
-/* ############################################################################################ *
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+Std_Err execute_outer_command(DeviceSettings* settings);
+
+Std_Err parse_outer_data(DeviceSettings* settings);
+
+Std_Err init_manager(DeviceSettings* settings);
+
+Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
+
+Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
+
+Std_Err setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* _COMMANDS_H_ */
+#endif /* MANAGER_H_ */

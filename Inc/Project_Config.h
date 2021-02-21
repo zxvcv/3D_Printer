@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Command_Parser
+ * NAME: Project_Config
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,16 +16,14 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#ifndef PROJECT_CONFIG_H_
+#define PROJECT_CONFIG_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Command_Parser.h"
-#include <stdio.h>
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -35,16 +33,17 @@
  * ############################################################################################ */
 
 #define ACCURACY 1000
+#define MOTORS_NUM 4
 
-#define _OFFSET_MAXSPEED 0
-#define _OFFSET_STEPSIZE _OFFSET_MAXSPEED+sizeof(double)
-#define _OFFSET_POSITIONZERO _OFFSET_STEPSIZE+sizeof(int)
-#define _OFFSET_POSITIONEND _OFFSET_POSITIONZERO+sizeof(int)
+/*TODO: change all motor[] indexes to defined values*/
+#define MOTOR_X     0
+#define MOTOR_Y     1
+#define MOTOR_Z1    2
+#define MOTOR_Z2    3
+#define MOTOR_E     4
 
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
+#define USE_INTERRUPTS
+//#define LOG_ENABLE
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -66,34 +65,6 @@
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DECLARATIONS                                    *
- * ############################################################################################ */
-
-Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionValueSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings);
-
-
-
-/* ############################################################################################ *
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
@@ -101,4 +72,4 @@ Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings);
 
 
 
-#endif /* _COMMANDS_H_ */
+#endif /* PROJECT_CONFIG_H_ */

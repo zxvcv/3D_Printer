@@ -25,8 +25,7 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
-#include "GCode_Parser.h" //[[DEBUG]]
-#include "ProjectObjects.h" //[[DEBUG]]
+#include "Project_Objects.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 

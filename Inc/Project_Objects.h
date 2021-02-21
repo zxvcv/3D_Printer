@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Command_Parser
+ * NAME: Project_Objects
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,16 +16,19 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#ifndef PROJECT_OBJECTS_H_
+#define PROJECT_OBJECTS_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Command_Parser.h"
-#include <stdio.h>
+#include "SD.h"
+#include "A4988_stepstick.h"
+#include "EEPROM_24AA01.h"
+#include "Buffered_Communication.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -34,17 +37,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define ACCURACY 1000
-
-#define _OFFSET_MAXSPEED 0
-#define _OFFSET_STEPSIZE _OFFSET_MAXSPEED+sizeof(double)
-#define _OFFSET_POSITIONZERO _OFFSET_STEPSIZE+sizeof(int)
-#define _OFFSET_POSITIONEND _OFFSET_POSITIONZERO+sizeof(int)
-
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -61,35 +53,44 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
+typedef struct MotorData_EEPROM{
+    double maxSpeed;
+
+    int stepSize;
+
+    int positionZero;
+    int positionEnd;
+}MotorData_EEPROM;
+
+typedef struct DeviceSettings_Tag{
+    enum {
+        RELATIVE,
+        ABSOLUTE
+    }positioningMode;
+
+    enum {
+        IDLE,
+        BUSY
+    }sdCommandState;
+
+    FATFS* fatfs;
+
+    SDCard_Settings* sd;
+
+    MotorSettings* motors[MOTORS_NUM];
+
+    EEPROMSettings* eeprom;
+
+    OuterComm_Settings* outComm;
+
+    bool errMove;
+
+    double speed;
+    uint8_t recievedBT;
+    bool EOL_recieved; /*TODO: check if it is not the same as EOL_resieved in outComm struct*/
+    bool transmissionBT;
+}DeviceSettings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
-
-
-
-/* ############################################################################################ *
- *                                      PRIVATE DECLARATIONS                                    *
- * ############################################################################################ */
-
-Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedMax(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorDistanceMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionMove(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorPositionValueSet(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings);
-
-Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings);
 
 
 
@@ -97,8 +98,9 @@ Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings);
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+void init_deviceSettings(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* _COMMANDS_H_ */
+#endif /* PROJECT_OBJECTS_H_ */
