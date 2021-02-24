@@ -5,6 +5,12 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(3D_Printer VERSION 0.1.0)
 
+#####################################   INCLUDES   ################################################
+include(cmake/f_compile_definitions.cmake)
+include(cmake/f_compile_options.cmake)
+
+
+
 #####################################   LANGUAGE AND STANDARD   ###################################
 enable_language(C ASM)
 set(CMAKE_C_STANDARD 99)
@@ -25,13 +31,20 @@ list(APPEND LIBRARIES
     FIFO_void
     Error_Codes
     EEPROM_24AA01
+    IOpin
+    Vector_Math
+    A4988_stepstick
+    GCode_Parser
+    Buffered_Communication
+    SD_Card
+    Command_Parser
     #---add new libs here---
 )
 
 
 
 #####################################   SUBDIRECTORIES   ##########################################
-add_subdirectory(Drivers) #HAL_Drivers
+add_subdirectory(Drivers) #HAL_Drivers, FATFS_Driver
 foreach(LIBRARY IN LISTS LIBRARIES)
     add_subdirectory(${COMPONENTS_DIR}/${LIBRARY})
 endforeach()
@@ -41,6 +54,10 @@ endforeach()
 #####################################   EXECUTABLE   ##############################################
 add_executable(${LOCAL_TARGET}
     Src/main.c
+    Src/Interrupts.c
+    Src/Manager.c
+    Src/Project_Objects.c
+    
     Src/stm32f3xx_it.c
     Src/stm32f3xx_hal_msp.c
     Src/system_stm32f3xx.c
@@ -58,15 +75,15 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
+    FATFS_Driver
     ${LIBRARIES}
 )
 
-include(cmake/compile_definitions.cmake)
 
 
-
-#####################################   COMPILATION SETTINGS   #####################################
-include(cmake/compile_options.cmake)
+#####################################   COMPILATION SETTINGS   ####################################
+set_target_compile_definitions(${LOCAL_TARGET})
+set_target_compile_options(${LOCAL_TARGET})
 
 target_link_options(${LOCAL_TARGET} PRIVATE
     -T${CMAKE_SOURCE_DIR}/${LDSCRIPT}

@@ -22,7 +22,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../Components/FIFO_void/header/FIFO_void.h"
+#include "Project_Objects.h"
+#include "Manager.h"
+#include "SD_Card.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,7 +53,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+extern DeviceSettings printerSettings;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,49 +80,70 @@ static void MX_I2C1_Init(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_SPI2_Init();
-  MX_USART2_UART_Init();
-  MX_TIM6_Init();
-  MX_SPI3_Init();
-  MX_USART1_UART_Init();
-  MX_I2C1_Init();
-  /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_SPI2_Init();
+    MX_USART2_UART_Init();
+    MX_TIM6_Init();
+    MX_SPI3_Init();
+    MX_USART1_UART_Init();
+    MX_I2C1_Init();
+    /* USER CODE BEGIN 2 */
+    for(int i=0; i<MOTORS_NUM; ++i)
+        motorInit(printerSettings.motors[i]);
+    HAL_TIM_Base_Start_IT(&htim6);
 
-  /* USER CODE END 2 */
+    //reading data form EEPROM
+    for(int i=0; i<MOTORS_NUM; ++i)
+        getMotorData_EEPROM(printerSettings.motors[i], printerSettings.eeprom);
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  Fifo_C* fifo;
-  fifo_create(&fifo);
-  while (1)
-  {
-    /* USER CODE END WHILE */
+    init_manager(&printerSettings);
+    /* USER CODE END 2 */
 
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
+    while (1)
+    {
+        parse_outer_data(&printerSettings);
+        execute_outer_command(&printerSettings);
+        send_outer_command(printerSettings.outComm);
+
+
+        //SDcard Commands
+        parse_data_SDcard(printerSettings.sd);
+        execute_command_SDcard(&printerSettings);
+
+        #ifdef LOG_ENABLE
+        send_logs_SDcard();
+        #endif
+
+        reset_commands_SDcard(printerSettings.sd);
+        detecting_endCommand_SDcard(&printerSettings);
+        /* USER CODE END WHILE */
+
+        /* USER CODE BEGIN 3 */
+    }
+    /* USER CODE END 3 */
 }
 
 /**
