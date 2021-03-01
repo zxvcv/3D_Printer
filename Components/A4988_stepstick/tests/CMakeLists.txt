@@ -21,14 +21,14 @@ include_directories(
 )
 
 add_library(${TEST_COMPONENT_LIB}
-    #TODO:(...)
+    ${SOURCE_DIR}/A4988_stepstick.c
 )
 
 
 
 #####################################   TEST   ####################################################
-add_executable(${LOCAL_TARGET} 
-    #TODO:(...)
+add_executable(${LOCAL_TARGET}
+    A4988_stepstick_UT.cpp
 )
 
 target_link_libraries(${LOCAL_TARGET} PUBLIC

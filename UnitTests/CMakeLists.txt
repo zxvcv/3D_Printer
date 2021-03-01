@@ -22,6 +22,7 @@ list(APPEND TESTS
     FIFO_void
     Error_Codes
     EEPROM_24AA01
+    A4988_stepstick
     #---add new tests here---
 )
 
