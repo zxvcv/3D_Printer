@@ -36,6 +36,8 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
+GCodeGlobal global_gcode_settings;
+
 const struct {
     char* name;
     Std_Err (*execute)(GCodeCommand*, DeviceSettings*);
@@ -71,7 +73,7 @@ Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT)
 
     for (int i = 0; i < GCODE_COMMANDS_NUM; ++i) {
         if (strcmp(cmdName, commands[i].name) == 0) {
-            cmdOUT->execute = commands[i].execute;
+            cmdOUT->init = commands[i].execute;
             stdErr = STD_OK;
             break;
         }
@@ -100,17 +102,4 @@ Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT)
     return stdErr;
 }
 
-
-Std_Err executeGCodeCommand(GCodeCommand* cmd, DeviceSettings* settings)
-{
-    Std_Err stdErr;
-
-    if (cmd->execute == NULL)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
-    stdErr = cmd->execute(cmd, settings);
-    return stdErr;
-}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

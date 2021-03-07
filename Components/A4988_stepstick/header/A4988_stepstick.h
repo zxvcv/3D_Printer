@@ -37,6 +37,8 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define CLOCKWISE           1
+#define COUNTER_CLOCKWISE   0
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -53,6 +55,12 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
+typedef struct MotorCounters_Tag{
+    uint16_t timer;
+    uint16_t timer_start;
+    uint8_t steps;
+}MotorCounters;
+
 typedef struct Motor_Tag{
     IO_Pin IOreset;
     IO_Pin IOsleep;
@@ -68,11 +76,7 @@ typedef struct Motor_Tag{
         unsigned int reversed   :1;     /*(1-yes        0-no                )*/
     }flags;
 
-    struct{
-        uint16_t timer;
-        uint16_t timer_start;
-        uint8_t steps;
-    }counters;
+    MotorCounters counters;
 
     struct{
         double timer_frequency;  //[Hz] timer frequency
@@ -101,11 +105,16 @@ Std_Err motor_init(Motor* motor);
 
 Std_Err motor_update(Motor* motor);
 
-Std_Err motor_set_counters(Motor* motor);
+void motor_set_counters(Motor* motor, MotorCounters* counters);
 
 Std_Err motor_start(Motor* motor);
 
 Std_Err motor_stop(Motor* motor);
+
+void motor_set_direction(Motor* motor, unsigned int direction);
+
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+                                       MotorCounters* counters, bool* direction);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

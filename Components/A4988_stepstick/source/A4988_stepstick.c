@@ -31,8 +31,6 @@
 
 #define HIGH    1
 #define LOW     0
-#define CLOCKWISE           1
-#define COUNTER_CLOCKWISE   0
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -151,13 +149,9 @@ Std_Err motor_update(Motor* motor)
 }
 
 
-Std_Err motor_set_counters(Motor* motor, uint16_t timer, uint16_t timer_start, uint8_t steps)
+void motor_set_counters(Motor* motor, MotorCounters* counters)
 {
-    motor->counters.timer = timer;
-    motor->counters.timer_start = timer_start;
-    motor->counters.steps = steps;
-
-    return STD_OK;
+    motor->counters = *counters;
 }
 
 
@@ -213,5 +207,87 @@ Std_Err motor_stop(Motor* motor)
     }
 
     return retVal;
+}
+
+
+void motor_set_direction(Motor* motor, unsigned int direction)
+{
+    if(direction == CLOCKWISE)
+    {
+        motor->flags.direction = CLOCKWISE;
+    }
+    else if(direction == COUNTER_CLOCKWISE)
+    {
+        motor->flags.direction = COUNTER_CLOCKWISE;
+    }
+}
+
+
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+                                       MotorCounters* counters, bool* direction)
+{
+    const int _move_int = (int)round(move * ACCURACY);
+    const int _position = motor->data.position;
+    const int _position_zero = motor->settings.position_zero;
+    const int _position_end = motor->settings.position_end;
+
+    const int _move_sign = (signbit(move) ? -1 : 1);
+
+    const double _speed = speed;
+    const int _abs_move = abs(_move_int);
+    const int _step_size = motor->settings.step_size;
+
+    /* speed */
+    if((speed <= 0 || speed > motor->settings.max_speed) && (_abs_move > _step_size / 2))
+    {
+        return STD_PARAMETER_ERROR;
+    }
+
+    double change_freq = speed / ((double)_step_size / ACCURACY);
+    double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
+
+    counters->timer = (uint16_t)change_timeD;
+    counters->timer_start = (uint16_t)change_timeD;
+
+    /* move */
+    int steps_num1 = _abs_move / _step_size;
+    int steps_num2 = steps_num1 + 1;
+    int accuracy1 = (steps_num1 * _step_size) - _abs_move;
+    int accuracy2 = (steps_num2 * _step_size) - _abs_move;
+
+    int new_position1 = (steps_num1 * _step_size * _move_sign) + _position;
+    int new_position2 = (steps_num2 * _step_size * _move_sign) + _position;
+
+    if(new_position1 > _positionEnd || new_position1 < _position_zero)
+        accuracy1 = INT_MAX;
+    if(new_position2 > _positionEnd || new_position2 < _position_zero)
+        accuracy2 = INT_MAX;
+
+    if(accuracy1 == INT_MAX && accuracy2 == INT_MAX)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+    else if(abs(accuracy1) <= abs(accuracy2))
+    {
+        counters->steps = steps_num1 * 2;
+        motor->data.position_error = abs(accuracy1) * _move_sign;
+    }
+    else
+    {
+        counters->steps = steps_num2 * 2;
+        motor->data.position_error = abs(accuracy2) * _move_sign * ((int)-1);
+    }
+
+    // /*TODO: check calculating speedError*/
+    // roundingError->speedError = speed -
+    //     (((settings->device.timer_frequency * _step_size) / ACCURACY) / (settings->change_time * 2));
+
+    /* direction */
+    if(_move_sign > 0)
+        direction = COUNTER_CLOCKWISE;
+    else
+        direction = CLOCKWISE;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

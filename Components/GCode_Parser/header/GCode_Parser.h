@@ -38,9 +38,8 @@
 
 #define MOTOR_X     0 //[DEBUG]
 #define MOTOR_Y     1 //[DEBUG]
-#define MOTOR_Z1    2 //[DEBUG]
-#define MOTOR_Z2    3 //[DEBUG]
-#define MOTOR_E     4 //[DEBUG]
+#define MOTOR_Z     2 //[DEBUG]
+#define MOTOR_E     3 //[DEBUG]
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -56,11 +55,22 @@
 /* ############################################################################################ *
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
+typedef struct GCodeGlobal_Tag{
+    enum{
+        RELATIVE,
+        ABSOLUTE
+    }positioning_mode;
+    double speed;
+}GCodeGlobal;
 
 typedef struct GCodeCommand_Tag{
-    Std_Err (*execute)(struct GCodeCommand_Tag*, DeviceSettings*) ;	//command pointer
-    int cmdNum;
+    Std_Err (*init)(struct GCodeCommand_Tag*, Motor*);
+    Std_Err (*delete)(struct GCodeCommand_Tag*, Motor*);
 
+    Std_Err (*step)(struct GCodeCommand_Tag*, Motor*);
+
+
+    uint8_t used_fields;
     struct{
         double x;       //X-axis move
         double y;       //Y-axis move
@@ -71,13 +81,11 @@ typedef struct GCodeCommand_Tag{
     }data;
 
     struct{
-        unsigned short _x : 1;
-        unsigned short _y : 1;
-        unsigned short _z : 1;
-        unsigned short _e : 1;
-        unsigned short _f : 1;
-        unsigned short _s : 1;
-    }usedFields;
+        double x;
+        double y;
+        double z;
+        double e;
+    }target_position;
 }GCodeCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -88,8 +96,6 @@ typedef struct GCodeCommand_Tag{
  * ############################################################################################ */
 
 Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT);
-
-Std_Err executeGCodeCommand(GCodeCommand* cmd, DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
