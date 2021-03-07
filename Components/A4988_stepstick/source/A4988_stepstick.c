@@ -27,7 +27,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define ACCURACY 1000
+#define ACCURACY    1000
 
 #define HIGH    1
 #define LOW     0
@@ -47,7 +47,7 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err motor_update_pins(Motor* motor)
+void motor_update_pins(Motor* motor)
 {
     if(motor->IOreset.PORT != NULL)
     {
@@ -77,7 +77,7 @@ Std_Err motor_update_pins(Motor* motor)
 }
 
 
-Std_Err motor_init(Motor* motor)
+void motor_init(Motor* motor)
 {
     motor->flags.isOn = 0;
     motor->flags.reset = 0;
@@ -88,7 +88,7 @@ Std_Err motor_init(Motor* motor)
 
     motor->counters.timer = 0;
     motor->counters.timer_start = 0;
-    motor->counters.repeat = 0;
+    motor->counters.steps = 0;
 
     motor->settings.timer_frequency = 0.0;
     motor->settings.step_size = 0;
@@ -125,9 +125,9 @@ Std_Err motor_update(Motor* motor)
                 case LOW:
                     motor->flags.stepPhase = HIGH;
                     if(motor->flags.direction == CLOCKWISE)
-                        motor->data.position -= motor->device.step_size;
+                        motor->data.position -= motor->settings.step_size;
                     else
-                        motor->data.position += motor->device.step_size;
+                        motor->data.position += motor->settings.step_size;
                     break;
                 default:
                     retVal = STD_REFERENCE_ERROR;
@@ -159,7 +159,7 @@ Std_Err motor_start(Motor* motor)
 {
     if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
     {
-        return STD_PARAMETER_ERROR
+        return STD_PARAMETER_ERROR;
     }
 
     if(motor->flags.reset)
@@ -172,8 +172,8 @@ Std_Err motor_start(Motor* motor)
         return STD_ERROR;
     }
 
-    settings->flags.sleep = 0;
-    settings->flags.isOn = 1;
+    motor->flags.sleep = 0;
+    motor->flags.isOn = 1;
 
     motor_update_pins(motor);
 
@@ -223,17 +223,16 @@ void motor_set_direction(Motor* motor, unsigned int direction)
 }
 
 
-Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
                                        MotorCounters* counters, bool* direction)
 {
-    const int _move_int = (int)round(move * ACCURACY);
+    const int _move_int = (int)round(move * accuracy);
     const int _position = motor->data.position;
     const int _position_zero = motor->settings.position_zero;
     const int _position_end = motor->settings.position_end;
 
     const int _move_sign = (signbit(move) ? -1 : 1);
 
-    const double _speed = speed;
     const int _abs_move = abs(_move_int);
     const int _step_size = motor->settings.step_size;
 
@@ -243,7 +242,7 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
         return STD_PARAMETER_ERROR;
     }
 
-    double change_freq = speed / ((double)_step_size / ACCURACY);
+    double change_freq = speed / ((double)_step_size / accuracy);
     double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
 
     counters->timer = (uint16_t)change_timeD;
@@ -258,9 +257,9 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
     int new_position1 = (steps_num1 * _step_size * _move_sign) + _position;
     int new_position2 = (steps_num2 * _step_size * _move_sign) + _position;
 
-    if(new_position1 > _positionEnd || new_position1 < _position_zero)
+    if(new_position1 > _position_end || new_position1 < _position_zero)
         accuracy1 = INT_MAX;
-    if(new_position2 > _positionEnd || new_position2 < _position_zero)
+    if(new_position2 > _position_end || new_position2 < _position_zero)
         accuracy2 = INT_MAX;
 
     if(accuracy1 == INT_MAX && accuracy2 == INT_MAX)
@@ -280,13 +279,30 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
 
     // /*TODO: check calculating speedError*/
     // roundingError->speedError = speed -
-    //     (((settings->device.timer_frequency * _step_size) / ACCURACY) / (settings->change_time * 2));
+    //     (((settings->device.timer_frequency * _step_size) / accuracy) / (settings->change_time * 2));
 
     /* direction */
     if(_move_sign > 0)
-        direction = COUNTER_CLOCKWISE;
+        *direction = COUNTER_CLOCKWISE;
     else
-        direction = CLOCKWISE;
+        *direction = CLOCKWISE;
+
+    return STD_OK;
+}
+
+
+Std_Err motor_position_set(Motor* motor, double position)
+{
+    int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
+    int new_position_error = ((int)(position * ACCURACY)) % motor->settings.step_size;
+
+    if(new_position < motor->settings.position_zero || new_position > motor->settings.position_end)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+
+    motor->data.position = new_position;
+    motor->data.position_error = new_position_error;
 
     return STD_OK;
 }

@@ -56,6 +56,7 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 typedef struct GCodeGlobal_Tag{
+    Motor* motors;
     enum{
         RELATIVE,
         ABSOLUTE
@@ -64,10 +65,10 @@ typedef struct GCodeGlobal_Tag{
 }GCodeGlobal;
 
 typedef struct GCodeCommand_Tag{
-    Std_Err (*init)(struct GCodeCommand_Tag*, Motor*);
-    Std_Err (*delete)(struct GCodeCommand_Tag*, Motor*);
+    Std_Err (*init)(struct GCodeCommand_Tag*);
+    Std_Err (*delete)(struct GCodeCommand_Tag*);
 
-    Std_Err (*step)(struct GCodeCommand_Tag*, Motor*);
+    Std_Err (*step)(struct GCodeCommand_Tag*);
 
 
     uint8_t used_fields;
@@ -95,7 +96,9 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT);
+void init_GCodeParser(Motor* motors);
+
+Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

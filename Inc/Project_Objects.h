@@ -64,11 +64,6 @@ typedef struct MotorData_EEPROM{
 
 typedef struct DeviceSettings_Tag{
     enum {
-        RELATIVE,
-        ABSOLUTE
-    }positioningMode;
-
-    enum {
         IDLE,
         BUSY
     }sdCommandState;
@@ -77,7 +72,7 @@ typedef struct DeviceSettings_Tag{
 
     SDCard_Settings* sd;
 
-    MotorSettings* motors[MOTORS_NUM];
+    Motor* motors[MOTORS_NUM];
 
     EEPROMSettings* eeprom;
 

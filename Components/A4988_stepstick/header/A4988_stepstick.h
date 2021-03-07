@@ -99,9 +99,9 @@ typedef struct Motor_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err motor_update_pins(Motor* motor);
+void motor_update_pins(Motor* motor);
 
-Std_Err motor_init(Motor* motor);
+void motor_init(Motor* motor);
 
 Std_Err motor_update(Motor* motor);
 
@@ -115,6 +115,8 @@ void motor_set_direction(Motor* motor, unsigned int direction);
 
 Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
                                        MotorCounters* counters, bool* direction);
+
+Std_Err motor_position_set(Motor* motor, double position);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

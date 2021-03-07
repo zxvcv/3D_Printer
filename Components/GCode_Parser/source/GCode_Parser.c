@@ -40,18 +40,18 @@ GCodeGlobal global_gcode_settings;
 
 const struct {
     char* name;
-    Std_Err (*execute)(GCodeCommand*, DeviceSettings*);
+    Std_Err (*execute)(struct GCodeCommand_Tag*);
 } commands[GCODE_COMMANDS_NUM] = {
-        {   "G1",   command_G1      },
-        {   "G28",  command_G28     },
-        {   "G90",  command_G90     },
-        {   "G91",  command_G91     },
-        {   "G92",  command_G92     },
-        {   "M104", command_M104    },
-        {   "M109", command_M109    },
-        {   "M140", command_M140    },
-        {   "M190", command_M190    },
-        {   "M106", command_M106    }
+        {   "G1",   init_G1         },
+        {   "G28",  init_G28        },
+        {   "G90",  init_G90        },
+        {   "G91",  init_G91        },
+        {   "G92",  init_G92        },
+        {   "M104", init_M104       },
+        {   "M106", init_M106       },
+        {   "M109", init_M109       },
+        {   "M140", init_M140       },
+        {   "M190", init_M190       }
 };
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
@@ -61,7 +61,15 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT)
+void init_GCodeParser(Motor* motors)
+{
+    global_gcode_settings.motors = motors;
+    global_gcode_settings.positioning_mode = ABSOLUTE;
+    global_gcode_settings.speed = 0.0;
+}
+
+
+Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT)
 {
     Std_Err stdErr = STD_ERROR;
     char* token = NULL, * cmdName = NULL;
@@ -88,13 +96,13 @@ Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT)
         val = atoi(token + 1);
         switch (token[0])
         {
-        case 'X': cmdOUT->data.x = val; cmdOUT->usedFields._x = 1; break;
-        case 'Y': cmdOUT->data.y = val; cmdOUT->usedFields._y = 1; break;
-        case 'Z': cmdOUT->data.z = val; cmdOUT->usedFields._z = 1; break;
-        case 'E': cmdOUT->data.e = val; cmdOUT->usedFields._e = 1; break;
-        case 'F': cmdOUT->data.f = val; cmdOUT->usedFields._f = 1; break;
-        case 'S': cmdOUT->data.s = val; cmdOUT->usedFields._s = 1; break;
-        default: break;
+            case 'X': cmdOUT->data.x = val; cmdOUT->used_fields |= PARAM_X; break;
+            case 'Y': cmdOUT->data.y = val; cmdOUT->used_fields |= PARAM_Y; break;
+            case 'Z': cmdOUT->data.z = val; cmdOUT->used_fields |= PARAM_Z; break;
+            case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
+            case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
+            case 'S': cmdOUT->data.s = val; cmdOUT->used_fields |= PARAM_S; break;
+            default: break;
         }
         token = strtok(NULL, " ");
     }

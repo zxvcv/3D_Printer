@@ -36,11 +36,10 @@
 #define MOTORS_NUM 4
 
 /*TODO: change all motor[] indexes to defined values*/
-#define MOTOR_X     0
-#define MOTOR_Y     1
-#define MOTOR_Z1    2
-#define MOTOR_Z2    3
-#define MOTOR_E     4
+// #define MOTOR_X     0
+// #define MOTOR_Y     1
+// #define MOTOR_Z     2
+// #define MOTOR_E     3
 
 #define USE_INTERRUPTS
 //#define LOG_ENABLE

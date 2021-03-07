@@ -32,94 +32,93 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err command_G28(GCodeCommand* cmd, DeviceSettings* settings)
+Std_Err step_G28(GCodeCommand* cmd)
 {
-    /*TODO: check gCode state before start executing command*/
-    Std_Err stdErr = STD_OK;
-    bool motorErr = false;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
+    Motor* motors = global_gcode_settings.motors;
+    vect3D_d move;
 
-    //temporarty, in final version it could be maxSpeed of exry axis
-    settings->motors[MOTOR_X]->data.speed = settings->speed;
-    settings->motors[MOTOR_Y]->data.speed = settings->speed;
-    settings->motors[MOTOR_Z1]->data.speed = settings->speed;
-    settings->motors[MOTOR_Z2]->data.speed = settings->speed;
+    move.x = cmd->target_position.x - motors[MOTOR_X].data.position;
+    move.y = cmd->target_position.y - motors[MOTOR_Y].data.position;
+    move.z = cmd->target_position.z - motors[MOTOR_Z].data.position;
 
-    if(cmd->usedFields._x == 1)
+    // ??? is this command supports F parameter?
+    if(cmd->used_fields & PARAM_F)
     {
-        motorErr = motorSetMove(settings->motors[MOTOR_X], 
-                                -((double)settings->motors[MOTOR_X]->data.position/ACCURACY),
-                                &roundingError);
-        if(motorErr)
-        {
-            return STD_ERROR;
-        }
+        global_gcode_settings.speed = cmd->data.f;
     }
-        
-    if(cmd->usedFields._y == 1)
+
+    vect3D_d velocity = getVelocity3D(move, global_gcode_settings.speed);
+
+    MotorCounters counters_val;
+    bool direction;
+
+    double move_tab[3] = { move.x, move.y, move.z };
+    double velocity_tab[3] = { velocity.x, velocity.y, velocity.z };
+
+    for(int i=MOTOR_X; i<MOTOR_Z ; ++i)
     {
-        motorErr = motorSetMove(settings->motors[MOTOR_Y], 
-                                -((double)settings->motors[MOTOR_Y]->data.position/ACCURACY),
-                                &roundingError);
-        if(motorErr)
+        stdErr = motor_get_linear_move_settings(&motors[i],
+                         move_tab[i],
+                         velocity_tab[i],
+                         ACCURACY, &counters_val, &direction);
+        if(stdErr != STD_OK)
         {
-            return STD_ERROR;
+            return stdErr;
         }
+        motor_set_counters(&motors[i], &counters_val);
+        motor_set_direction(&motors[i], direction);
     }
-        
-    if(cmd->usedFields._z == 1)
+
+    for(int i=MOTOR_X; i<MOTOR_Z ; ++i)
     {
-        motorErr = motorSetMove(settings->motors[MOTOR_Z1],
-                                    -((double)settings->motors[MOTOR_Z1]->data.position/ACCURACY),
-                                    &roundingError);
-        if(motorErr)
+        stdErr = motor_start(&motors[i]);
+        if(stdErr != STD_OK)
         {
-            return STD_ERROR;
-        }
-        
-        motorErr = motorSetMove(settings->motors[MOTOR_Z2], 
-                                -((double)settings->motors[MOTOR_Z2]->data.position/ACCURACY),
-                                &roundingError);
-        if(motorErr)
-        {
-            return STD_ERROR;
+            return stdErr;
         }
     }
 
-    #ifdef USE_INTERRUPTS
-        IRQ_DISABLE;
-    #endif /* USE_INTERRUPTS */
+    cmd->step = NULL;
+    return STD_OK;
+}
 
-    motorErr |= motorStart(settings->motors[MOTOR_X]);
-    motorErr |= motorStart(settings->motors[MOTOR_Y]);
-    motorErr |= motorStart(settings->motors[MOTOR_Z1]);
-    motorErr |= motorStart(settings->motors[MOTOR_Z2]);
 
-    if(motorErr)
+Std_Err init_G28(GCodeCommand* cmd)
+{
+    cmd->delete = NULL;
+    cmd->step = step_G28;
+
+    Motor* motors = global_gcode_settings.motors;
+
+    if(cmd->used_fields & PARAM_X)
     {
-        #ifdef USE_INTERRUPTS
-            IRQ_ENABLE;
-        #endif /* USE_INTERRUPTS */
-        return STD_ERROR;
+        cmd->target_position.x = motors[MOTOR_X].settings.position_zero;
+    }
+    else
+    {
+        cmd->target_position.x = motors[MOTOR_X].data.position + motors[MOTOR_X].data.position_error;
     }
 
-    #ifdef USE_INTERRUPTS
-        IRQ_ENABLE;
-    #endif /* USE_INTERRUPTS */
+    if(cmd->used_fields & PARAM_Y)
+    {
+        cmd->target_position.y = motors[MOTOR_Y].settings.position_zero;
+    }
+    else
+    {
+        cmd->target_position.y = motors[MOTOR_Y].data.position + motors[MOTOR_Y].data.position_error;
+    }
 
-    settings->sdCommandState = BUSY;
+    if(cmd->used_fields & PARAM_Z)
+    {
+        cmd->target_position.z = motors[MOTOR_Z].settings.position_zero;
+    }
+    else
+    {
+        cmd->target_position.z = motors[MOTOR_Z].data.position + motors[MOTOR_Z].data.position_error;
+    }
 
-    bool state;
-    do{
-        state = motorIsOn(settings->motors[MOTOR_X]) | 
-                motorIsOn(settings->motors[MOTOR_Y]) | 
-                motorIsOn(settings->motors[MOTOR_Z1]) | 
-                motorIsOn(settings->motors[MOTOR_Z2]);
-    }while(state);
-
-    settings->sdCommandState = IDLE;
-
-    return stdErr;
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

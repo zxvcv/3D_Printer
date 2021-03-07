@@ -32,10 +32,13 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err command_G90(GCodeCommand* cmd, DeviceSettings* settings)
+Std_Err init_G90(GCodeCommand* cmd)
 {
-    /*TODO: check gCode state before start executing command*/
-    settings->positioningMode = ABSOLUTE;
+    cmd->delete = NULL;
+    cmd->step = NULL;
+
+    global_gcode_settings.positioning_mode = ABSOLUTE;
+
     return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
