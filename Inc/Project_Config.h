@@ -35,12 +35,6 @@
 #define ACCURACY 1000
 #define MOTORS_NUM 4
 
-/*TODO: change all motor[] indexes to defined values*/
-// #define MOTOR_X     0
-// #define MOTOR_Y     1
-// #define MOTOR_Z     2
-// #define MOTOR_E     3
-
 #define USE_INTERRUPTS
 //#define LOG_ENABLE
 /*[[COMPONENT_DEFINES_H]]*/

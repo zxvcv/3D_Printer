@@ -40,10 +40,14 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err init_buffered_communication(BuffCommunication_Settings* settings)
+Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart)
 {
     Std_Err stdErr = STD_OK;
     HAL_StatusTypeDef halStatus;
+
+    settings->huart = huart;
+    settings->EOL_recieved = false;
+    settings->transmission = false;
 
     stdErr = fifo_create(&(settings->Buff_InputCommands));
     if(stdErr != STD_OK)

@@ -23,8 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Project_Objects.h"
+#include "Init_Manager.h"
 #include "Manager.h"
-#include "SD_Card.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,9 +109,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  init_motors(&printerSettings);
-  HAL_TIM_Base_Start_IT(&htim6);
-
   init_manager(&printerSettings);
   /* USER CODE END 2 */
 
@@ -119,24 +116,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      parse_outer_data(&printerSettings);
-      execute_outer_command(&printerSettings);
-      send_outer_command(printerSettings.outComm);
+    execute_step(&printerSettings);
+    /* USER CODE END WHILE */
 
-
-      //SDcard Commands
-      parse_data_SDcard(printerSettings.sd);
-      execute_command_SDcard(&printerSettings);
-
-      #ifdef LOG_ENABLE
-      send_logs_SDcard();
-      #endif
-
-      reset_commands_SDcard(printerSettings.sd);
-      detecting_endCommand_SDcard(&printerSettings);
-      /* USER CODE END WHILE */
-
-      /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }

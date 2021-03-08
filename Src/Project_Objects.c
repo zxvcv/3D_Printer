@@ -16,6 +16,7 @@
  * ############################################################################################ */
 
 #include "Project_Objects.h"
+#include "Manager_EEPROM.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -40,9 +41,9 @@
  *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-extern I2C_HandleTypeDef hi2c1;
+
 extern SPI_HandleTypeDef hspi2;
-extern UART_HandleTypeDef huart2;
+
 
 
 
@@ -50,52 +51,10 @@ extern UART_HandleTypeDef huart2;
  *                                      PRIVATE OBJECTS                                         *
  * ############################################################################################ */
 
-MotorSettings motor1 = {
-    .device = {
-            .eepromDataAddress = 0x00,
-    },
-};
-
-MotorSettings motor2 = {
-    .device = {
-            .eepromDataAddress = 0x00 + sizeof(MotorData_EEPROM),
-    },
-};
-
-MotorSettings motor3 = {
-    .device = {
-        .eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM),
-    },
-};
-
-MotorSettings motor4 = {
-    .device = {
-            .eepromDataAddress = 0x00 + 2*sizeof(MotorData_EEPROM),
-    },
-};
-
-EEPROMSettings eeprom = {
-    .isReady = true,
-    .i2c = &hi2c1
-};
-
-OuterComm_Settings outComm = {
-    .Buff_InputCommands = NULL,
-    .Buff_IN = NULL,
-    .Buff_OUT = NULL,
-    .huart = &huart2,
-    .EOL_recieved = false,
-    .transmission = false
-};
 
 FATFS fatfs;
 
-FIL file;
-
-#ifdef LOG_ENABLE
-FIL logFile;
-#endif /* LOG_ENABLE */
-
+//[TODO]: create init function for SDCard_Settings
 SDCard_Settings sd = {
     .file = &file,
     .BuffIN_SDcmd = NULL,
@@ -108,6 +67,23 @@ SDCard_Settings sd = {
     .BuffOUT_logs = NULL
     #endif /* LOG_ENABLE */
 };
+
+Motor motor1;
+Motor motor2;
+Motor motor3;
+Motor motor4;
+
+EEPROMSettings eeprom;
+
+BuffCommunication_Settings buff_comm;
+
+// FIL file;
+
+// #ifdef LOG_ENABLE
+// FIL logFile;
+// #endif /* LOG_ENABLE */
+
+
 
 
 
@@ -125,22 +101,23 @@ DeviceSettings printerSettings;
 
 void init_deviceSettings(DeviceSettings* settings)
 {
-    settings->positioningMode = ABSOLUTE;
-    settings->sdCommandState = IDLE;
-
     settings->fatfs = &fatfs;
+
     settings->sd = &sd;
+
     settings->motors[0] = &motor1;
     settings->motors[1] = &motor2;
     settings->motors[2] = &motor3;
     settings->motors[3] = &motor4;
-    settings->eeprom = &eeprom;
-    settings->outComm = &outComm;
 
-    settings->errMove = false;
-    settings->speed = 0.0;
-    settings->recievedBT = 0;
-    settings->EOL_recieved = false;
-    settings->transmissionBT = false;
+    /* eeprom addresses setup */
+    for(int i=0; i<MOTORS_NUM; ++i)
+    {
+        settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM);
+    }
+
+    settings->eeprom = &eeprom;
+
+    settings->buff_comm = &buff_comm;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -49,6 +49,13 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+void EEPROM_init(EEPROMSettings *settings, I2C_HandleTypeDef* i2c)
+{
+    settings->i2c = true;
+    settings->i2c = i2c;
+}
+
+
 Std_Err EEPROM_clear(EEPROMSettings *settings)
 {
     Std_Err retVal = STD_ERROR;
@@ -60,7 +67,7 @@ Std_Err EEPROM_clear(EEPROMSettings *settings)
 
         for(int i=0; i<_24AA01_MEM_SIZE/_24AA01_PAGE_SIZE; ++i)
         {
-            while(HAL_I2C_Mem_Write(settings->i2c, 0xa0, offset, 1, clsTab, _24AA01_PAGE_SIZE, 
+            while(HAL_I2C_Mem_Write(settings->i2c, 0xa0, offset, 1, clsTab, _24AA01_PAGE_SIZE,
                 HAL_MAX_DELAY) != HAL_OK);
 
             offset += _24AA01_PAGE_SIZE;

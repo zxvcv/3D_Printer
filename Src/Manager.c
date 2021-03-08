@@ -16,8 +16,6 @@
  * ############################################################################################ */
 
 #include "Manager.h"
-#include <stdio.h>
-#include "SD_Card.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -38,17 +36,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-char buffMsg[100];
-uint8_t msgSize;
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
-
-
-
-/* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
- * ############################################################################################ */
-
-Std_Err execute_outer_command(DeviceSettings* settings)
+Std_Err _execute_outer_command(DeviceSettings* settings)
 {
     Std_Err stdErr = STD_OK;
 
@@ -91,7 +79,7 @@ Std_Err execute_outer_command(DeviceSettings* settings)
 }
 
 
-Std_Err parse_outer_data(DeviceSettings* settings)
+Std_Err _parse_outer_data(DeviceSettings* settings)
 {
     Std_Err stdErr = STD_OK;
 
@@ -140,17 +128,31 @@ Std_Err parse_outer_data(DeviceSettings* settings)
 
     return stdErr;
 }
+/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
-Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings)
+
+/* ############################################################################################ *
+ *                                      PUBLIC DEFINITIONS                                      *
+ * ############################################################################################ */
+
+void execute_step(DeviceSettings* settings)
 {
-    Std_Err stdErr = STD_OK;
+    _parse_outer_data(&printerSettings);
+    _execute_outer_command(&printerSettings);
+    send_outer_command(printerSettings.outComm);
 
-    settings->motors[0]->data.position_error = 0.0;
-    settings->motors[1]->data.position_error = 0.0;
-    settings->motors[2]->data.position_error = 0.0;
-    settings->motors[3]->data.position_error = 0.0;
+    //SDcard Commands
+    parse_data_SDcard(printerSettings.sd);
+    execute_command_SDcard(&printerSettings);
 
-    return stdErr;
+    #ifdef LOG_ENABLE
+    send_logs_SDcard();
+    #endif
+
+    reset_commands_SDcard(printerSettings.sd);
+    detecting_endCommand_SDcard(&printerSettings);
 }
+
+
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

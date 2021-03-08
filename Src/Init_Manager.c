@@ -16,7 +16,9 @@
  * ############################################################################################ */
 
 #include "Init_Manager.h"
+#include "Project_Objects.h"
 #include "Manager_EEPROM.h"
+#include "Command_Parser.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -34,18 +36,20 @@
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DEFINITIONS                                     *
+ *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+extern I2C_HandleTypeDef hi2c1;
+extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim6;
 
 
 
 /* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
+ *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_motors(DeviceSettings* settings)
+Std_Err _init_motors(DeviceSettings* settings)
 {
     Std_Err stdErr;
     MotorData_EEPROM eeprom_data;
@@ -54,7 +58,6 @@ Std_Err init_motors(DeviceSettings* settings)
     {
         motor_init(settings->motors[i]);
     }
-
 
     /* pin setup */
     // MOTOR_X
@@ -131,17 +134,33 @@ Std_Err init_motors(DeviceSettings* settings)
 
     return STD_OK;
 }
+/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
+
+
+/* ############################################################################################ *
+ *                                      PUBLIC DEFINITIONS                                      *
+ * ############################################################################################ */
 
 Std_Err init_manager(DeviceSettings* settings)
 {
     Std_Err stdErr;
+
+    init_deviceSettings(settings);
+
+    HAL_TIM_Base_Start_IT(&htim6);
+
+    init_motors(settings);
 
     stdErr = init_buffered_communication(settings->buff_comm);
     if(stdErr != STD_OK)
     {
         return stdErr;
     }
+
+    init_SystemCommandsParser();
+    EEPROM_init(settings->eeprom, &hi2c1);
+    init_buffered_communication(settings->buff_comm, &huart2);
 
     //[TODO]: rework of SD component, create SC init function in it
     //Initialize SD Card

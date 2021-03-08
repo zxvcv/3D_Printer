@@ -57,8 +57,6 @@
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_motors(DeviceSettings* settings);
-
 Std_Err init_manager(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 

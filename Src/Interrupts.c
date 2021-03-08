@@ -30,22 +30,20 @@
 #define IRQ_ENABLE __enable_irq()
 #define IRQ_DISABLE __disable_irq()
 #endif /* USE_INTERRUPTS */
-
-extern DeviceSettings printerSettings; /* manager.h */
 /*[[COMPONENT_DEFINES_C]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DEFINITIONS                                     *
+ *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+extern DeviceSettings printerSettings;
 
 
 
 /* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
+ *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -109,9 +107,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         {
             printerSettings.outComm->EOL_recieved = true;
         }
-            
+
         HAL_UART_Receive_IT(printerSettings.outComm->huart, &(printerSettings.outComm->recieved), 1);
         /*TODO: error handling*/
     }
 }
+/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+
+
+
+/* ############################################################################################ *
+ *                                      PUBLIC DEFINITIONS                                      *
+ * ############################################################################################ */
+
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
