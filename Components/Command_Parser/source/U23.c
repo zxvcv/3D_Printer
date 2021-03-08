@@ -24,8 +24,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-extern char buffMsg[100];
-extern uint8_t msgSize;
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -34,28 +32,26 @@ extern uint8_t msgSize;
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_MotorDataRequest(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U23(SystemCommand* cmd)
 {
-    Std_Err stdErr = STD_ERROR;
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    {
-        msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n", 
-                cmd->motor[i]->device.motorNum, 
-                (double)cmd->motor[i]->data.position / ACCURACY, 
-                (double)cmd->motor[i]->device.positionZero / ACCURACY,
-                (double)cmd->motor[i]->device.positionEnd / ACCURACY, 
-                cmd->motor[i]->data.speed, 
-                cmd->motor[i]->device.maxSpeed);
-        
-        stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
-        if(stdErr != STD_OK)
-        {
-            return stdErr;
-        }
-    }
+    // Std_Err stdErr;
+    // /*TODO: distinguishing between errors*/
 
-    return stdErr;
+    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+    // {
+    //     if(cmd->arg[0] <= cmd->motor[i]->device.maxSpeed && cmd->arg[0] >= 0)
+    //     {
+    //         cmd->motor[i]->data.speed = cmd->arg[0];
+    //     }
+    // }
+
+    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
+    // return stdErr;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

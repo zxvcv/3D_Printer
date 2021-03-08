@@ -35,24 +35,19 @@
 
 const struct {
     char* name;
-    Std_Err (*execute)(SystemCommand*, DeviceSettings*);
-} systemCommands[SYSTEM_COMMANDS_NUM] = {
-        {   "DR",   systemCmd_MotorDataRequest      },
-        {   "PM",   systemCmd_MotorPositionMove     },
-        {   "PV",   systemCmd_MotorPositionValueSet },
-        {   "PZ",   systemCmd_MotorPositionZero     },
-        {   "PE",   systemCmd_MotorPositionEnd      },
-        {   "DM",   systemCmd_MotorDistanceMove     },
-        {   "SS",   systemCmd_MotorSpeedSet         },
-        {   "SM",   systemCmd_MotorSpeedMax         },
-        {   "SR",   systemCmd_MotorStepSizeRequest  },
-        {   "SP",   systemCmd_MotorStepSizeSet      },
-        {   "CR",   systemCmd_SDCardProgramRun      }
+    Std_Err (*execute)(SystemCommand*);
+} commands[SYSTEM_COMMANDS_NUM] = {
+        {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
+        {   "U10",      init_U10    },// "PM",   systemCmd_MotorPositionMove
+        {   "U11",      init_U11    },// "DM",   systemCmd_MotorDistanceMove
+        {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
+        {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
+        {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
+        {   "U23",      init_U23    },// "SS",   systemCmd_MotorSpeedSet
+        {   "U24",      init_U24    },// "SM",   systemCmd_MotorSpeedMax
+        {   "U25",      init_U25    },// "SP",   systemCmd_MotorStepSizeSet
+        {   "U40",      init_U40    }// "CR",   systemCmd_SDCardProgramRun
 };
-
-//[TODO]: delete folowint variables
-char buffMsg[100];
-uint8_t msgSize;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -61,22 +56,32 @@ uint8_t msgSize;
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err parseSystemCommand(char* cmd, SystemCommand* cmdOUT, DeviceSettings* settings)
+void init_SystemCommandsParser()
+{
+
+}
+
+
+Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
 {
     Std_Err stdErr = STD_ERROR;
-    char *token = NULL, *cmdName = NULL, *motorNum = NULL, *num = NULL;
-    int  argNum = 0;
+    char* token = NULL, * cmdName = NULL;
+    double val;
 
+    cmdName = strtok(cmd, " ");
+    token = strtok(NULL, " ");
     memset(cmdOUT, 0, sizeof(SystemCommand));
 
-    //command name
-    cmdName = strtok(cmd, " ");
-
-    for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i)
+    switch (cmdName[0])
     {
-        if (strcmp(cmdName, systemCommands[i].name) == 0)
-        {
-            cmdOUT->execute = systemCommands[i].execute;
+        case '0': cmdOUT->execution_policy = PRIORITY; break;
+        case '1': cmdOUT->execution_policy = NORMAL;   break;
+        default: return STD_PARAMETER_ERROR;
+    }
+
+    for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i) {
+        if (strcmp(cmdName + 1, commands[i].name) == 0) {
+            cmdOUT->init = commands[i].execute;
             stdErr = STD_OK;
             break;
         }
@@ -87,52 +92,19 @@ Std_Err parseSystemCommand(char* cmd, SystemCommand* cmdOUT, DeviceSettings* set
         return stdErr;
     }
 
-    //command subtype
-    motorNum = strtok(NULL, " ");
-
-    if(motorNum != NULL && motorNum[0] == 'M')
-    {
-        //motor(s) number
-        uint8_t val = 0;
-        for(int i=0; motorNum[i + 1] != '\0' && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i, ++val)
+    while (token != NULL) {
+        val = atoi(token + 1);
+        switch (token[0])
         {
-            switch(motorNum[i + 1])
-            {
-            case '1': cmdOUT->motor[i] = settings->motors[0]; break;
-            case '2': cmdOUT->motor[i] = settings->motors[1]; break;
-            case '3': cmdOUT->motor[i] = settings->motors[2]; break;
-            case '4': cmdOUT->motor[i] = settings->motors[3]; break;
-            default: cmdOUT->motor[i] = NULL; break;
-            }
+            case 'X': cmdOUT->data.x = val; cmdOUT->used_fields |= PARAM_X; break;
+            case 'Y': cmdOUT->data.y = val; cmdOUT->used_fields |= PARAM_Y; break;
+            case 'Z': cmdOUT->data.z = val; cmdOUT->used_fields |= PARAM_Z; break;
+            case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
+            default: break;
         }
-
-        cmdOUT->motorsNum = val;
-
-        //motor command arguments
         token = strtok(NULL, " ");
-        while (token != NULL && argNum < SYSTEM_COMMANDS_ARGS_MAX_NUM)
-        {
-            num = token;
-            cmdOUT->arg[argNum++] = strtod(num, NULL);
-
-            token = strtok(NULL, " ");
-        }
     }
 
-    return stdErr;
-}
-
-
-Std_Err executeSystemCommand(SystemCommand* cmd, DeviceSettings* settings)
-{
-    Std_Err stdErr;
-
-    if (cmd->execute == NULL)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
-    stdErr = cmd->execute(cmd, settings);
     return stdErr;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -112,7 +112,7 @@ Std_Err parse_outer_data(DeviceSettings* settings)
             {
                 return stdErr;
             }
-            
+
             stdErr = fifo_pop_C(settings->outComm->Buff_IN);
             if(stdErr != STD_OK)
             {
@@ -169,20 +169,16 @@ Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings)
 {
     Std_Err stdErr = STD_OK;
 
-    settings->motors[0]->data.err.moveError = 0.0;
-    settings->motors[0]->data.err.speedError = 0.0;
-    settings->motors[1]->data.err.moveError = 0.0;
-    settings->motors[1]->data.err.speedError = 0.0;
-    settings->motors[2]->data.err.moveError = 0.0;
-    settings->motors[2]->data.err.speedError = 0.0;
-    settings->motors[3]->data.err.moveError = 0.0;
-    settings->motors[3]->data.err.speedError = 0.0;
+    settings->motors[0]->data.position_error = 0.0;
+    settings->motors[1]->data.position_error = 0.0;
+    settings->motors[2]->data.position_error = 0.0;
+    settings->motors[3]->data.position_error = 0.0;
 
     return stdErr;
 }
 
 
-Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns)
+Std_Err getMotorData_EEPROM(Motor *motSettings, EEPROMSettings *memSettigns)
 {
     Std_Err stdErr = STD_OK;
 
@@ -193,20 +189,20 @@ Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSetti
         return stdErr;
     }
 
-    motSettings->device.stepSize = data.stepSize;
-    motSettings->device.maxSpeed = data.maxSpeed;
-    motSettings->device.positionZero = data.positionZero;
-    motSettings->device.positionEnd = data.positionEnd;
+    motSettings->settings.step_size = data.stepSize;
+    motSettings->settings.max_speed = data.maxSpeed;
+    motSettings->settings.position_zero = data.positionZero;
+    motSettings->settings.position_end = data.positionEnd;
 
     return stdErr;
 }
 
 
-Std_Err setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data)
+Std_Err setMotorData_EEPROM(Motor *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data)
 {
     Std_Err stdErr = STD_OK;
 
-    stdErr = EEPROM_writeData(memSettigns, motSettings->device.eepromDataAddress, (uint8_t*)data, 
+    stdErr = EEPROM_writeData(memSettigns, motSettings->device.eepromDataAddress, (uint8_t*)data,
         sizeof(MotorData_EEPROM));
 
     return stdErr;

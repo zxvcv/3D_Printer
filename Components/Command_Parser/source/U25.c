@@ -32,24 +32,29 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_MotorPositionEnd(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U25(SystemCommand* cmd)
 {
-    Std_Err stdErr;
-    /*TODO: distinguishing between errors*/
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    int argInt = (int)(cmd->arg[0] * ACCURACY);
-    cmd->motor[0]->device.positionEnd = argInt;
-    stdErr = EEPROM_writeData(settings->eeprom,
-            cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONEND,
-            (uint8_t*)(&argInt),
-            sizeof(argInt));
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
+    // Std_Err stdErr;
+    // /*TODO: distinguishing between errors*/
 
-    stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    return stdErr;
+    // int argInt = (int)(cmd->arg[0] * ACCURACY);
+    // cmd->motor[0]->device.stepSize = argInt;
+    // stdErr = EEPROM_writeData(settings->eeprom,
+    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_STEPSIZE,
+    //         (uint8_t*)(&argInt),
+    //         sizeof(argInt));
+    // if(stdErr != STD_OK)
+    // {
+    //     return stdErr;
+    // }
+
+    // stdErr = systemCmd_MotorStepSizeRequest(cmd, settings);
+    // return stdErr;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

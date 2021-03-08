@@ -32,25 +32,31 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_SDCardProgramRun(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U00(SystemCommand* cmd)
 {
-    Std_Err stdErr = STD_OK;
-    /*TODO: distinguishing between errors*/
-    /*TODO: add forwarding SDcard error*/
-    f_mount(settings->fatfs, "", 0);
-    f_open(settings->sd->file, "fl.txt", FA_READ);
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    #ifdef LOG_ENABLE
-    #include "manager.h"
-    extern FIL logFile;
-    f_open(&logFile, "logs.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    UINT writeSize;
-    f_write(&logFile, "[START]\r\n", 9, &writeSize);
-    f_sync(&logFile);
-    #endif
+    // Std_Err stdErr = STD_ERROR;
 
-    settings->sd->executing_SDprogram = true;
-    return stdErr;
+    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+    // {
+    //     msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n",
+    //             cmd->motor[i]->device.motorNum,
+    //             (double)cmd->motor[i]->data.position / ACCURACY,
+    //             (double)cmd->motor[i]->device.positionZero / ACCURACY,
+    //             (double)cmd->motor[i]->device.positionEnd / ACCURACY,
+    //             cmd->motor[i]->data.speed,
+    //             cmd->motor[i]->device.maxSpeed);
+
+    //     stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
+    //     if(stdErr != STD_OK)
+    //     {
+    //         return stdErr;
+    //     }
+    // }
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

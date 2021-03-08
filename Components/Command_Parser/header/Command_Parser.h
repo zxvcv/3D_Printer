@@ -34,9 +34,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 11
-#define SYSTEM_COMMANDS_MOTORS_MAX_NUM 2
-#define SYSTEM_COMMANDS_ARGS_MAX_NUM 2
+#define SYSTEM_COMMANDS_NUM 10
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -53,12 +51,31 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct SystemCommand{
-    Std_Err (*execute)(struct SystemCommand*, DeviceSettings*) ;    //command pointer
-    uint8_t motorsNum;
-    MotorSettings *motor[SYSTEM_COMMANDS_MOTORS_MAX_NUM];
-    double arg[SYSTEM_COMMANDS_ARGS_MAX_NUM];
-} SystemCommand;
+typedef enum ExecutionPolicy_Tag{
+    PRIORITY    = 0,
+    NORMAL      = 1
+}ExecutionPolicy;
+
+typedef struct SystemCmdGlobal_Tag{
+    uint8_t none;
+}SystemCmdGlobal;
+
+typedef struct SystemCommand_Tag{
+    Std_Err (*init)(struct SystemCommand_Tag*);
+    Std_Err (*delete)(struct SystemCommand_Tag*);
+
+    Std_Err (*step)(struct SystemCommand_Tag*);
+
+
+    ExecutionPolicy execution_policy;
+    uint8_t used_fields;
+    struct{
+        double x;       //X-axis
+        double y;       //Y-axis
+        double z;       //Z-axis
+        double e;       //extruder-axis
+    }data;
+}SystemCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -67,9 +84,9 @@ typedef struct SystemCommand{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err parseSystemCommand(char* cmd, SystemCommand* cmdOUT, DeviceSettings* settings);
+void init_SystemCommandsParser();
 
-Std_Err executeSystemCommand(SystemCommand* cmd, DeviceSettings* settings);
+Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

@@ -24,8 +24,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-extern char buffMsg[100];
-extern uint8_t msgSize;
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -34,19 +32,30 @@ extern uint8_t msgSize;
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_MotorStepSizeRequest(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U21(SystemCommand* cmd)
 {
-    Std_Err stdErr;
-    /*TODO: distinguishing between errors*/
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    msgSize = sprintf(buffMsg, "SP M%d %f\n",
-                    cmd->motor[0]->device.motorNum,
-                    (double)(cmd->motor[0]->device.stepSize) / ACCURACY
-                    );
+    // Std_Err stdErr;
+    // /*TODO: distinguishing between errors*/
 
-    stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
+    // int argInt = (int)(cmd->arg[0] * ACCURACY);
+    // cmd->motor[0]->device.positionZero = argInt;
+    // stdErr = EEPROM_writeData(settings->eeprom,
+    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONZERO,
+    //         (uint8_t*)(&argInt),
+    //         sizeof(argInt));
+    // /*TODO: read data form EEPROM again*/
+    // if(stdErr != STD_OK)
+    // {
+    //     return stdErr;
+    // }
 
-    return stdErr;
+    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
+    // return stdErr;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

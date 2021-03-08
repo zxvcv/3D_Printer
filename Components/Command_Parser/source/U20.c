@@ -32,21 +32,24 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_MotorSpeedSet(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U20(SystemCommand* cmd)
 {
-    Std_Err stdErr;
-    /*TODO: distinguishing between errors*/
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    {
-        if(cmd->arg[0] <= cmd->motor[i]->device.maxSpeed && cmd->arg[0] >= 0)
-        {
-            cmd->motor[i]->data.speed = cmd->arg[0];	
-        }
-    }
+    // Std_Err stdErr;
+    // /*TODO: distinguishing between errors*/
 
-    stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    return stdErr;
+    // int argInt = (int)(cmd->arg[0] * ACCURACY);
+    // if(argInt >= cmd->motor[0]->device.positionZero && argInt <= cmd->motor[0]->device.positionEnd)
+    // {
+    //     cmd->motor[0]->data.position = argInt;
+    // }
+
+    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
+    // return stdErr;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

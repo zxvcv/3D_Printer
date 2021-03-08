@@ -40,7 +40,7 @@ GCodeGlobal global_gcode_settings;
 
 const struct {
     char* name;
-    Std_Err (*execute)(struct GCodeCommand_Tag*);
+    Std_Err (*execute)(GCodeCommand*);
 } commands[GCODE_COMMANDS_NUM] = {
         {   "G1",   init_G1         },
         {   "G28",  init_G28        },

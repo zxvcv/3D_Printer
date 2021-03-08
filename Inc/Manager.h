@@ -67,9 +67,9 @@ Std_Err init_manager(DeviceSettings* settings);
 
 Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
 
-Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
+Std_Err getMotorData_EEPROM(Motor* motSettings, EEPROMSettings *memSettigns);
 
-Std_Err setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
+Std_Err setMotorData_EEPROM(Motor* motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM* data);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

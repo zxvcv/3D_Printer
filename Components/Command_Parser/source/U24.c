@@ -32,25 +32,36 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err systemCmd_MotorPositionZero(SystemCommand* cmd, DeviceSettings* settings)
+Std_Err init_U24(SystemCommand* cmd)
 {
-    Std_Err stdErr;
-    /*TODO: distinguishing between errors*/
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    int argInt = (int)(cmd->arg[0] * ACCURACY);
-    cmd->motor[0]->device.positionZero = argInt;
-    stdErr = EEPROM_writeData(settings->eeprom, 
-            cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONZERO, 
-            (uint8_t*)(&argInt), 
-            sizeof(argInt));
-    /*TODO: read data form EEPROM again*/
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
+    // Std_Err stdErr;
+    // /*TODO: distinguishing between errors*/
 
-    stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    return stdErr;
+    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+    // {
+    //     if(cmd->arg[0] >= 0)
+    //     {
+    //         cmd->motor[i]->device.maxSpeed = cmd->arg[0];
+    //     }
+
+    //     stdErr = EEPROM_writeData(settings->eeprom,
+    //         cmd->motor[i]->device.eepromDataAddress + _OFFSET_MAXSPEED,
+    //         (uint8_t*)(cmd->arg),
+    //         sizeof(double));
+
+    //     if(stdErr != STD_OK)
+    //     {
+    //         return stdErr;
+    //     }
+    // }
+
+    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
+    // return stdErr;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
