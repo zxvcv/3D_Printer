@@ -105,18 +105,19 @@ void motor_init(Motor* motor);
 
 Std_Err motor_update(Motor* motor);
 
-void motor_set_counters(Motor* motor, MotorCounters* counters);
-
 Std_Err motor_start(Motor* motor);
 
 Std_Err motor_stop(Motor* motor);
 
+void motor_set_counters(Motor* motor, MotorCounters* counters);
+
 void motor_set_direction(Motor* motor, unsigned int direction);
+
+Std_Err motor_set_position(Motor* motor, double position);
 
 Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
                                        MotorCounters* counters, bool* direction);
 
-Std_Err motor_position_set(Motor* motor, double position);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

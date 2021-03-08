@@ -142,29 +142,6 @@ Std_Err parse_outer_data(DeviceSettings* settings)
 }
 
 
-Std_Err init_manager(DeviceSettings* settings)
-{
-    Std_Err stdErr;
-
-    stdErr = init_outer_operations(settings->outComm);
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
-
-    //Initialize SD Card
-    HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
-
-    stdErr = init_operations_SDcard(settings->sd);
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
-
-    return stdErr;
-}
-
-
 Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings)
 {
     Std_Err stdErr = STD_OK;
@@ -173,37 +150,6 @@ Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings)
     settings->motors[1]->data.position_error = 0.0;
     settings->motors[2]->data.position_error = 0.0;
     settings->motors[3]->data.position_error = 0.0;
-
-    return stdErr;
-}
-
-
-Std_Err getMotorData_EEPROM(Motor *motSettings, EEPROMSettings *memSettigns)
-{
-    Std_Err stdErr = STD_OK;
-
-    MotorData_EEPROM data;
-    stdErr = EEPROM_readData(memSettigns, motSettings->device.eepromDataAddress, (uint8_t*)(&data), sizeof(MotorData_EEPROM));
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
-
-    motSettings->settings.step_size = data.stepSize;
-    motSettings->settings.max_speed = data.maxSpeed;
-    motSettings->settings.position_zero = data.positionZero;
-    motSettings->settings.position_end = data.positionEnd;
-
-    return stdErr;
-}
-
-
-Std_Err setMotorData_EEPROM(Motor *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data)
-{
-    Std_Err stdErr = STD_OK;
-
-    stdErr = EEPROM_writeData(memSettigns, motSettings->device.eepromDataAddress, (uint8_t*)data,
-        sizeof(MotorData_EEPROM));
 
     return stdErr;
 }

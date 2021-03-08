@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Manager
+ * NAME: Init_Manager
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,8 +16,8 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef MANAGER_H_
-#define MANAGER_H_
+#ifndef INIT_MANAGER_H_
+#define INIT_MANAGER_H_
 
 
 /* ############################################################################################ *
@@ -25,8 +25,6 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
-#include "Project_Objects.h"
-#include "Command_Parser.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -59,13 +57,11 @@
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err execute_outer_command(DeviceSettings* settings);
+Std_Err init_motors(DeviceSettings* settings);
 
-Std_Err parse_outer_data(DeviceSettings* settings);
-
-Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
+Std_Err init_manager(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* MANAGER_H_ */
+#endif /* INIT_MANAGER_H_ */

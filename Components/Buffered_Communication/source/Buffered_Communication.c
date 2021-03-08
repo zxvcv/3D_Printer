@@ -40,7 +40,7 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err init_outer_operations(OuterComm_Settings* settings)
+Std_Err init_buffered_communication(BuffCommunication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
     HAL_StatusTypeDef halStatus;
@@ -73,7 +73,7 @@ Std_Err init_outer_operations(OuterComm_Settings* settings)
 }
 
 
-Std_Err send_outer_command(OuterComm_Settings* settings)
+Std_Err send_buffered_message(BuffCommunication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
     HAL_StatusTypeDef halErr;
@@ -95,13 +95,13 @@ Std_Err send_outer_command(OuterComm_Settings* settings)
     else if(settings->transmission)
     {
         stdErr = STD_BUSY_ERROR;
-    }	
+    }
 
     return stdErr;
 }
 
 
-Std_Err deinit_outer_operations(OuterComm_Settings* settings)
+Std_Err deinit_buffered_communication(BuffCommunication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
 

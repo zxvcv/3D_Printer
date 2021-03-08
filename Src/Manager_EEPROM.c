@@ -6,28 +6,17 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Manager
+ * NAME: Manager_EEPROM
  *      [[COMPONENT_DESCRIPTION]]
- * ============================================================================================
- * COMMENTS:
- *      [[COMPONENT_COMMENTS]]
- * ============================================================================================
- * EXAMPLE:
- *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
-
-#ifndef MANAGER_H_
-#define MANAGER_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Error_Codes.h"
-#include "Project_Objects.h"
-#include "Command_Parser.h"
-/*[[COMPONENT_INCLUDES_H]]*/
+#include "Manager_EEPROM.h"
+/*[[COMPONENT_INCLUDES_C]]*/
 
 
 
@@ -35,37 +24,34 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_DEFINES_H]]*/
+#ifdef USE_INTERRUPTS
+#define IRQ_ENABLE __enable_irq()
+#define IRQ_DISABLE __disable_irq()
+#endif /* USE_INTERRUPTS */
+/*[[COMPONENT_DEFINES_C]]*/
 
 
 
 /* ############################################################################################ *
- *                                      EXTERNS                                                 *
+ *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-/*[[COMPONENT_EXTERNS_H]]*/
+/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
 
 /* ############################################################################################ *
- *                                      DATA TYPES                                              *
+ *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-/*[[COMPONENT_DATA_TYPES_H]]*/
+Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settigns, uint8_t address, MotorData_EEPROM* dataOUT)
+{
+    return EEPROM_readData(eeprom_settigns, address, (uint8_t*)dataOUT, sizeof(MotorData_EEPROM));
+}
 
 
-
-/* ############################################################################################ *
- *                                      PUBLIC DECLARATIONS                                     *
- * ############################################################################################ */
-
-Std_Err execute_outer_command(DeviceSettings* settings);
-
-Std_Err parse_outer_data(DeviceSettings* settings);
-
-Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
-/*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
-
-
-
-#endif /* MANAGER_H_ */
+Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settigns, uint8_t address, MotorData_EEPROM *data)
+{
+    return EEPROM_writeData(eeprom_settigns, address, (uint8_t*)data, sizeof(MotorData_EEPROM));
+}
+/*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
