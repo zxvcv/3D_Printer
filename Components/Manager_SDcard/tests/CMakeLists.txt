@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET SD_Card_UT)
+set(LOCAL_TARGET Manager_SDcard_UT)
 set(TEST_COMPONENT_LIB ${LOCAL_TARGET}lib)
 set(COMPONENTS_DIR ..)
 set(SOURCE_DIR ${COMPONENTS_DIR}/source)
@@ -27,7 +27,7 @@ add_library(${TEST_COMPONENT_LIB}
 
 
 #####################################   TEST   ####################################################
-add_executable(${LOCAL_TARGET} 
+add_executable(${LOCAL_TARGET}
     #TODO:(...)
 )
 

@@ -36,7 +36,7 @@ list(APPEND LIBRARIES
     A4988_stepstick
     GCode_Parser
     Buffered_Communication
-    SD_Card
+    Manager_SDcard
     Command_Parser
     #---add new libs here---
 )
@@ -57,7 +57,7 @@ add_executable(${LOCAL_TARGET}
     Src/Interrupts.c
     Src/Manager.c
     Src/Project_Objects.c
-    
+
     Src/stm32f3xx_it.c
     Src/stm32f3xx_hal_msp.c
     Src/system_stm32f3xx.c
@@ -95,7 +95,7 @@ target_link_options(${LOCAL_TARGET} PRIVATE
     -specs=nosys.specs
     -lc
     -lm
-    -lnosys 
+    -lnosys
     -Wl,-Map=${PROJECT_NAME}.map,--cref
     -Wl,--gc-sections
 )

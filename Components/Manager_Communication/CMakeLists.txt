@@ -1,11 +1,8 @@
-# Copyright (c) 2020-2021 Paweł Piskorz
-# Licensed under the Eclipse Public License 2.0
-# See attached LICENSE file
 
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET SD_Card)
+set(LOCAL_TARGET Manager_Communication)
 set(MAIN_APP_DIR ../..)
 set(SOURCE_DIR source)
 set(HEADER_DIR header)
@@ -20,7 +17,7 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 
 #####################################   CREATE TARGET   ###########################################
 add_library(${LOCAL_TARGET}
-    ${SOURCE_DIR}/SD_Card.c
+    ${SOURCE_DIR}/Manager_Communication.c
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
@@ -28,10 +25,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 )
 
 target_link_libraries(${LOCAL_TARGET}
-    Error_Codes
-    FIFO_void
-    FATFS_Driver
-    GCode_Parser
+    #TODO:(...)
 )
 
 

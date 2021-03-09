@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Project_Objects
+ * NAME: Manger_SDcard
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,19 +16,20 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef PROJECT_OBJECTS_H_
-#define PROJECT_OBJECTS_H_
+#ifndef MANAGER_SDCARD_H_
+#define MANAGER_SDCARD_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "Error_Codes.h"
+#include "IOpin.h"
+#include "FIFO_void.h"
 #include "SD.h"
-#include "A4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "Buffered_Communication.h"
-#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -37,6 +38,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define BYTES_TO_READ 50
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -53,18 +55,25 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct DeviceSettings_Tag{
-    FATFS* fatfs;
-    SDCard_Settings* sd;
+typedef struct SDCard_Settings_Tag{
     FIL* file;
 
-    Motor* motors[MOTORS_NUM];
-    uitn8_t motor_data_addresses[MOTORS_NUM];
+    Fifo_C* BuffIN_SDcmd;
 
-    EEPROMSettings* eeprom;
+    uint8_t activeTab;
+    uint8_t unactiveTab;
+    uint8_t dataSDin[2][BYTES_TO_READ];
+    uint8_t counterTab[2];
+    UINT bytesRead;
+    uint8_t cnt;
+}SDCard_Settings;
 
-    BuffCommunication_Settings* buff_comm;
-}DeviceSettings;
+typedef struct SDCard_Flags_Tag{
+    bool eofRecieved;
+    bool end_program;
+    bool executing_program;
+    bool executing_command;
+}SDCard_Flags;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -73,9 +82,13 @@ typedef struct DeviceSettings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_deviceSettings(DeviceSettings* settings);
+Std_Err init_manager_SDcard(SDCard_Settings* settings, FIL* file, Motor* motors);
+
+Std_Err parse_command_SDcard(SDCard_Settings* settings);
+
+Std_Err execute_command_SDcard(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* PROJECT_OBJECTS_H_ */
+#endif /* MANAGER_SDCARD_H_ */

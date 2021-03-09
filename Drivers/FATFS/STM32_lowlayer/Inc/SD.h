@@ -9,38 +9,7 @@
 #ifndef SD_H_
 #define SD_H_
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "diskio.h"
-#include "main.h"
-#include "FIFO_void.h"
-#include "IOpin.h"
-
-
-#define BYTES_TO_READ 50
-
-typedef struct SDCard_Settings_Tag{
-    FIL* file;
-
-    Fifo_C* BuffIN_SDcmd;
-
-    uint8_t activeTab;
-    uint8_t unactiveTab;
-    uint8_t dataSDin[2][BYTES_TO_READ];
-    uint8_t counterTab[2];
-    UINT bytesRead;
-    uint8_t cnt;
-
-    bool eofRecieved;
-    bool end_SDprogram;
-    bool executing_SDprogram;
-    bool executing_SDcommand;
-
-#ifdef LOG_ENABLE
-    FIL* logFile;
-    List* BuffOUT_logs = NULL;
-#endif /*LOG_ENABLE*/
-}SDCard_Settings;
 
 typedef struct SD_Card{
     SPI_HandleTypeDef* spi;

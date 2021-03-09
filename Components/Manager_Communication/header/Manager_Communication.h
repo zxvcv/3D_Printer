@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: SD_Card
+ * NAME: Manager_Communication
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,17 +16,15 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef SD_CARD_H_
-#define SD_CARD_H_
+#ifndef MANAGER_COMMUNICATION_H_
+#define MANAGER_COMMUNICATION_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Error_Codes.h"
-#include "SD.h"
-#include "Project_Objects.h" //[[DEBUG]]
+#include "Buffered_Communication.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -51,6 +49,12 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
+typedef struct Communication_Flags_Tag{
+    bool eofRecieved;
+    bool end_program;
+    bool executing_program;
+    bool executing_command;
+}Communication_Flags;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -59,21 +63,15 @@
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_operations_SDcard(SDCard_Settings* settings);
+void init_communication_manager(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart);
 
-Std_Err parse_data_SDcard(SDCard_Settings* settings);
+Std_Err parse_communication_command(BuffCommunication_Settings* settings);
 
-Std_Err execute_command_SDcard(DeviceSettings* settings);
+Std_Err execute_communication_command(BuffCommunication_Settings* settings);
 
-#ifdef LOG_ENABLE
-Std_Err send_logs_SDcard();
-#endif /*LOG_ENABLE*/
-
-Std_Err reset_commands_SDcard(SDCard_Settings* settings);
-
-Std_Err detecting_endCommand_SDcard(DeviceSettings* settings);
+Std_Err send_communication_command(BuffCommunication_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* SD_CARD_H_ */
+#endif /* MANAGER_COMMUNICATION_H_ */

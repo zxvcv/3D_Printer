@@ -152,26 +152,21 @@ Std_Err init_manager(DeviceSettings* settings)
 
     init_motors(settings);
 
-    stdErr = init_buffered_communication(settings->buff_comm);
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
-
-    init_SystemCommandsParser();
     EEPROM_init(settings->eeprom, &hi2c1);
-    init_buffered_communication(settings->buff_comm, &huart2);
 
-    //[TODO]: rework of SD component, create SC init function in it
-    //Initialize SD Card
-    HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
-
-    stdErr = init_operations_SDcard(settings->sd);
+    stdErr = init_communication_manager(settings->buff_comm, &huart2);
     if(stdErr != STD_OK)
     {
         return stdErr;
     }
 
-    return stdErr;
+    HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
+    stdErr = init_manager_SDcard(settings->sd, settings->file, settings->motors);
+    if(stdErr != STD_OK)
+    {
+        return stdErr;
+    }
+
+    return STD_OK;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

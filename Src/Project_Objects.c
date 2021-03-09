@@ -17,6 +17,7 @@
 
 #include "Project_Objects.h"
 #include "Manager_EEPROM.h"
+#include "Manager_SD_Card.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -54,19 +55,8 @@ extern SPI_HandleTypeDef hspi2;
 
 FATFS fatfs;
 
-//[TODO]: create init function for SDCard_Settings
-SDCard_Settings sd = {
-    .file = &file,
-    .BuffIN_SDcmd = NULL,
-    .end_SDprogram = false,
-    .executing_SDprogram = false,
-    .executing_SDcommand = false,
-
-    #ifdef LOG_ENABLE
-    .logFile = &logFile,
-    .BuffOUT_logs = NULL
-    #endif /* LOG_ENABLE */
-};
+SDCard_Settings sd;
+FIL file;
 
 Motor motor1;
 Motor motor2;
@@ -76,14 +66,6 @@ Motor motor4;
 EEPROMSettings eeprom;
 
 BuffCommunication_Settings buff_comm;
-
-// FIL file;
-
-// #ifdef LOG_ENABLE
-// FIL logFile;
-// #endif /* LOG_ENABLE */
-
-
 
 
 
@@ -102,8 +84,8 @@ DeviceSettings printerSettings;
 void init_deviceSettings(DeviceSettings* settings)
 {
     settings->fatfs = &fatfs;
-
     settings->sd = &sd;
+    settings->file = &file;
 
     settings->motors[0] = &motor1;
     settings->motors[1] = &motor2;

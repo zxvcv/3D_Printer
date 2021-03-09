@@ -74,6 +74,10 @@ Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_H
 
 Std_Err send_buffered_message(BuffCommunication_Settings* settings);
 
+Std_Err send_buffered_message_IT(BuffCommunication_Settings* settings);
+
+Std_Err receive_buffered_message_IT(BuffCommunication_Settings* settings);
+
 Std_Err deinit_buffered_communication(BuffCommunication_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
