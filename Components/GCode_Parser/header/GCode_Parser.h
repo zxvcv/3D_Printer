@@ -26,8 +26,7 @@
 
 #include <stdbool.h>
 #include "Error_Codes.h"
-#include "Vector_Math.h"
-#include "Project_Objects.h"
+#include "A4988_stepstick.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -36,10 +35,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define MOTOR_X     0 //[DEBUG]
-#define MOTOR_Y     1 //[DEBUG]
-#define MOTOR_Z     2 //[DEBUG]
-#define MOTOR_E     3 //[DEBUG]
 /*[[COMPONENT_DEFINES_H]]*/
 
 

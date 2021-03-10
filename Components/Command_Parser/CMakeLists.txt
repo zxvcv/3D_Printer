@@ -40,11 +40,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     Error_Codes
-    A4988_stepstick
-    EEPROM_24AA01
-    Buffered_Communication
-    SD_Card
-    FATFS_Driver #[DEBUG]
+    Project_Config
 )
 
 

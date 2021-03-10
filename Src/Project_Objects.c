@@ -17,7 +17,7 @@
 
 #include "Project_Objects.h"
 #include "Manager_EEPROM.h"
-#include "Manager_SD_Card.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

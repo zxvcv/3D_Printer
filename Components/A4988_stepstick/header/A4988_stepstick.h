@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "stm32f3xx_hal.h"
 #include "IOpin.h"
 #include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_H]]*/

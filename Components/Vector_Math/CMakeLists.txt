@@ -27,6 +27,10 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
 )
 
+target_link_libraries(${LOCAL_TARGET}
+    Project_Config
+)
+
 
 
 #####################################   COMPILATION SETTINGS   ####################################

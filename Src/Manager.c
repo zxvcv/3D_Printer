@@ -17,6 +17,8 @@
 
 #include "Manager.h"
 #include "Manager_Communication.h"
+#include "A4988_stepstick.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -25,10 +27,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -37,13 +35,13 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-bool _check_motors_state(Motor* motors)
+bool _check_motors_are_on(Motor* motors)
 {
     bool flag = false;
 
     for(int i=0; i<MOTORS_NUM; ++i)
     {
-        flag |= settings->motors[i]->flags.isOn;
+        flag |= motors[i].flags.isOn;
     }
 
     return flag;
@@ -58,14 +56,14 @@ bool _check_motors_state(Motor* motors)
 
 void execute_step(DeviceSettings* settings)
 {
-    bool motors_state = _check_motors_state(settings->motors);
+    settings->motors_are_on = _check_motors_are_on(*(settings->motors));
 
     parse_communication_command(settings->buff_comm);
-    execute_communication_command(settings->buff_comm, motors_state);
+    execute_communication_command(settings->buff_comm, settings->motors_are_on);
     send_communication_command(settings->buff_comm);
 
     parse_command_SDcard(settings->sd);
-    execute_command_SDcard(settings->sd, motors_state);
+    execute_command_SDcard(settings->sd, settings->motors_are_on);
 }
 
 

@@ -15,10 +15,11 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Manger_SDcard.h"
+#include "Manager_SDcard.h"
 #include <string.h>
 #include <stdio.h>
 #include "GCode_Parser.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -27,10 +28,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -39,7 +36,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-GCodeCommand executingCmd; /*TODO: delete this */
+GCodeCommand executingCmd;
 SDCard_Flags sdcard_flags;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
@@ -86,13 +83,13 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 
     listSize = fifo_getSize(settings->BuffIN_SDcmd);
 
-    while(!settings->flags.end_program && listSize < 5 && settings->flags.executing_program)
+    while(!sdcard_flags.end_program && listSize < 5 && sdcard_flags.executing_program)
     {
         if(settings->cnt >= settings->bytesRead)
         {
-            if(settings->flags.eofRecieved)
+            if(sdcard_flags.eofRecieved)
             {
-                settings->flags.end_program = true;
+                sdcard_flags.end_program = true;
                 /*TODO: check if this return value is correct*/
                 return STD_OK;
             }
@@ -105,7 +102,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 
             if(BYTES_TO_READ > settings->bytesRead)
             {
-                settings->eofRecieved = true;
+                sdcard_flags.eofRecieved = true;
             }
 
             settings->counterTab[settings->activeTab] = 0;
@@ -142,7 +139,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
             cmdData[cmdLen - 1] = '\0';
 
             GCodeCommand cmd;
-            stdErr = parseGCodeCommand((char*)cmdData, &cmd);
+            stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
 
             if(stdErr != STD_OK)
             {
@@ -165,7 +162,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 }
 
 
-Std_Err execute_command_SDcard(DeviceSettings* settings, bool motors_state)
+Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
 {
     Std_Err stdErr;
 
@@ -173,39 +170,39 @@ Std_Err execute_command_SDcard(DeviceSettings* settings, bool motors_state)
     uint8_t listSize;
 
 
-    if(settings->sd->flags.executing_program)
+    if(sdcard_flags.executing_program)
     {
-        listSize = fifo_getSize(settings->sd->BuffIN_SDcmd);
+        listSize = fifo_getSize(settings->BuffIN_SDcmd);
 
         /* no command ongoing, initialize new command */
-        if(listSize > 0 && !settings->sd->flags.executing_command)
+        if(listSize > 0 && !sdcard_flags.executing_command)
         {
-            stdErr = fifo_front(settings->sd->BuffIN_SDcmd, (void**)&cmd);
+            stdErr = fifo_front(settings->BuffIN_SDcmd, (void**)&cmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
             }
 
             memcpy(&executingCmd, cmd, sizeof(GCodeCommand));
-            stdErr = fifo_pop_C(settings->sd->BuffIN_SDcmd);
+            stdErr = fifo_pop_C(settings->BuffIN_SDcmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
             }
 
-            stdErr = executingCmd->init(executingCmd);
+            stdErr = executingCmd.init(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
             }
 
-            settings->sd->flags.executing_command = true;
+            sdcard_flags.executing_command = true;
         }
 
         /* there is command ongoing, process next step */
-        if(settings->sd->flags.executing_command && executingCmd->step != NULL && motors_state)
+        if(sdcard_flags.executing_command && executingCmd.step != NULL && motors_state)
         {
-            stdErr = executingCmd->step(executingCmd);
+            stdErr = executingCmd.step(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
@@ -213,15 +210,15 @@ Std_Err execute_command_SDcard(DeviceSettings* settings, bool motors_state)
         }
 
         /* there is no next step to process, deinitialize command */
-        if(settings->sd->flags.executing_command && executingCmd->step == NULL && motors_state)
+        if(sdcard_flags.executing_command && executingCmd.step == NULL && motors_state)
         {
-            stdErr = executingCmd->delete(executingCmd);
+            stdErr = executingCmd.delete(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
             }
 
-            settings->sd->flags.executing_command = false;
+            sdcard_flags.executing_command = false;
         }
     }
 

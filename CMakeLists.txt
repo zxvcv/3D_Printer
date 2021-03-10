@@ -28,16 +28,19 @@ set(LDSCRIPT STM32F303RETx_FLASH.ld)
 
 #####################################   LIBRARIES   ###############################################
 list(APPEND LIBRARIES
-    FIFO_void
-    Error_Codes
-    EEPROM_24AA01
-    IOpin
-    Vector_Math
     A4988_stepstick
-    GCode_Parser
     Buffered_Communication
-    Manager_SDcard
     Command_Parser
+    EEPROM_24AA01
+    Error_Codes
+    FIFO_void
+    GCode_Parser
+    IOpin
+    Manager_Communication
+    Manager_EEPROM
+    Manager_SDcard
+    Project_Config
+    Vector_Math
     #---add new libs here---
 )
 
@@ -55,6 +58,7 @@ endforeach()
 add_executable(${LOCAL_TARGET}
     Src/main.c
     Src/Interrupts.c
+    Src/Init_Manager.c
     Src/Manager.c
     Src/Project_Objects.c
 

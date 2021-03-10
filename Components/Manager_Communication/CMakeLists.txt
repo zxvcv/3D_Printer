@@ -25,7 +25,10 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 )
 
 target_link_libraries(${LOCAL_TARGET}
-    #TODO:(...)
+    Error_Codes
+    Buffered_Communication
+    Command_Parser
+    Project_Config
 )
 
 

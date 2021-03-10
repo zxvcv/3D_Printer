@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 #include "FIFO_void.h"
-#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 

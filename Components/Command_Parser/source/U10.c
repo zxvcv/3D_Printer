@@ -69,7 +69,7 @@ Std_Err init_U10(SystemCommand* cmd)
 
     //     if(stdErr != STD_OK)
     //     {
-    //         for(int j=0; j < cmd->motorsNum && j < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++j)\
+    //         for(int j=0; j < cmd->motorsNum && j < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++j)
     //         {
     //             motorStop(cmd->motor[j]);
     //         }

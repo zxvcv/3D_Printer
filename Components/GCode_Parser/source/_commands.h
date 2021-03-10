@@ -27,6 +27,8 @@
 #include "GCode_Parser.h"
 #include <math.h>
 #include <stdio.h>
+#include "Vector_Math.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -34,13 +36,6 @@
 /* ############################################################################################ *
  *                                      DEFINES                                                 *
  * ############################################################################################ */
-
-#define ACCURACY 1000
-
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 
 /* used_fields */
 #define PARAM_X     0x01

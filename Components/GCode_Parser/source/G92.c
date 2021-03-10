@@ -43,7 +43,7 @@ Std_Err init_G92(GCodeCommand* cmd)
 
     if(cmd->used_fields & PARAM_X)
     {
-        stdErr = motor_position_set(&motors[MOTOR_X], cmd->data.x);
+        stdErr = motor_set_position(&motors[MOTOR_X], cmd->data.x);
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -52,7 +52,7 @@ Std_Err init_G92(GCodeCommand* cmd)
 
     if(cmd->used_fields & PARAM_Y)
     {
-        stdErr = motor_position_set(&motors[MOTOR_Y], cmd->data.y);
+        stdErr = motor_set_position(&motors[MOTOR_Y], cmd->data.y);
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -61,7 +61,7 @@ Std_Err init_G92(GCodeCommand* cmd)
 
     if(cmd->used_fields & PARAM_Z)
     {
-        stdErr = motor_position_set(&motors[MOTOR_Z], cmd->data.z);
+        stdErr = motor_set_position(&motors[MOTOR_Z], cmd->data.z);
         if(stdErr != STD_OK)
         {
             return stdErr;

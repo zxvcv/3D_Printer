@@ -10,6 +10,10 @@
 #define SD_H_
 
 #include "diskio.h"
+#include "IOpin.h"
+#include "stm32f3xx_hal.h"
+#include "main.h"
+
 
 typedef struct SD_Card{
     SPI_HandleTypeDef* spi;

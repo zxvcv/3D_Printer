@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "Error_Codes.h"
-#include "IOpin.h"
+#include "A4988_stepstick.h"
 #include "FIFO_void.h"
 #include "SD.h"
 /*[[COMPONENT_INCLUDES_H]]*/
@@ -86,7 +86,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, FIL* file, Motor* motors)
 
 Std_Err parse_command_SDcard(SDCard_Settings* settings);
 
-Std_Err execute_command_SDcard(DeviceSettings* settings);
+Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

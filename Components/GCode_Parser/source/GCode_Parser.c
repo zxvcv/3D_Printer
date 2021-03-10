@@ -18,7 +18,7 @@
 #include "GCode_Parser.h"
 #include "_commands.h"
 #include <string.h>
-#include "A4988_stepstick.h"
+#include <stdlib.h>
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

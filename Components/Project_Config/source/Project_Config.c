@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Interrupts
+ * NAME: Project_Config
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -15,10 +15,6 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Interrupts.h"
-#include "stm32f3xx_hal.h"
-#include "Project_Objects.h"
-#include "Buffered_Communication.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
@@ -33,46 +29,9 @@
 
 
 /* ############################################################################################ *
- *                                      EXTERNS                                                 *
- * ############################################################################################ */
-
-extern DeviceSettings printerSettings;
-
-
-
-/* ############################################################################################ *
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    for(int i=0; i< MOTORS_NUM; ++i)
-    {
-        if(printerSettings.motors_are_on)
-        {
-            motor_update(printerSettings.motors[i]);
-            /*TODO: error handling*/
-        }
-    }
-}
-
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if(huart == printerSettings.buff_comm->huart)
-    {
-        send_buffered_message_IT(printerSettings.buff_comm);
-    }
-}
-
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if(huart == printerSettings.buff_comm->huart)
-    {
-        receive_buffered_message_IT(printerSettings.buff_comm);
-    }
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 

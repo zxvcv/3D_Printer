@@ -31,6 +31,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     Error_Codes
+    Project_Config
 )
 
 

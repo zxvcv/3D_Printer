@@ -16,6 +16,7 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

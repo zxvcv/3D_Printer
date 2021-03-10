@@ -19,6 +19,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <limits.h>
+#include "stm32f3xx_hal.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -26,8 +28,6 @@
 /* ############################################################################################ *
  *                                      DEFINES                                                 *
  * ############################################################################################ */
-
-#define ACCURACY    1000
 
 #define HIGH    1
 #define LOW     0

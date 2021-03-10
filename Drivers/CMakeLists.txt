@@ -79,7 +79,6 @@ target_include_directories(${LOCAL_TARGET_FATFS} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET_FATFS}
     HAL_Drivers
-    FIFO_void
     IOpin
 )
 

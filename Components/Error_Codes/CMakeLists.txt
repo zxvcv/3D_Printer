@@ -29,6 +29,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
+    Project_Config
 )
 
 

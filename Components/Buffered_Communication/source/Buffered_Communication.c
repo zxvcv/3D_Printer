@@ -16,6 +16,8 @@
  * ############################################################################################ */
 
 #include "Buffered_Communication.h"
+#include "stm32f3xx_hal.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -156,7 +158,7 @@ Std_Err receive_buffered_message_IT(BuffCommunication_Settings* settings)
     stdErr = fifo_push_C(settings->Buff_IN, &(settings->recieved), 1);
     if(stdErr != STD_OK)
     {
-        return stdErr
+        return stdErr;
     }
 
     if(settings->recieved == '\n')

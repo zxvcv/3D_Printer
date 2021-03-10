@@ -17,6 +17,7 @@
 
 #include "_commands.h"
 #include <string.h>
+#include <stdlib.h>
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -25,6 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define SYSTEM_COMMANDS_NUM 10
 /*[[COMPONENT_DEFINES_C]]*/
 
 

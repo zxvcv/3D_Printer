@@ -16,7 +16,9 @@
  * ############################################################################################ */
 
 #include "Manager_Communication.h"
+#include <string.h>
 #include "Command_Parser.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -33,7 +35,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-SystemCommand executingCmd; /*TODO: delete this */
+SystemCommand executingCmd;
 Communication_Flags communication_flags;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
@@ -43,9 +45,9 @@ Communication_Flags communication_flags;
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_communication_manager(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart)
+Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart)
 {
-    Std_Err stdErr
+    Std_Err stdErr;
 
     communication_flags.eofRecieved = false;
     communication_flags.end_program = false;
@@ -139,7 +141,7 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
                 return stdErr;
             }
 
-            stdErr = executingCmd->init(executingCmd);
+            stdErr = executingCmd.init(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
@@ -149,9 +151,9 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
         }
 
         /* there is command ongoing, process next step */
-        if(communication_flags.executing_command && executingCmd->step != NULL && motors_state)
+        if(communication_flags.executing_command && executingCmd.step != NULL && motors_state)
         {
-            stdErr = executingCmd->step(executingCmd);
+            stdErr = executingCmd.step(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
@@ -159,9 +161,9 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
         }
 
         /* there is no next step to process, deinitialize command */
-        if(communication_flags.executing_command && executingCmd->step == NULL && motors_state)
+        if(communication_flags.executing_command && executingCmd.step == NULL && motors_state)
         {
-            stdErr = executingCmd->delete(executingCmd);
+            stdErr = executingCmd.delete(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;
@@ -177,6 +179,6 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
 
 Std_Err send_communication_command(BuffCommunication_Settings* settings)
 {
-    send_buffered_message(settings);
+    return send_buffered_message(settings);
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -28,6 +28,7 @@
 #include "A4988_stepstick.h"
 #include "EEPROM_24AA01.h"
 #include "Buffered_Communication.h"
+#include "Manager_SDcard.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -59,7 +60,8 @@ typedef struct DeviceSettings_Tag{
     FIL* file;
 
     Motor* motors[MOTORS_NUM];
-    uitn8_t motor_data_addresses[MOTORS_NUM];
+    uint8_t motor_data_addresses[MOTORS_NUM];
+    bool motors_are_on;
 
     EEPROMSettings* eeprom;
 

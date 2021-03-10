@@ -31,6 +31,7 @@ target_link_libraries(${LOCAL_TARGET}
     HAL_Drivers
     Error_Codes
     FIFO_void
+    Project_Config
 )
 
 

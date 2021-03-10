@@ -26,6 +26,7 @@
 
 #include "Command_Parser.h"
 #include <stdio.h>
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -34,17 +35,11 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define ACCURACY 1000
 
-#define _OFFSET_MAXSPEED 0
-#define _OFFSET_STEPSIZE _OFFSET_MAXSPEED+sizeof(double)
-#define _OFFSET_POSITIONZERO _OFFSET_STEPSIZE+sizeof(int)
-#define _OFFSET_POSITIONEND _OFFSET_POSITIONZERO+sizeof(int)
-
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
+#define _OFFSET_MAXSPEED        (0)
+#define _OFFSET_STEPSIZE        (_OFFSET_MAXSPEED+sizeof(double))
+#define _OFFSET_POSITIONZERO    (_OFFSET_STEPSIZE+sizeof(int))
+#define _OFFSET_POSITIONEND     (_OFFSET_POSITIONZERO+sizeof(int))
 
 /* used_fields */
 #define PARAM_X     0x01

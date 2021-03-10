@@ -16,6 +16,7 @@
  * ############################################################################################ */
 
 #include "EEPROM_24AA01.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -51,7 +52,7 @@
 
 void EEPROM_init(EEPROMSettings *settings, I2C_HandleTypeDef* i2c)
 {
-    settings->i2c = true;
+    settings->isReady = true;
     settings->i2c = i2c;
 }
 

@@ -6,17 +6,25 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Manager_EEPROM
+ * NAME: Project_Config
  *      [[COMPONENT_DESCRIPTION]]
+ * ============================================================================================
+ * COMMENTS:
+ *      [[COMPONENT_COMMENTS]]
+ * ============================================================================================
+ * EXAMPLE:
+ *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
+
+#ifndef PROJECT_CONFIG_H_
+#define PROJECT_CONFIG_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Manager_EEPROM.h"
-/*[[COMPONENT_INCLUDES_C]]*/
+/*[[COMPONENT_INCLUDES_H]]*/
 
 
 
@@ -24,34 +32,47 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define ACCURACY 1000
+#define MOTORS_NUM 4
+
+#define MOTOR_X     0
+#define MOTOR_Y     1
+#define MOTOR_Z     2
+#define MOTOR_E     3
+
+#define USE_INTERRUPTS
+//#define LOG_ENABLE
+
 #ifdef USE_INTERRUPTS
 #define IRQ_ENABLE __enable_irq()
 #define IRQ_DISABLE __disable_irq()
 #endif /* USE_INTERRUPTS */
-/*[[COMPONENT_DEFINES_C]]*/
+/*[[COMPONENT_DEFINES_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DEFINITIONS                                     *
+ *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+/*[[COMPONENT_EXTERNS_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
+ *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settigns, uint8_t address, MotorData_EEPROM* dataOUT)
-{
-    return EEPROM_readData(eeprom_settigns, address, (uint8_t*)dataOUT, sizeof(MotorData_EEPROM));
-}
+/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
-Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settigns, uint8_t address, MotorData_EEPROM *data)
-{
-    return EEPROM_writeData(eeprom_settigns, address, (uint8_t*)data, sizeof(MotorData_EEPROM));
-}
-/*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
+
+/* ############################################################################################ *
+ *                                      PUBLIC DECLARATIONS                                     *
+ * ############################################################################################ */
+
+/*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
+
+
+
+#endif /* PROJECT_CONFIG_H_ */
