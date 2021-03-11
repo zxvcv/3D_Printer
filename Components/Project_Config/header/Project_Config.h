@@ -40,7 +40,9 @@
 #define MOTOR_Z     2
 #define MOTOR_E     3
 
+#ifndef TESTS
 #define USE_INTERRUPTS
+#endif
 //#define LOG_ENABLE
 
 #ifdef USE_INTERRUPTS

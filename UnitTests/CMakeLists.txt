@@ -19,10 +19,7 @@ add_subdirectory(googletest ../bld_googletest)
 
 #####################################   TESTS   ###################################################
 list(APPEND TESTS
-    FIFO_void
-    Error_Codes
-    EEPROM_24AA01
-    A4988_stepstick
+    Buffered_Communication
     #---add new tests here---
 )
 
