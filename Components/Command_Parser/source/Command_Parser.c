@@ -38,7 +38,7 @@
 const struct {
     char* name;
     Std_Err (*execute)(SystemCommand*);
-} commands[SYSTEM_COMMANDS_NUM] = {
+} _system_commands[SYSTEM_COMMANDS_NUM] = {
         {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
         {   "U10",      init_U10    },// "PM",   systemCmd_MotorPositionMove
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorDistanceMove
@@ -82,8 +82,8 @@ Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
     }
 
     for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i) {
-        if (strcmp(cmdName + 1, commands[i].name) == 0) {
-            cmdOUT->init = commands[i].execute;
+        if (strcmp(cmdName + 1, _system_commands[i].name) == 0) {
+            cmdOUT->init = _system_commands[i].execute;
             stdErr = STD_OK;
             break;
         }

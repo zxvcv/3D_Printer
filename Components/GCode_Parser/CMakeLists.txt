@@ -36,7 +36,6 @@ add_library(${LOCAL_TARGET}
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
-    ${MAIN_APP_DIR}/Inc
 )
 
 target_link_libraries(${LOCAL_TARGET}

@@ -41,7 +41,7 @@ GCodeGlobal global_gcode_settings;
 const struct {
     char* name;
     Std_Err (*execute)(GCodeCommand*);
-} commands[GCODE_COMMANDS_NUM] = {
+} _gcode_commands[GCODE_COMMANDS_NUM] = {
         {   "G1",   init_G1         },
         {   "G28",  init_G28        },
         {   "G90",  init_G90        },
@@ -80,8 +80,8 @@ Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT)
     memset(cmdOUT, 0, sizeof(GCodeCommand));
 
     for (int i = 0; i < GCODE_COMMANDS_NUM; ++i) {
-        if (strcmp(cmdName, commands[i].name) == 0) {
-            cmdOUT->init = commands[i].execute;
+        if (strcmp(cmdName, _gcode_commands[i].name) == 0) {
+            cmdOUT->init = _gcode_commands[i].execute;
             stdErr = STD_OK;
             break;
         }

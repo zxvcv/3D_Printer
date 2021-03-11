@@ -149,12 +149,6 @@ Std_Err motor_update(Motor* motor)
 }
 
 
-void motor_set_counters(Motor* motor, MotorCounters* counters)
-{
-    motor->counters = *counters;
-}
-
-
 Std_Err motor_start(Motor* motor)
 {
     if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
@@ -210,6 +204,12 @@ Std_Err motor_stop(Motor* motor)
 }
 
 
+void motor_set_counters(Motor* motor, MotorCounters* counters)
+{
+    motor->counters = *counters;
+}
+
+
 void motor_set_direction(Motor* motor, unsigned int direction)
 {
     if(direction == CLOCKWISE)
@@ -220,6 +220,23 @@ void motor_set_direction(Motor* motor, unsigned int direction)
     {
         motor->flags.direction = COUNTER_CLOCKWISE;
     }
+}
+
+
+Std_Err motor_set_position(Motor* motor, double position)
+{
+    int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
+    int new_position_error = ((int)(position * ACCURACY)) % motor->settings.step_size;
+
+    if(new_position < motor->settings.position_zero || new_position > motor->settings.position_end)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+
+    motor->data.position = new_position;
+    motor->data.position_error = new_position_error;
+
+    return STD_OK;
 }
 
 
@@ -286,23 +303,6 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
         *direction = COUNTER_CLOCKWISE;
     else
         *direction = CLOCKWISE;
-
-    return STD_OK;
-}
-
-
-Std_Err motor_position_set(Motor* motor, double position)
-{
-    int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
-    int new_position_error = ((int)(position * ACCURACY)) % motor->settings.step_size;
-
-    if(new_position < motor->settings.position_zero || new_position > motor->settings.position_end)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
-    motor->data.position = new_position;
-    motor->data.position_error = new_position_error;
 
     return STD_OK;
 }
