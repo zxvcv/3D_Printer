@@ -26,7 +26,6 @@
 
 #include "Error_Codes.h"
 #include "Project_Objects.h"
-#include "Command_Parser.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -59,17 +58,7 @@
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err execute_outer_command(DeviceSettings* settings);
-
-Std_Err parse_outer_data(DeviceSettings* settings);
-
-Std_Err init_manager(DeviceSettings* settings);
-
-Std_Err clearAllMotorsRoundingErrors(DeviceSettings *settings);
-
-Std_Err getMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns);
-
-Std_Err setMotorData_EEPROM(MotorSettings *motSettings, EEPROMSettings *memSettigns, MotorData_EEPROM *data);
+void execute_step(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

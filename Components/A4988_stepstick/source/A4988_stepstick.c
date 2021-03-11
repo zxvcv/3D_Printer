@@ -19,6 +19,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <limits.h>
+#include "stm32f3xx_hal.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -27,12 +29,8 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define ACCURACY 1000
-
 #define HIGH    1
 #define LOW     0
-#define CLOCKWISE           1
-#define COUNTER_CLOCKWISE   0
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -49,72 +47,87 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void motorUpdatePins(MotorSettings* settings)
+void motor_update_pins(Motor* motor)
 {
-    if(settings->IOreset.PORT != NULL)
-        HAL_GPIO_WritePin(settings->IOreset.PORT, settings->IOreset.PIN,
-                ((settings->flags.reset) ? GPIO_PIN_RESET : GPIO_PIN_SET));
+    if(motor->IOreset.PORT != NULL)
+    {
+        HAL_GPIO_WritePin(motor->IOreset.PORT, motor->IOreset.PIN,
+                ((motor->flags.reset) ? GPIO_PIN_RESET : GPIO_PIN_SET));
+    }
 
-    if(settings->IOsleep.PORT != NULL)
-        HAL_GPIO_WritePin(settings->IOsleep.PORT, settings->IOsleep.PIN,
-                ((settings->flags.sleep) ? GPIO_PIN_RESET : GPIO_PIN_SET));
+    if(motor->IOsleep.PORT != NULL)
+    {
+        HAL_GPIO_WritePin(motor->IOsleep.PORT, motor->IOsleep.PIN,
+                ((motor->flags.sleep) ? GPIO_PIN_RESET : GPIO_PIN_SET));
+    }
 
-    if(settings->IOdirection.PORT != NULL)
-        HAL_GPIO_WritePin(settings->IOdirection.PORT, settings->IOdirection.PIN,
-                ((settings->flags.direction) ? GPIO_PIN_SET : GPIO_PIN_RESET));
+    if(motor->IOdirection.PORT != NULL)
+    {
+        // [TODO]: UT on this
+        bool direction = motor->flags.direction ^ motor->flags.reversed;
+        HAL_GPIO_WritePin(motor->IOdirection.PORT, motor->IOdirection.PIN,
+                ((direction) ? GPIO_PIN_SET : GPIO_PIN_RESET));
+    }
 
-    if(settings->IOstep.PORT != NULL)
-        HAL_GPIO_WritePin(settings->IOstep.PORT, settings->IOstep.PIN,
-                ((settings->flags.stepPhase) ? GPIO_PIN_SET : GPIO_PIN_RESET));
+    if(motor->IOstep.PORT != NULL)
+    {
+        HAL_GPIO_WritePin(motor->IOstep.PORT, motor->IOstep.PIN,
+                ((motor->flags.stepPhase) ? GPIO_PIN_SET : GPIO_PIN_RESET));
+    }
 }
 
 
-void motorInit(MotorSettings* settings)
+void motor_init(Motor* motor)
 {
-    settings->flags.isOn = 0;
-    settings->flags.reset = 0;
-    settings->flags.sleep = 1;
-    settings->flags.stepPhase = LOW;
-    settings->flags.direction = CLOCKWISE;
+    motor->flags.isOn = 0;
+    motor->flags.reset = 0;
+    motor->flags.sleep = 1;
+    motor->flags.stepPhase = LOW;
+    motor->flags.direction = CLOCKWISE;
+    motor->flags.reversed = 0;
 
-    settings->changeTime = 0;
-    settings->counters.stepLeft = 0;
+    motor->counters.timer = 0;
+    motor->counters.timer_start = 0;
+    motor->counters.steps = 0;
 
-    settings->data.position = 0;
-    settings->data.speed = 0;
+    motor->settings.timer_frequency = 0.0;
+    motor->settings.step_size = 0;
+    motor->settings.max_speed = 0;
+    motor->settings.position_zero = 0;
+    motor->settings.position_end = 0;
 
-    motorUpdatePins(settings);
+    motor_update_pins(motor);
 }
 
 
-Std_Err motorUpdate(MotorSettings* settings)
+Std_Err motor_update(Motor* motor)
 {
     Std_Err retVal = STD_OK;
 
-    if(settings->flags.isOn && !settings->flags.reset && !settings->flags.sleep)
+    if(motor->flags.isOn && !motor->flags.reset && !motor->flags.sleep)
     {
-        --(settings->counters.changeTime);
-        if(settings->counters.changeTime <= 0)
+        --(motor->counters.timer);
+        if(motor->counters.timer <= 0)
         {
-            settings->counters.changeTime = settings->changeTime;
-            --(settings->counters.stepLeft);
-            if(settings->counters.stepLeft <= 0)
+            motor->counters.timer = motor->counters.timer_start;
+            --(motor->counters.steps);
+            if(motor->counters.steps <= 0)
             {
-                settings->flags.isOn = 0;
-                settings->flags.sleep = 1;
+                motor->flags.isOn = 0;
+                motor->flags.sleep = 1;
             }
 
-            switch (settings->flags.stepPhase) 
+            switch (motor->flags.stepPhase)
             {
                 case HIGH:
-                    settings->flags.stepPhase = LOW;
+                    motor->flags.stepPhase = LOW;
                     break;
                 case LOW:
-                    settings->flags.stepPhase = HIGH;
-                    if(settings->flags.direction == CLOCKWISE)
-                        settings->data.position -= settings->device.stepSize;
+                    motor->flags.stepPhase = HIGH;
+                    if(motor->flags.direction == CLOCKWISE)
+                        motor->data.position -= motor->settings.step_size;
                     else
-                        settings->data.position += settings->device.stepSize;
+                        motor->data.position += motor->settings.step_size;
                     break;
                 default:
                     retVal = STD_REFERENCE_ERROR;
@@ -123,7 +136,7 @@ Std_Err motorUpdate(MotorSettings* settings)
 
             if(retVal == STD_OK)
             {
-                motorUpdatePins(settings);
+                motor_update_pins(motor);
             }
         }
     }
@@ -136,181 +149,161 @@ Std_Err motorUpdate(MotorSettings* settings)
 }
 
 
-Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError)
+Std_Err motor_start(Motor* motor)
 {
-    const int _moveInt = (int)round(move * ACCURACY); //[mm/ACCURACY]
-    const int _position = settings->data.position;
-    const int _positionZero = settings->device.positionZero;
-    const int _positionEnd = settings->device.positionEnd;
-
-    const int _moveSign = (signbit(move) ? -1 : 1);
-
-    const double _speed = settings->data.speed; //[mm/s]
-    const int _absMove = abs(_moveInt);
-    const int _stepSize = settings->device.stepSize;
-
-    /* speed */
-    if((_speed <= 0 || _speed > settings->device.maxSpeed) && (_absMove > _stepSize / 2))
+    if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
     {
-        settings->counters.stepLeft = 0;
-        settings->counters.changeTime = 0;
-        settings->changeTime = 0;
-        //roundingError->moveError = 0;
-        //roundingError->speedError = 0;
-
         return STD_PARAMETER_ERROR;
     }
-    double changeFreq = _speed / ((double)_stepSize / ACCURACY);
-    double changeTimeD = settings->device.timerFrequency / (changeFreq * 2);
 
-    settings->changeTime = (uint16_t)changeTimeD;
-    settings->counters.changeTime = settings->changeTime;
-
-    /* move */
-    int stepsNum1 = _absMove / _stepSize;
-    int stepsNum2 = stepsNum1 + 1;
-    int accuracy1 = (stepsNum1 * _stepSize) - _absMove;
-    int accuracy2 = (stepsNum2 * _stepSize) - _absMove;
-
-    int newPosition1 = (stepsNum1 * _stepSize * _moveSign) + _position;
-    int newPosition2 = (stepsNum2 * _stepSize * _moveSign) + _position;
-
-    if(newPosition1 > _positionEnd || newPosition1 < _positionZero)
-        accuracy1 = INT_MAX;
-    if(newPosition2 > _positionEnd || newPosition2 < _positionZero)
-        accuracy2 = INT_MAX;
-
-    if(accuracy1 == INT_MAX && accuracy2 == INT_MAX)
+    if(motor->flags.reset)
     {
-        settings->counters.stepLeft = 0;
-        settings->counters.changeTime = 0;
-        settings->changeTime = 0;
-        //roundingError->moveError = 0;
-        //roundingError->speedError = 0;
-
-        return STD_PARAMETER_ERROR;
-    }
-    else if(abs(accuracy1) <= abs(accuracy2))
-    {
-        settings->counters.stepLeft = stepsNum1;
-        roundingError->moveError = abs(accuracy1) * _moveSign;
-    }
-    else
-    {
-        settings->counters.stepLeft = stepsNum2;
-        roundingError->moveError = abs(accuracy2) * _moveSign * ((int)-1);
+        return STD_ERROR;
     }
 
-    settings->counters.stepLeft *= 2;
-    /*TODO: check calculating speedError*/
-    roundingError->speedError = _speed - 
-        (((settings->device.timerFrequency * _stepSize) / ACCURACY) / (settings->changeTime * 2));
+    if(motor->flags.stepPhase != LOW)
+    {
+        return STD_ERROR;
+    }
 
+    motor->flags.sleep = 0;
+    motor->flags.isOn = 1;
 
-    /* direction */
-    if(_moveSign > 0)
-        settings->flags.direction = ((settings->device.isReversed)? CLOCKWISE : COUNTER_CLOCKWISE );
-    else
-        settings->flags.direction = ((settings->device.isReversed)? COUNTER_CLOCKWISE : CLOCKWISE );
+    motor_update_pins(motor);
 
     return STD_OK;
 }
 
 
-Std_Err motorStart(MotorSettings* settings)
-{
-    if(settings->counters.stepLeft <= 0 || settings->changeTime <= 0)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
-    if(settings->flags.reset)
-    {
-        return STD_ERROR;
-    }
-
-    if(settings->flags.stepPhase != LOW)
-    {
-        return STD_ERROR;
-    }
-
-    settings->flags.sleep = 0;
-    settings->flags.isOn = 1;
-
-    motorUpdatePins(settings);
-
-    return STD_OK;
-}
-
-
-Std_Err motorStop(MotorSettings* settings)
+Std_Err motor_stop(Motor* motor)
 {
     Std_Err retVal = STD_OK;
 
-    if(settings->flags.reset)
+    if(motor->flags.reset)
     {
         return STD_ERROR;
     }
 
-    settings->flags.isOn = 0;
-    settings->flags.sleep = 1;
+    motor->flags.isOn = 0;
+    motor->flags.sleep = 1;
 
-    if(settings->counters.stepLeft > 0 || settings->changeTime > 0)
+    if(motor->flags.stepPhase != LOW)
     {
-        return STD_INTERRUPTED_ERROR;
-    }
-
-    if(settings->flags.stepPhase != LOW)
-    {
-        settings->flags.stepPhase = LOW;
-
+        motor->flags.stepPhase = LOW;
         retVal = STD_IO_ERROR;
     }
 
-    motorUpdatePins(settings);
+    motor_update_pins(motor);
+
+    if(motor->counters.steps > 0 || motor->counters.timer > 0)
+    {
+        retVal = STD_INTERRUPTED_ERROR;
+    }
 
     return retVal;
 }
 
 
-bool motorIsOn(MotorSettings* settings)
+void motor_set_counters(Motor* motor, MotorCounters* counters)
 {
-    return settings->flags.isOn;
+    motor->counters = *counters;
 }
 
 
-bool motorGetReset(MotorSettings* settings)
+void motor_set_direction(Motor* motor, unsigned int direction)
 {
-    return settings->flags.reset;
+    if(direction == CLOCKWISE)
+    {
+        motor->flags.direction = CLOCKWISE;
+    }
+    else if(direction == COUNTER_CLOCKWISE)
+    {
+        motor->flags.direction = COUNTER_CLOCKWISE;
+    }
 }
 
 
-bool motorGetDirection(MotorSettings* settings)
+Std_Err motor_set_position(Motor* motor, double position)
 {
-    return settings->flags.direction;
+    int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
+    int new_position_error = ((int)(position * ACCURACY)) % motor->settings.step_size;
+
+    if(new_position < motor->settings.position_zero || new_position > motor->settings.position_end)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+
+    motor->data.position = new_position;
+    motor->data.position_error = new_position_error;
+
+    return STD_OK;
 }
 
 
-bool motorGetSleep(MotorSettings* settings)
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
+                                       MotorCounters* counters, bool* direction)
 {
-    return settings->flags.sleep;
-}
+    const int _move_int = (int)round(move * accuracy);
+    const int _position = motor->data.position;
+    const int _position_zero = motor->settings.position_zero;
+    const int _position_end = motor->settings.position_end;
 
+    const int _move_sign = (signbit(move) ? -1 : 1);
 
-double motorGetTimerFreq(MotorSettings* settings)
-{
-    return settings->device.timerFrequency;
-}
+    const int _abs_move = abs(_move_int);
+    const int _step_size = motor->settings.step_size;
 
+    /* speed */
+    if((speed <= 0 || speed > motor->settings.max_speed) && (_abs_move > _step_size / 2))
+    {
+        return STD_PARAMETER_ERROR;
+    }
 
-double motorGetStepSize(MotorSettings* settings)
-{
-    return settings->device.stepSize;
-}
+    double change_freq = speed / ((double)_step_size / accuracy);
+    double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
 
+    counters->timer = (uint16_t)change_timeD;
+    counters->timer_start = (uint16_t)change_timeD;
 
-MotorData* motorGetData(MotorSettings* settings)
-{
-    return &(settings->data);
+    /* move */
+    int steps_num1 = _abs_move / _step_size;
+    int steps_num2 = steps_num1 + 1;
+    int accuracy1 = (steps_num1 * _step_size) - _abs_move;
+    int accuracy2 = (steps_num2 * _step_size) - _abs_move;
+
+    int new_position1 = (steps_num1 * _step_size * _move_sign) + _position;
+    int new_position2 = (steps_num2 * _step_size * _move_sign) + _position;
+
+    if(new_position1 > _position_end || new_position1 < _position_zero)
+        accuracy1 = INT_MAX;
+    if(new_position2 > _position_end || new_position2 < _position_zero)
+        accuracy2 = INT_MAX;
+
+    if(accuracy1 == INT_MAX && accuracy2 == INT_MAX)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+    else if(abs(accuracy1) <= abs(accuracy2))
+    {
+        counters->steps = steps_num1 * 2;
+        motor->data.position_error = abs(accuracy1) * _move_sign;
+    }
+    else
+    {
+        counters->steps = steps_num2 * 2;
+        motor->data.position_error = abs(accuracy2) * _move_sign * ((int)-1);
+    }
+
+    // /*TODO: check calculating speedError*/
+    // roundingError->speedError = speed -
+    //     (((settings->device.timer_frequency * _step_size) / accuracy) / (settings->change_time * 2));
+
+    /* direction */
+    if(_move_sign > 0)
+        *direction = COUNTER_CLOCKWISE;
+    else
+        *direction = CLOCKWISE;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

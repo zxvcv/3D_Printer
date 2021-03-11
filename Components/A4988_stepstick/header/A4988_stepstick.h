@@ -13,24 +13,7 @@
  *      [[COMPONENT_COMMENTS]]
  * ============================================================================================
  * EXAMPLE:
- *      motorInitSettings(&motor1);
- *      motorUpdatePinoutState(&motor1);
- *
- *      void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
- *      {
- *          if(motor1.stateStep != OFF)
- *          motorChangeState(&motor1);
- *      }
- *
- *
- *      motor1.stateDirection = CLOCK;
- *      motor1.stateReset = START;
- *      motor1.stateSleep = AWAKE;
- *      motor1.changeTimeCounter = motor1.changeTime;
- *      motor1.stepLeftCounter *= 2;
- *
- *      motor1.stateStep = LOW;
- *      motorUpdatePinoutState(&motor1);
+ *      None
  ************************************************************************************************/
 
 #ifndef A4988_STEPSTICK_H_
@@ -43,7 +26,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "stm32f3xx_hal.h"
 #include "IOpin.h"
 #include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_H]]*/
@@ -54,6 +36,8 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define CLOCKWISE           1
+#define COUNTER_CLOCKWISE   0
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -70,18 +54,13 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct RoundingErrorData_Tag{
-    int moveError;
-    double speedError;
-} RoundingErrorData;
+typedef struct MotorCounters_Tag{
+    uint16_t timer;
+    uint16_t timer_start;
+    uint8_t steps;
+}MotorCounters;
 
-typedef struct MotorData_Tag{
-    int position; //pos * ACCURACY
-    double speed;
-    RoundingErrorData err;
-} MotorData;
-
-typedef struct MotorSettings_Tag{
+typedef struct Motor_Tag{
     IO_Pin IOreset;
     IO_Pin IOsleep;
     IO_Pin IOdirection;
@@ -93,31 +72,24 @@ typedef struct MotorSettings_Tag{
         unsigned int sleep      :1;     /*(1-yes        0-no                )*/
         unsigned int stepPhase  :1;     /*(1-high       0-low               )*/
         unsigned int direction  :1;     /*(1-clockwise, 0-counter clockwise )*/
+        unsigned int reversed   :1;     /*(1-yes        0-no                )*/
     }flags;
 
-    struct{
-        uint16_t changeTime;
-        uint16_t stepLeft;
-    }counters;
-
-    uint16_t changeTime;
+    MotorCounters counters;
 
     struct{
-        uint8_t motorNum;
+        double timer_frequency;  //[Hz] timer frequency
+        int step_size;           //[mm/ACCURACY] length of move with one motor step = (stepSize * ACCURACY)
+        double max_speed;
+        int position_zero;
+        int position_end;
+    }settings;
 
-        uint8_t eepromDataAddress;
-
-        double timerFrequency;  //[Hz] timer frequency
-        int stepSize;           //[mm] length of move with one motor step (stepSize * ACCURACY)
-        bool isReversed;
-
-        double maxSpeed;
-        int positionZero;   //posZero * ACCURACY
-        int positionEnd;    //posEnd * ACCURACY
-    }device;
-
-    MotorData data;
-} MotorSettings;
+    struct{
+        int position;
+        int position_error;
+    }data;
+} Motor;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -126,31 +98,25 @@ typedef struct MotorSettings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void motorUpdatePins(MotorSettings* settings);
+void motor_update_pins(Motor* motor);
 
-void motorInit(MotorSettings* settings);
+void motor_init(Motor* motor);
 
-Std_Err motorUpdate(MotorSettings* settings);
+Std_Err motor_update(Motor* motor);
 
-Std_Err motorSetMove(MotorSettings* settings, double move, RoundingErrorData* roundingError);
+Std_Err motor_start(Motor* motor);
 
-Std_Err motorStart(MotorSettings* settings);
+Std_Err motor_stop(Motor* motor);
 
-Std_Err motorStop(MotorSettings* settings);
+void motor_set_counters(Motor* motor, MotorCounters* counters);
 
-bool motorIsOn(MotorSettings* settings);
+void motor_set_direction(Motor* motor, unsigned int direction);
 
-bool motorGetReset(MotorSettings* settings);
+Std_Err motor_set_position(Motor* motor, double position);
 
-bool motorGetDirection(MotorSettings* settings);
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+                                       MotorCounters* counters, bool* direction);
 
-bool motorGetSleep(MotorSettings* settings);
-
-double motorGetTimerFreq(MotorSettings* settings);
-
-double motorGetStepSize(MotorSettings* settings);
-
-MotorData* motorGetData(MotorSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

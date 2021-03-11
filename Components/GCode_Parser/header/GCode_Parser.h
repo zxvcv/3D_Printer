@@ -26,8 +26,7 @@
 
 #include <stdbool.h>
 #include "Error_Codes.h"
-#include "Vector_Math.h"
-#include "Project_Objects.h"
+#include "A4988_stepstick.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -36,11 +35,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define MOTOR_X     0 //[DEBUG]
-#define MOTOR_Y     1 //[DEBUG]
-#define MOTOR_Z1    2 //[DEBUG]
-#define MOTOR_Z2    3 //[DEBUG]
-#define MOTOR_E     4 //[DEBUG]
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -57,10 +51,23 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct GCodeCommand_Tag{
-    Std_Err (*execute)(struct GCodeCommand_Tag*, DeviceSettings*) ;	//command pointer
-    int cmdNum;
+typedef struct GCodeGlobal_Tag{
+    Motor* motors;
+    enum{
+        RELATIVE,
+        ABSOLUTE
+    }positioning_mode;
+    double speed;
+}GCodeGlobal;
 
+typedef struct GCodeCommand_Tag{
+    Std_Err (*init)(struct GCodeCommand_Tag*);
+    Std_Err (*delete)(struct GCodeCommand_Tag*);
+
+    Std_Err (*step)(struct GCodeCommand_Tag*);
+
+
+    uint8_t used_fields;
     struct{
         double x;       //X-axis move
         double y;       //Y-axis move
@@ -71,13 +78,11 @@ typedef struct GCodeCommand_Tag{
     }data;
 
     struct{
-        unsigned short _x : 1;
-        unsigned short _y : 1;
-        unsigned short _z : 1;
-        unsigned short _e : 1;
-        unsigned short _f : 1;
-        unsigned short _s : 1;
-    }usedFields;
+        double x;
+        double y;
+        double z;
+        double e;
+    }target_position;
 }GCodeCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -87,9 +92,9 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err parseGCodeCommand(char* cmd, GCodeCommand* cmdOUT);
+void init_GCodeParser(Motor* motors);
 
-Std_Err executeGCodeCommand(GCodeCommand* cmd, DeviceSettings* settings);
+Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

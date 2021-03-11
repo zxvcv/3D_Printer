@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 #include "FIFO_void.h"
-#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -51,7 +50,7 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct OuterCommunication_Settings_Tag{
+typedef struct BuffCommunication_Settings_Tag{
     Fifo_C* Buff_InputCommands;
     Fifo_C* Buff_IN;
     Fifo_C* Buff_OUT;
@@ -61,7 +60,7 @@ typedef struct OuterCommunication_Settings_Tag{
     uint8_t recieved;
     bool EOL_recieved;
     bool transmission;
-}OuterComm_Settings;
+}BuffCommunication_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -70,11 +69,15 @@ typedef struct OuterCommunication_Settings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_outer_operations(OuterComm_Settings* settings);
+Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart);
 
-Std_Err send_outer_command(OuterComm_Settings* settings);
+Std_Err send_buffered_message(BuffCommunication_Settings* settings);
 
-Std_Err deinit_outer_operations(OuterComm_Settings* settings);
+Std_Err send_buffered_message_IT(BuffCommunication_Settings* settings);
+
+Std_Err receive_buffered_message_IT(BuffCommunication_Settings* settings);
+
+Std_Err deinit_buffered_communication(BuffCommunication_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

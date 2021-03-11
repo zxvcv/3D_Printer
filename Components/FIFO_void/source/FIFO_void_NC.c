@@ -19,6 +19,7 @@
 
 #include "FIFO_void.h"
 #include <string.h>
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -27,10 +28,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#ifdef USE_INTERRUPTS
-#define IRQ_ENABLE __enable_irq()
-#define IRQ_DISABLE __disable_irq()
-#endif /* USE_INTERRUPTS */
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -201,7 +198,7 @@ Std_Err fifo_delete_NC(Fifo_NC** list)
     if ((*list) != NULL)
     {
         stdErr = fifo_clear_NC(*list);
-        
+
         if(stdErr == STD_OK)
         {
 #ifdef USE_INTERRUPTS

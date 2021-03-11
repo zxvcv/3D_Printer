@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include "Vector_Math.h"
+#include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

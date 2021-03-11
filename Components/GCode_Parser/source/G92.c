@@ -32,37 +32,43 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err command_G92(GCodeCommand* cmd, DeviceSettings* settings)
+Std_Err init_G92(GCodeCommand* cmd)
 {
-    /*TODO: check gCode state before start executing command*/
-    Std_Err stdErr= STD_OK;
+    cmd->delete = NULL;
+    cmd->step = NULL;
 
-    if(cmd->usedFields._x == 1)
+    Motor* motors = global_gcode_settings.motors;
+
+    Std_Err stdErr;
+
+    if(cmd->used_fields & PARAM_X)
     {
-        /*TODO: improved accuracy*/
-        settings->motors[MOTOR_X]->data.position = cmd->data.x * ACCURACY;
+        stdErr = motor_set_position(&motors[MOTOR_X], cmd->data.x);
+        if(stdErr != STD_OK)
+        {
+            return stdErr;
+        }
     }
 
-    if(cmd->usedFields._y == 1)
+    if(cmd->used_fields & PARAM_Y)
     {
-        /*TODO: improved accuracy*/
-        settings->motors[MOTOR_Y]->data.position = cmd->data.y * ACCURACY;
-    }
-        
-    if(cmd->usedFields._z == 1)
-    {
-        /*TODO: improved accuracy*/
-        settings->motors[MOTOR_Z1]->data.position = cmd->data.z * ACCURACY;
-        settings->motors[MOTOR_Z2]->data.position = cmd->data.z * ACCURACY;
+        stdErr = motor_set_position(&motors[MOTOR_Y], cmd->data.y);
+        if(stdErr != STD_OK)
+        {
+            return stdErr;
+        }
     }
 
-    /*TODO: write implementation for extruder*/
-    /*if(cmd->usedFields._e == 1)
+    if(cmd->used_fields & PARAM_Z)
     {
-        //set extruder positoin
-    }*/
-        
-    return stdErr;
+        stdErr = motor_set_position(&motors[MOTOR_Z], cmd->data.z);
+        if(stdErr != STD_OK)
+        {
+            return stdErr;
+        }
+    }
+
+    return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

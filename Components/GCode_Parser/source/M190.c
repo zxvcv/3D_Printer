@@ -32,9 +32,13 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err command_M190(GCodeCommand* cmd, DeviceSettings* settings)
+Std_Err init_M190(GCodeCommand* cmd)
 {
-    /*TODO: check gCode state before start executing command*/
+    cmd->delete = NULL;
+    cmd->step = NULL;
+
+    //...
+
     return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/

@@ -28,6 +28,7 @@
 #include "A4988_stepstick.h"
 #include "EEPROM_24AA01.h"
 #include "Buffered_Communication.h"
+#include "Manager_SDcard.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -53,42 +54,18 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct MotorData_EEPROM{
-    double maxSpeed;
-
-    int stepSize;
-
-    int positionZero;
-    int positionEnd;
-}MotorData_EEPROM;
-
 typedef struct DeviceSettings_Tag{
-    enum {
-        RELATIVE,
-        ABSOLUTE
-    }positioningMode;
-
-    enum {
-        IDLE,
-        BUSY
-    }sdCommandState;
-
     FATFS* fatfs;
-
     SDCard_Settings* sd;
+    FIL* file;
 
-    MotorSettings* motors[MOTORS_NUM];
+    Motor* motors[MOTORS_NUM];
+    uint8_t motor_data_addresses[MOTORS_NUM];
+    bool motors_are_on;
 
     EEPROMSettings* eeprom;
 
-    OuterComm_Settings* outComm;
-
-    bool errMove;
-
-    double speed;
-    uint8_t recievedBT;
-    bool EOL_recieved; /*TODO: check if it is not the same as EOL_resieved in outComm struct*/
-    bool transmissionBT;
+    BuffCommunication_Settings* buff_comm;
 }DeviceSettings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 

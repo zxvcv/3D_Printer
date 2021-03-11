@@ -36,17 +36,13 @@ add_library(${LOCAL_TARGET}
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
-    ${MAIN_APP_DIR}/Inc
 )
 
 target_link_libraries(${LOCAL_TARGET}
     Error_Codes
     A4988_stepstick
-    EEPROM_24AA01
     Vector_Math
-    SD_Card
-    FATFS_Driver #[DEBUG]
-    Buffered_Communication
+    Project_Config
 )
 
 

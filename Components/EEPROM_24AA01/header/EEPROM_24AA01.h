@@ -65,6 +65,8 @@ typedef struct EEPROMSettings{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+void EEPROM_init(EEPROMSettings *settings, I2C_HandleTypeDef* i2c);
+
 Std_Err EEPROM_clear(EEPROMSettings *settings);
 
 Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size);
