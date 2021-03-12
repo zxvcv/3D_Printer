@@ -16,50 +16,39 @@ set(HEADER_DIR ${COMPONENT_DIR}/header)
 
 
 #####################################   TESTED COMPONENT LIBRARY   ################################
-list(APPEND EXTERNAL_LIBS
-    FIFO_void
-    #Error_Codes
-    #Project_Config
-)
-
 include_directories(
     stubs
     ${HEADER_DIR}
-    ${MAIN_APP_DIR}/Drivers/STM32F3xx_HAL_Driver/tests/mocks
-    ${MAIN_APP_DIR}/Drivers/STM32F3xx_HAL_Driver/tests/stubs
-
-    #TEMPORARY:
-    #${ALL_COMPONENTS_DIR}/Error_Codes/tests/mocks
-    ${ALL_COMPONENTS_DIR}/Error_Codes/header
-    #${ALL_COMPONENTS_DIR}/Project_Config/tests/mocks
-    ${ALL_COMPONENTS_DIR}/Project_Config/header
 )
-foreach(LIBRARY IN LISTS EXTERNAL_LIBS)
-    include_directories(
-        ${ALL_COMPONENTS_DIR}/${LIBRARY}/tests/mocks
-        ${ALL_COMPONENTS_DIR}/${LIBRARY}/header
-    )
-endforeach()
 
 add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/Buffered_Communication.c
 )
 
-target_compile_definitions(${TEST_COMPONENT_LIB} PRIVATE -DTESTS)
+target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
+    Mock_HAL_Drivers
+    Mock_Project_Config
+    Mock_Error_Codes
+    Mock_FIFO_void
+)
+# target_compile_definitions(${TEST_COMPONENT_LIB} PRIVATE -DTESTS)
 
 
 
 #####################################   TEST   ####################################################
 add_executable(${LOCAL_TARGET}
     Buffered_Communication_UT.cpp
-    ${MAIN_APP_DIR}/Drivers/STM32F3xx_HAL_Driver/tests/mocks/Mock_HAL_Drivers.cpp
-    ${ALL_COMPONENTS_DIR}/FIFO_void/tests/mocks/Mock_FIFO_void.cpp
 )
 
-target_link_libraries(${LOCAL_TARGET} PUBLIC
+target_link_libraries(${LOCAL_TARGET} PRIVATE
+    ${TEST_COMPONENT_LIB}
     gtest_main
     gmock_main
-    ${TEST_COMPONENT_LIB}
+
+    #Mock_Project_Config
+    Mock_FIFO_void
+    Mock_Error_Codes
+    Mock_HAL_Drivers
 )
 
 add_test(NAME ${LOCAL_TARGET}

@@ -9,4 +9,9 @@ extern "C"
     {
         return Mock_HAL_Drivers::mock->HAL_UART_Receive_IT(huart, pData, Size);
     }
+
+    HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
+    {
+        return Mock_HAL_Drivers::mock->HAL_UART_Transmit_IT(huart, pData, Size);
+    }
 }
