@@ -9,6 +9,7 @@ extern "C"
 
 class Mock_FIFO_void {
 public:
+    Mock_FIFO_void() { mock = this; }
     MOCK_METHOD1(fifo_create, Std_Err(Fifo** list));
     MOCK_METHOD3(fifo_push_C, Std_Err(Fifo_C* list, void* val, int valSize));
     MOCK_METHOD2(fifo_push_NC, Std_Err(Fifo_NC* list, void* val));
