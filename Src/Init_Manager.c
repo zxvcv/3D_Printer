@@ -51,54 +51,48 @@ Std_Err _init_motors(DeviceSettings* settings)
     Std_Err stdErr;
     MotorData_EEPROM eeprom_data;
 
-    for(int i=0; i<MOTORS_NUM; ++i)
-    {
-        motor_init(settings->motors[i]);
-    }
-
-    /* pin setup */
     // MOTOR_X
-    settings->motors[0]->IOreset.PORT = MOT1_RESET_GPIO_Port;
-    settings->motors[0]->IOreset.PIN = MOT1_RESET_Pin;
-    settings->motors[0]->IOsleep.PORT = MOT1_SLEEP_GPIO_Port;
-    settings->motors[0]->IOsleep.PIN = MOT1_SLEEP_Pin;
-    settings->motors[0]->IOdirection.PORT = MOT1_DIRECTION_GPIO_Port;
-    settings->motors[0]->IOdirection.PIN = MOT1_DIRECTION_Pin;
-    settings->motors[0]->IOstep.PORT = MOT1_STEP_GPIO_Port;
-    settings->motors[0]->IOstep.PIN = MOT1_STEP_Pin;
-    //settings->motors[0]->IOstep.PORT = LD2_GPIO_Port;  //[DEBUG]
-    //settings->motors[0]->IOstep.PIN = LD2_Pin;         //[DEBUG]
+    IO_Pin reset_pins_X = { .PORT = MOT1_RESET_GPIO_Port, .PIN = MOT1_RESET_Pin };
+    IO_Pin sleep_pins_X = { .PORT = MOT1_SLEEP_GPIO_Port, .PIN = MOT1_SLEEP_Pin };
+    IO_Pin direction_pins_X = { .PORT = MOT1_DIRECTION_GPIO_Port, .PIN = MOT1_DIRECTION_Pin };
+    IO_Pin step_pins_X = { .PORT = MOT1_STEP_GPIO_Port, .PIN = MOT1_STEP_Pin };
+    // IO_Pin step_pins_X = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin };
+    motor_init(
+        settings->motors[MOTOR_X], 1000,
+        reset_pins_X, sleep_pins_X, direction_pins_X, step_pins_X
+    );
 
     // MOTOR_Y
-    settings->motors[1]->IOreset.PORT = MOT2_RESET_GPIO_Port;
-    settings->motors[1]->IOreset.PIN = MOT2_RESET_Pin;
-    settings->motors[1]->IOsleep.PORT = MOT2_SLEEP_GPIO_Port;
-    settings->motors[1]->IOsleep.PIN = MOT2_SLEEP_Pin;
-    settings->motors[1]->IOdirection.PORT = MOT2_DIRECTION_GPIO_Port;
-    settings->motors[1]->IOdirection.PIN = MOT2_DIRECTION_Pin;
-    settings->motors[1]->IOstep.PORT = MOT2_STEP_GPIO_Port;
-    settings->motors[1]->IOstep.PIN = MOT2_STEP_Pin;
+    IO_Pin reset_pins_Y = { .PORT = MOT2_RESET_GPIO_Port, .PIN = MOT2_RESET_Pin };
+    IO_Pin sleep_pins_Y = { .PORT = MOT2_SLEEP_GPIO_Port, .PIN = MOT2_SLEEP_Pin };
+    IO_Pin direction_pins_Y = { .PORT = MOT2_DIRECTION_GPIO_Port, .PIN = MOT2_DIRECTION_Pin };
+    IO_Pin step_pins_Y = { .PORT = MOT2_STEP_GPIO_Port, .PIN = MOT2_STEP_Pin };
+    // IO_Pin step_pins_Y = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin };
+    motor_init(
+        settings->motors[MOTOR_Y], 1000,
+        reset_pins_Y, sleep_pins_Y, direction_pins_Y, step_pins_Y
+    );
 
     // MOTOR_Z
-    settings->motors[2]->IOreset.PORT = MOT3_RESET_GPIO_Port;
-    settings->motors[2]->IOreset.PIN = MOT3_RESET_Pin;
-    settings->motors[2]->IOsleep.PORT = MOT3_SLEEP_GPIO_Port;
-    settings->motors[2]->IOsleep.PIN = MOT3_SLEEP_Pin;
-    settings->motors[2]->IOdirection.PORT = MOT3_DIRECTION_GPIO_Port;
-    settings->motors[2]->IOdirection.PIN = MOT3_DIRECTION_Pin;
-    settings->motors[2]->IOstep.PORT = MOT3_STEP_GPIO_Port;
-    settings->motors[2]->IOstep.PIN = MOT3_STEP_Pin;
+    IO_Pin reset_pins_Z = { .PORT = MOT3_RESET_GPIO_Port, .PIN = MOT3_RESET_Pin };
+    IO_Pin sleep_pins_Z = { .PORT = MOT3_SLEEP_GPIO_Port, .PIN = MOT3_SLEEP_Pin };
+    IO_Pin direction_pins_Z = { .PORT = MOT3_DIRECTION_GPIO_Port, .PIN = MOT3_DIRECTION_Pin };
+    IO_Pin step_pins_Z = { .PORT = MOT3_STEP_GPIO_Port, .PIN = MOT3_STEP_Pin };
+    // IO_Pin step_pins_Z = { .PORT = LD2_GPIO_Port, .PIN = LD2_Pin };
+    motor_init(
+        settings->motors[MOTOR_Z], 1000,
+        reset_pins_Z, sleep_pins_Z, direction_pins_Z, step_pins_Z
+    );
 
     // MOTOR_E
-    settings->motors[3]->IOreset.PORT = MOT4_RESET_GPIO_Port;
-    settings->motors[3]->IOreset.PIN = MOT4_RESET_Pin;
-    settings->motors[3]->IOsleep.PORT = MOT4_SLEEP_GPIO_Port;
-    settings->motors[3]->IOsleep.PIN = MOT4_SLEEP_Pin;
-    settings->motors[3]->IOdirection.PORT = MOT4_DIRECTION_GPIO_Port;
-    settings->motors[3]->IOdirection.PIN = MOT4_DIRECTION_Pin;
-    settings->motors[3]->IOstep.PORT = MOT4_STEP_GPIO_Port;
-    settings->motors[3]->IOstep.PIN = MOT4_STEP_Pin;
-
+    IO_Pin reset_pins_E = { .PORT = MOT4_RESET_GPIO_Port, .PIN = MOT4_RESET_Pin };
+    IO_Pin sleep_pins_E = { .PORT = MOT4_SLEEP_GPIO_Port, .PIN = MOT4_SLEEP_Pin };
+    IO_Pin direction_pins_E = { .PORT = MOT4_DIRECTION_GPIO_Port, .PIN = MOT4_DIRECTION_Pin };
+    IO_Pin step_pins_E = { .PORT = MOT4_STEP_GPIO_Port, .PIN = MOT4_STEP_Pin };
+    motor_init(
+        settings->motors[MOTOR_E], 1000,
+        reset_pins_E, sleep_pins_E, direction_pins_E, step_pins_E
+    );
 
     /* eeprom data setup */
     for(int i=0; i<MOTORS_NUM; ++i)
@@ -114,20 +108,6 @@ Std_Err _init_motors(DeviceSettings* settings)
         settings->motors[i]->settings.position_zero = eeprom_data.position_zero;
         settings->motors[i]->settings.position_end = eeprom_data.position_end;
     }
-
-
-    /* others data setup */
-    // MOTOR_X
-    settings->motors[0]->settings.timer_frequency = 1000;
-
-    // MOTOR_Y
-    settings->motors[1]->settings.timer_frequency = 1000;
-
-    // MOTOR_Z
-    settings->motors[2]->settings.timer_frequency = 1000;
-
-    // MOTOR_E
-    settings->motors[3]->settings.timer_frequency = 1000;
 
     return STD_OK;
 }

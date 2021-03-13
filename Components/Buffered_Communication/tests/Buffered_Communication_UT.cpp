@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "Mock_Project_Config.h"
 #include "Mock_FIFO_void.h"
 #include "Mock_HAL_Drivers.h"
 #include "Mock_Error_Codes.h"

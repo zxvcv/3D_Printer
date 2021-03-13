@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include <stdlib.h>
 
-#define HIGH    1
-#define LOW     0
-#define ACCURACY 1000
+#include "Mock_Project_Config.h"
+#include "Mock_HAL_Drivers.h"
 
 using ::testing::_;
 
@@ -13,31 +10,31 @@ extern "C"
     #include "A4988_stepstick.h"
 }
 
-
-
-class Mock_A4988_stepstick {
+class A4988_stepstick_UT: public ::testing::Test
+{
 public:
-    MOCK_METHOD3(HAL_GPIO_WritePin, void(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState));
-};
-
-class A4988_stepstick_test : public ::testing::Test {
-public:
-    A4988_stepstick_test()
+    A4988_stepstick_UT()
     {
-        mock = new Mock_A4988_stepstick();
+        mock_HAL_Drivers = new Mock_HAL_Drivers();
     }
-    ~A4988_stepstick_test()
+    ~A4988_stepstick_UT()
     {
-        delete mock;
+        delete mock_HAL_Drivers;
     }
 
     virtual void SetUp()
     {
-        motor = (MotorSettings*)malloc(sizeof(MotorSettings));
-        setupMotor1(motor);
+        IO_Pin reset_pin;
+        IO_Pin sleep_pin;
+        IO_Pin direction_pin;
+        IO_Pin step_pin;
 
-        EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-        motorInit(motor);
+        motor = (Motor*)malloc(sizeof(Motor));
+
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+            .Times(4);
+        motor_init(motor, 1000, reset_pin, sleep_pin, direction_pin, step_pin);
+        setup_motor_values(motor);
     }
 
     virtual void TearDown()
@@ -45,21 +42,252 @@ public:
         free(motor);
     }
 
-    void setupMotor1(MotorSettings* motor);
-    bool compareDouble(double compared, double expected);
+    void setup_motor_values(Motor* motor);
+    // bool compareDouble(double compared, double expected);
 
 
-    MotorSettings* motor;
+    Motor* motor;
 
-    static Mock_A4988_stepstick* mock;
+    /* MOCKS */
+    static Mock_HAL_Drivers* mock_HAL_Drivers;
 };
 
-Mock_A4988_stepstick* A4988_stepstick_test::mock;
+Mock_HAL_Drivers* A4988_stepstick_UT::mock_HAL_Drivers;
 
 
 
 /************************** TESTS **************************/
 
+TEST_F(A4988_stepstick_UT, motor_update_pins_resetChange)
+{
+    motor->flags.reset = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(2);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(2);
+
+    motor_update_pins(motor);
+
+    motor->flags.reset = 1;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(1);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(3);
+
+    motor_update_pins(motor);
+}
+
+TEST_F(A4988_stepstick_UT, motor_update_pins_sleepChange)
+{
+    motor->flags.sleep = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(3);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(1);
+
+    motor_update_pins(motor);
+
+    motor->flags.sleep = 1;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(2);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(2);
+
+    motor_update_pins(motor);
+}
+
+TEST_F(A4988_stepstick_UT, motor_update_pins_directionChange)
+{
+    motor->flags.direction = COUNTER_CLOCKWISE;
+    motor->flags.reversed = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(1);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(3);
+
+    motor_update_pins(motor);
+
+    motor->flags.direction = CLOCKWISE;
+    motor->flags.reversed = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(2);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(2);
+
+    motor_update_pins(motor);
+
+    motor->flags.direction = COUNTER_CLOCKWISE;
+    motor->flags.reversed = 1;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(2);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(2);
+
+    motor_update_pins(motor);
+
+    motor->flags.direction = CLOCKWISE;
+    motor->flags.reversed = 1;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(1);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(3);
+
+    motor_update_pins(motor);
+}
+
+TEST_F(A4988_stepstick_UT, motor_update_pins_stepChange)
+{
+    motor->flags.stepPhase = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(2);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(2);
+
+    motor_update_pins(motor);
+
+    motor->flags.stepPhase = 1;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET))
+        .Times(3);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET))
+        .Times(1);
+
+    motor_update_pins(motor);
+}
+
+TEST_F(A4988_stepstick_UT, motor_start)
+{
+    Std_Err stdErr;
+
+    #define TEST_VALUES_LEN 8
+    struct{
+        MotorCounters counters;
+        Std_Err expected_exit_val;
+    }test_values[TEST_VALUES_LEN] = {
+        { { 0, 0, 0 }, STD_PARAMETER_ERROR },
+        { { 0, 0, 1 }, STD_PARAMETER_ERROR },
+        { { 0, 1, 0 }, STD_PARAMETER_ERROR },
+        { { 0, 1, 1 }, STD_PARAMETER_ERROR },
+        { { 1, 0, 0 }, STD_PARAMETER_ERROR },
+        { { 1, 0, 1 }, STD_PARAMETER_ERROR },
+        { { 1, 1, 0 }, STD_PARAMETER_ERROR },
+        { { 1, 1, 1 }, STD_OK }
+    };
+
+
+    for(int i=0; i<TEST_VALUES_LEN; ++i)
+    {
+        motor->counters.timer = test_values[i].counters.timer;
+        motor->counters.timer_start = test_values[i].counters.timer_start;
+        motor->counters.steps = test_values[i].counters.steps;
+
+        if(test_values[i].expected_exit_val == STD_OK)
+        {
+            EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+                .Times(4);
+        }
+
+        stdErr = motor_start(motor);
+        EXPECT_EQ(stdErr, test_values[i].expected_exit_val);
+
+        if(test_values[i].expected_exit_val == STD_OK)
+        {
+            EXPECT_EQ(motor->flags.sleep, 0);
+            EXPECT_EQ(motor->flags.isOn, 1);
+        }
+    }
+}
+
+TEST_F(A4988_stepstick_UT, motor_stop_ok)
+{
+    Std_Err stdErr;
+
+    motor->flags.reset = 0;
+    motor->flags.isOn = 1;
+    motor->flags.sleep = 0;
+    motor->flags.stepPhase = 0;
+    motor->counters.steps = 0;
+    motor->counters.timer = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_EQ(motor->flags.isOn, 0);
+    EXPECT_EQ(motor->flags.sleep, 1);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
+}
+
+TEST_F(A4988_stepstick_UT, motor_stop_resetState)
+{
+    Std_Err stdErr;
+
+    motor->flags.reset = 1;
+    motor->flags.isOn = 1;
+    motor->flags.sleep = 0;
+    motor->flags.stepPhase = 0;
+    motor->counters.steps = 0;
+    motor->counters.timer = 0;
+
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_ERROR);
+    EXPECT_EQ(motor->flags.isOn, 1);
+    EXPECT_EQ(motor->flags.sleep, 0);
+}
+
+TEST_F(A4988_stepstick_UT, motor_stop_wrongStepPhase)
+{
+    Std_Err stdErr;
+
+    motor->flags.reset = 0;
+    motor->flags.isOn = 1;
+    motor->flags.sleep = 0;
+    motor->flags.stepPhase = 0;
+    motor->counters.steps = 0;
+    motor->counters.timer = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_EQ(motor->flags.isOn, 0);
+    EXPECT_EQ(motor->flags.sleep, 1);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
+}
+
+TEST_F(A4988_stepstick_UT, motor_stop_workInProgress)
+{
+    Std_Err stdErr;
+
+    motor->flags.reset = 0;
+    motor->flags.isOn = 1;
+    motor->flags.sleep = 0;
+    motor->flags.stepPhase = 0;
+    motor->counters.steps = 10;
+    motor->counters.timer = 100;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_INTERRUPTED_ERROR);
+    EXPECT_EQ(motor->flags.isOn, 0);
+    EXPECT_EQ(motor->flags.sleep, 1);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
+}
+
+/*
 TEST_F(A4988_stepstick_test, a4988_stepstick__BasicWork2Steps__test)
 {
     bool ret;
@@ -190,32 +418,6 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__StopAfterMoveIsEnded__test)
     EXPECT_EQ(motor->flags.sleep, 1);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__UpdatePins__test)
-{
-    bool ret;
-
-    motor->flags.reset = 0;
-    motor->flags.sleep = 0;
-    motor->flags.direction = 0;
-    motor->flags.stepPhase = 0;
-
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET)).Times(2);
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET)).Times(2);
-
-    motorUpdatePins(motor);
-
-
-    motor->flags.reset = 1;
-    motor->flags.sleep = 1;
-    motor->flags.direction = 1;
-    motor->flags.stepPhase = 1;
-
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, GPIO_PIN_RESET)).Times(2);
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, GPIO_PIN_SET)).Times(2);
-
-    motorUpdatePins(motor);
-}
-
 TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic1__test)
 {
     bool ret;
@@ -239,7 +441,7 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic1__test)
 
 TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic2__test)
 {
-    /*TO DO*/
+
     bool ret;
     RoundingErrorData roundingError;
 
@@ -363,38 +565,19 @@ TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveHighOnTheBorder__t
     EXPECT_EQ(roundingError.moveError, ((int)53));
     EXPECT_TRUE(compareDouble(roundingError.speedError, -0.15));
 }
-
+*/
 
 
 /************************** PUBLIC FUNCTIONS **************************/
 
-void A4988_stepstick_test::setupMotor1(MotorSettings* motor)
+void A4988_stepstick_UT::setup_motor_values(Motor* motor)
 {
-    motor->IOreset.PORT = MOT1_RESET_GPIO_Port;
-    motor->IOreset.PIN = MOT1_RESET_Pin;
-    motor->IOsleep.PORT = MOT1_SLEEP_GPIO_Port;
-    motor->IOsleep.PIN = MOT1_SLEEP_Pin;
-    motor->IOdirection.PORT = MOT1_DIRECTION_GPIO_Port;
-    motor->IOdirection.PIN = MOT1_DIRECTION_Pin;
-    motor->IOstep.PORT = MOT1_STEP_GPIO_Port;
-    motor->IOstep.PIN = MOT1_STEP_Pin;
-
-    motor->flags.isOn = 0;
-    motor->flags.reset = 0;
-    motor->flags.sleep = 0;
-    motor->flags.stepPhase = 0;
-    motor->flags.direction = 0;
-
-    motor->device.motorNum = 1;
-    motor->device.eepromDataAddress = 0x00;
-    motor->device.timerFrequency = 1000;
-    motor->device.stepSize = 203;
-    motor->device.isReversed = false;
-    motor->device.maxSpeed = 50;
-    motor->device.positionZero = 0 * ACCURACY;
-    motor->device.positionEnd = 20 * ACCURACY;
+    motor->settings.step_size = 203;
+    motor->settings.max_speed = 50;
+    motor->settings.position_zero = 0 * ACCURACY;
+    motor->settings.position_end = 20 * ACCURACY;
 }
-
+/*
 bool A4988_stepstick_test::compareDouble(double compared, double expected)
 {
     if(expected + ACCURACY > compared && expected - ACCURACY < compared)
@@ -406,16 +589,4 @@ bool A4988_stepstick_test::compareDouble(double compared, double expected)
         return false;
     }
 }
-
-
-
-/************************** MOCK DEFINITIONS **************************/
-
-extern "C"
-{
-    void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
-    {
-        A4988_stepstick_test::mock->HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
-    }
-}
-
+*/

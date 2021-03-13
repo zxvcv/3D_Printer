@@ -100,13 +100,14 @@ typedef struct Motor_Tag{
 
 void motor_update_pins(Motor* motor);
 
-void motor_init(Motor* motor);
-
-Std_Err motor_update(Motor* motor);
+void motor_init(Motor* motor, double timer_frequency,
+                IO_Pin reset_pins, IO_Pin sleep_pins, IO_Pin direction_pins, IO_Pin step_pins);
 
 Std_Err motor_start(Motor* motor);
 
 Std_Err motor_stop(Motor* motor);
+
+Std_Err motor_update(Motor* motor);
 
 void motor_set_counters(Motor* motor, MotorCounters* counters);
 
@@ -114,7 +115,7 @@ void motor_set_direction(Motor* motor, unsigned int direction);
 
 Std_Err motor_set_position(Motor* motor, double position);
 
-Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
                                        MotorCounters* counters, bool* direction);
 
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

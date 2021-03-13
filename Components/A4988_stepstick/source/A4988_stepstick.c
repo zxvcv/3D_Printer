@@ -77,8 +77,18 @@ void motor_update_pins(Motor* motor)
 }
 
 
-void motor_init(Motor* motor)
+void motor_init(Motor* motor, double timer_frequency,
+                IO_Pin reset_pins, IO_Pin sleep_pins, IO_Pin direction_pins, IO_Pin step_pins)
 {
+    motor->IOreset.PORT = reset_pins.PORT;
+    motor->IOreset.PIN = reset_pins.PIN;
+    motor->IOsleep.PORT = sleep_pins.PORT;
+    motor->IOsleep.PIN = sleep_pins.PIN;
+    motor->IOdirection.PORT = direction_pins.PORT;
+    motor->IOdirection.PIN = direction_pins.PIN;
+    motor->IOstep.PORT = step_pins.PORT;
+    motor->IOstep.PIN = step_pins.PIN;
+
     motor->flags.isOn = 0;
     motor->flags.reset = 0;
     motor->flags.sleep = 1;
@@ -90,13 +100,68 @@ void motor_init(Motor* motor)
     motor->counters.timer_start = 0;
     motor->counters.steps = 0;
 
-    motor->settings.timer_frequency = 0.0;
+    motor->settings.timer_frequency = timer_frequency;
     motor->settings.step_size = 0;
     motor->settings.max_speed = 0;
     motor->settings.position_zero = 0;
     motor->settings.position_end = 0;
 
     motor_update_pins(motor);
+}
+
+
+Std_Err motor_start(Motor* motor)
+{
+    if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
+    {
+        return STD_PARAMETER_ERROR;
+    }
+
+    if(motor->flags.reset)
+    {
+        return STD_ERROR;
+    }
+
+    if(motor->flags.stepPhase != LOW)
+    {
+        return STD_ERROR;
+    }
+
+    motor->flags.sleep = 0;
+    motor->flags.isOn = 1;
+
+    motor_update_pins(motor);
+
+    return STD_OK;
+}
+
+
+Std_Err motor_stop(Motor* motor)
+{
+    Std_Err retVal = STD_OK;
+
+    if(motor->flags.reset)
+    {
+        return STD_ERROR;
+    }
+
+    motor->flags.isOn = 0;
+    motor->flags.sleep = 1;
+
+    if(motor->flags.stepPhase != LOW)
+    {
+        motor->flags.stepPhase = LOW;
+        // retVal = STD_IO_ERROR;
+    }
+
+    motor_update_pins(motor);
+
+    if(motor->counters.steps > 0 || motor->counters.timer > 0)
+    {
+        retVal = STD_INTERRUPTED_ERROR;
+    }
+
+    return retVal;
 }
 
 
@@ -143,61 +208,6 @@ Std_Err motor_update(Motor* motor)
     else
     {
         retVal = STD_ERROR;
-    }
-
-    return retVal;
-}
-
-
-Std_Err motor_start(Motor* motor)
-{
-    if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
-    if(motor->flags.reset)
-    {
-        return STD_ERROR;
-    }
-
-    if(motor->flags.stepPhase != LOW)
-    {
-        return STD_ERROR;
-    }
-
-    motor->flags.sleep = 0;
-    motor->flags.isOn = 1;
-
-    motor_update_pins(motor);
-
-    return STD_OK;
-}
-
-
-Std_Err motor_stop(Motor* motor)
-{
-    Std_Err retVal = STD_OK;
-
-    if(motor->flags.reset)
-    {
-        return STD_ERROR;
-    }
-
-    motor->flags.isOn = 0;
-    motor->flags.sleep = 1;
-
-    if(motor->flags.stepPhase != LOW)
-    {
-        motor->flags.stepPhase = LOW;
-        retVal = STD_IO_ERROR;
-    }
-
-    motor_update_pins(motor);
-
-    if(motor->counters.steps > 0 || motor->counters.timer > 0)
-    {
-        retVal = STD_INTERRUPTED_ERROR;
     }
 
     return retVal;

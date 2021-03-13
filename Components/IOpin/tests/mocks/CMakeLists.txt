@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET Mock_FIFO_void)
+set(LOCAL_TARGET Mock_IOpin)
 set(SOURCE_DIR .)
 set(HEADER_DIR .)
 set(COMPONENT_DIR ../..)
@@ -16,7 +16,7 @@ set(MAIN_APP_DIR ../../../..)
 
 #####################################   CREATE MOCK LIBRARY TARGET   ##############################
 add_library(${LOCAL_TARGET}
-    ${SOURCE_DIR}/Mock_FIFO_void.cpp
+    ${SOURCE_DIR}/Mock_IOpin.cpp
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
@@ -28,5 +28,4 @@ target_link_libraries(${LOCAL_TARGET} PRIVATE
     gmock_main
     Mock_HAL_Drivers
     Mock_Project_Config
-    Mock_Error_Codes
 )

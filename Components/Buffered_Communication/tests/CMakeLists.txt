@@ -31,7 +31,6 @@ target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
     Mock_Error_Codes
     Mock_FIFO_void
 )
-# target_compile_definitions(${TEST_COMPONENT_LIB} PRIVATE -DTESTS)
 
 
 
@@ -45,10 +44,10 @@ target_link_libraries(${LOCAL_TARGET} PRIVATE
     gtest_main
     gmock_main
 
-    #Mock_Project_Config
-    Mock_FIFO_void
-    Mock_Error_Codes
+    Mock_Project_Config
     Mock_HAL_Drivers
+    Mock_Error_Codes
+    Mock_FIFO_void
 )
 
 add_test(NAME ${LOCAL_TARGET}
