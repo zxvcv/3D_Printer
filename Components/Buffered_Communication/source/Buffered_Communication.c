@@ -129,7 +129,7 @@ Std_Err send_buffered_message_IT(BuffCommunication_Settings* settings)
         return stdErr;
     }
 
-    if(fifo_getSize(settings->Buff_OUT) > 1)
+    if(fifo_getSize(settings->Buff_OUT) > 0)
     {
         stdErr = fifo_front(settings->Buff_OUT, (void**)&data);
         if(stdErr != STD_OK)
