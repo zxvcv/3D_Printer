@@ -7,21 +7,28 @@ cmake_minimum_required(VERSION 3.16.3)
 #####################################   LOCAL VARIABLES   #########################################
 set(LOCAL_TARGET EEPROM_24AA01_UT)
 set(TEST_COMPONENT_LIB ${LOCAL_TARGET}lib)
-set(COMPONENTS_DIR ..)
-set(SOURCE_DIR ${COMPONENTS_DIR}/source)
-set(HEADER_DIR ${COMPONENTS_DIR}/header)
+set(COMPONENT_DIR ..)
+set(ALL_COMPONENTS_DIR ../..)
+set(MAIN_APP_DIR ../../..)
+set(SOURCE_DIR ${COMPONENT_DIR}/source)
+set(HEADER_DIR ${COMPONENT_DIR}/header)
 
 
 
 #####################################   TESTED COMPONENT LIBRARY   ################################
 include_directories(
     stubs
-    mocs
     ${HEADER_DIR}
 )
 
 add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/EEPROM_24AA01.c
+)
+
+target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
+    Mock_HAL_Drivers
+    Mock_Project_Config
+    Mock_Error_Codes
 )
 
 
@@ -31,10 +38,14 @@ add_executable(${LOCAL_TARGET}
     EEPROM_24AA01_UT.cpp
 )
 
-target_link_libraries(${LOCAL_TARGET} PUBLIC
+target_link_libraries(${LOCAL_TARGET} PRIVATE
+    ${TEST_COMPONENT_LIB}
     gtest_main
     gmock_main
-    ${TEST_COMPONENT_LIB}
+
+    Mock_Project_Config
+    Mock_HAL_Drivers
+    Mock_Error_Codes
 )
 
 add_test(NAME ${LOCAL_TARGET}

@@ -22,6 +22,7 @@ add_subdirectory(googletest ../bld_googletest)
 list(APPEND TESTS
     A4988_stepstick
     Buffered_Communication
+    EEPROM_24AA01
     Error_Codes
     FIFO_void
     IOpin

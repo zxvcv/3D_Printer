@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <stdint.h>
+
+#include "Mock_Project_Config.h"
+#include "Mock_HAL_Drivers.h"
+#include "Mock_Error_Codes.h"
 
 using ::testing::_;
 using ::testing::Assign;
@@ -8,68 +11,60 @@ using ::testing::Return;
 using ::testing::SetArrayArgument;
 
 #define _24AA01_MEM_SIZE        ((uint16_t)128) //Bytes
-#define _24AA01_PAGE_SIZE       ((uint16_t)8) 	//Bytes
+#define _24AA01_PAGE_SIZE       ((uint16_t)8)   //Bytes
 
 extern "C"
 {
     #include "EEPROM_24AA01.h"
-
-    Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
 }
 
 
-class Mock_EEPROM_24AA01 {
+class EEPROM_24AA01_UT : public ::testing::Test
+{
 public:
- 
-    MOCK_METHOD7(HAL_I2C_Mem_Write, HAL_StatusTypeDef(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
-        uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout));
-    MOCK_METHOD7(HAL_I2C_Mem_Read, HAL_StatusTypeDef(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
-        uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout));
-    MOCK_METHOD1(translate_error_hal_to_project, Std_Err(HAL_StatusTypeDef halStatus));
-};
-
-class EEPROM_24AA01_test : public ::testing::Test {
-public:
-    EEPROM_24AA01_test()
+    EEPROM_24AA01_UT()
     {
-        mock = new Mock_EEPROM_24AA01();
+         mock_HAL_Drivers = new Mock_HAL_Drivers();
     }
-    ~EEPROM_24AA01_test()
+    ~EEPROM_24AA01_UT()
     {
-        delete mock;
+        delete  mock_HAL_Drivers;
     }
 
     virtual void SetUp()
     {
         memory = new uint8_t[128];
+        hi2c = (I2C_HandleTypeDef*)malloc(sizeof(I2C_HandleTypeDef));
         eeprom = (EEPROMSettings*)malloc(sizeof(EEPROMSettings));
-        setupEeprom(eeprom);
+
+        EEPROM_init(eeprom, hi2c);
     }
 
     virtual void TearDown()
     {
-        delete[] memory;
         free(eeprom);
+        free(hi2c);
+
+        delete[] memory;
     }
 
 
-    void setupEeprom(EEPROMSettings* motor);
-
     uint8_t* memory;
     EEPROMSettings* eeprom;
+    I2C_HandleTypeDef* hi2c;
 
-    static Mock_EEPROM_24AA01* mock;
+    static Mock_HAL_Drivers* mock_HAL_Drivers;
 };
 
-Mock_EEPROM_24AA01* EEPROM_24AA01_test::mock;
+Mock_HAL_Drivers* EEPROM_24AA01_UT::mock_HAL_Drivers;
 
 
 
 /************************** TESTS **************************/
 
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasic__test)
+TEST_F(EEPROM_24AA01_UT, EEPROM_clear_basic)
 {
-    Std_Err err;
+    Std_Err stdErr;
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -79,7 +74,7 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasic__test)
     uint8_t offset = 0;
     for(int i=0; i<_24AA01_MEM_SIZE/_24AA01_PAGE_SIZE; ++i)
     {
-        EXPECT_CALL(*mock, HAL_I2C_Mem_Write(_, _, offset, 1, _, _24AA01_PAGE_SIZE, _))
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_I2C_Mem_Write(_, _, offset, 1, _, _24AA01_PAGE_SIZE, _))
             .Times(1).WillRepeatedly(DoAll(
                 Assign(memory + offset + 0, (uint8_t)0),
                 Assign(memory + offset + 1, (uint8_t)0),
@@ -95,8 +90,8 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasic__test)
         offset += _24AA01_PAGE_SIZE;
     }
 
-    err = EEPROM_clear(eeprom);
-    EXPECT_EQ(err, STD_OK);
+    stdErr = EEPROM_clear(eeprom);
+    EXPECT_EQ(stdErr, STD_OK);
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -104,9 +99,9 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasic__test)
     }
 }
 
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasicErr__test)
+TEST_F(EEPROM_24AA01_UT, EEPROM_clear_basic_err)
 {
-    Std_Err err;
+    Std_Err stdErr;
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -114,8 +109,8 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasicErr__test)
     }
     eeprom->isReady = false;
 
-    err = EEPROM_clear(eeprom);
-    EXPECT_EQ(err, STD_BUSY_ERROR);
+    stdErr = EEPROM_clear(eeprom);
+    EXPECT_EQ(stdErr, STD_BUSY_ERROR);
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -123,9 +118,9 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__clearBasicErr__test)
     }
 }
 
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__writeAll__test)
+TEST_F(EEPROM_24AA01_UT, EEPROM_write_all)
 {
-    Std_Err err;
+    Std_Err stdErr;
     uint8_t test[128];
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
@@ -137,7 +132,7 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__writeAll__test)
     uint8_t offset = 0;
     for(int i=0; i<_24AA01_MEM_SIZE/_24AA01_PAGE_SIZE; ++i)
     {
-        EXPECT_CALL(*mock, HAL_I2C_Mem_Write(_, _, offset, 1, test + offset, _24AA01_PAGE_SIZE, _))
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_I2C_Mem_Write(_, _, offset, 1, test + offset, _24AA01_PAGE_SIZE, _))
             .Times(1).WillRepeatedly(DoAll(
                 Assign(memory + offset + 0, test[offset + 0]),
                 Assign(memory + offset + 1, test[offset + 1]),
@@ -153,8 +148,8 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__writeAll__test)
         offset += _24AA01_PAGE_SIZE;
     }
 
-    err = EEPROM_writeData(eeprom, 0x00, test, 128);
-    EXPECT_EQ(err, STD_OK);
+    stdErr = EEPROM_writeData(eeprom, 0x00, test, 128);
+    EXPECT_EQ(stdErr, STD_OK);
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -162,9 +157,9 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__writeAll__test)
     }
 }
 
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsInPlace__test)
+TEST_F(EEPROM_24AA01_UT, EEPROM_write_16bits_in_place)
 {
-    Std_Err err;
+    Std_Err stdErr;
     uint8_t test[2];
 
     test[0] = 210; test[1] = 220;
@@ -176,15 +171,15 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsInPlace__test)
 
     uint8_t offset = 8;
 
-    EXPECT_CALL(*mock, HAL_I2C_Mem_Write(_, _, offset, 1, test, 2, _))
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_I2C_Mem_Write(_, _, offset, 1, test, 2, _))
         .Times(1).WillRepeatedly(DoAll(
             Assign(memory + offset + 0, test[0]),
             Assign(memory + offset + 1, test[1]),
             Return(HAL_OK)
             ));
 
-    err = EEPROM_writeData(eeprom, offset, test, 2);
-    EXPECT_EQ(err, STD_OK);
+    stdErr = EEPROM_writeData(eeprom, offset, test, 2);
+    EXPECT_EQ(stdErr, STD_OK);
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -197,9 +192,9 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsInPlace__test)
     }
 }
 
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsOutPlace__test)
+TEST_F(EEPROM_24AA01_UT, EEPROM_write_16bits_out_place)
 {
-    Std_Err err;
+    Std_Err stdErr;
     uint8_t test[2];
 
     test[0] = 0; test[1] = 0;
@@ -211,20 +206,20 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsOutPlace__test)
 
     uint8_t offset = 15;
 
-    EXPECT_CALL(*mock, HAL_I2C_Mem_Write(_, _, offset, 1, test, 1, _))
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_I2C_Mem_Write(_, _, offset, 1, test, 1, _))
         .Times(1).WillRepeatedly(DoAll(
             Assign(memory + offset + 0, test[0]),
             Return(HAL_OK)
             ));
 
-    EXPECT_CALL(*mock, HAL_I2C_Mem_Write(_, _, offset + 1, 1, test + 1, 1, _))
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_I2C_Mem_Write(_, _, offset + 1, 1, test + 1, 1, _))
         .Times(1).WillRepeatedly(DoAll(
             Assign(memory + offset + 1, test[1]),
             Return(HAL_OK)
             ));
 
-    err = EEPROM_writeData(eeprom, offset, test, 2);
-    EXPECT_EQ(err, STD_OK);
+    stdErr = EEPROM_writeData(eeprom, offset, test, 2);
+    EXPECT_EQ(stdErr, STD_OK);
 
     for(int i=0; i<_24AA01_MEM_SIZE; ++i)
     {
@@ -236,8 +231,9 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__write16bitsOutPlace__test)
             EXPECT_EQ(memory[i], 255);
     }
 }
-/*I DONT KNOW WHY THIS TEST DONT WANNA WORK ??? (SEGMENTATION FAULT)
-TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__read16bits__test)
+/*
+I DONT KNOW WHY THIS TEST DONT WANNA WORK ??? (SEGMENTATION FAULT)
+TEST_F(EEPROM_24AA01_UT, EEPROM_24AA01__read16bits__test)
 {
     Std_Err err;
     uint8_t test[2];
@@ -267,40 +263,3 @@ TEST_F(EEPROM_24AA01_test, EEPROM_24AA01__read16bits__test)
     EXPECT_EQ(test[1], 10);
 }
 */
-
-
-
-/************************** PUBLIC FUNCTIONS **************************/
-
-void EEPROM_24AA01_test::setupEeprom(EEPROMSettings* motor)
-{
-    motor->isReady = true;
-    motor->i2c = &hi2c1;
-}
-
-
-
-/************************** MOCK DEFINITIONS **************************/
-
-extern "C"
-{
-    HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
-        uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout)
-    {
-        return EEPROM_24AA01_test::mock->HAL_I2C_Mem_Write(hi2c, DevAddress, MemAddress, MemAddSize, 
-                    pData, Size, Timeout);
-    }
-
-    HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, 
-        uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout)
-    {
-        return EEPROM_24AA01_test::mock->HAL_I2C_Mem_Read(hi2c, DevAddress, MemAddress,  MemAddSize, 
-                    pData, Size, Timeout);
-    }
-
-    Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus)
-    {
-        return EEPROM_24AA01_test::mock->translate_error_hal_to_project(halStatus);
-    }
-}
-
