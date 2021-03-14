@@ -287,285 +287,345 @@ TEST_F(A4988_stepstick_UT, motor_stop_workInProgress)
     EXPECT_EQ(motor->flags.stepPhase, 0);
 }
 
-/*
-TEST_F(A4988_stepstick_test, a4988_stepstick__BasicWork2Steps__test)
+TEST_F(A4988_stepstick_UT, motor_update_timerDecrease)
 {
-    bool ret;
+    Std_Err stdErr;
 
-    motor->changeTime = 1;
-    motor->counters.changeTime = 1;
-    motor->counters.stepLeft = 2; // 1 step
-
-    motor->flags.sleep = 0;
+    motor->counters.timer = 5;
+    motor->counters.timer_start = 10;
+    motor->counters.steps = 5;
     motor->flags.isOn = 1;
+    motor->flags.reset = 0;
+    motor->flags.sleep = 0;
 
-    EXPECT_EQ(motor->flags.reset, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
-
-    for(int i=0; i<2; ++i)
-    {
-        EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-
-        ret = motorUpdate(motor);
-        EXPECT_TRUE(ret) << "iteration: " << i << std::endl;
-    }
-
-    EXPECT_EQ(motor->counters.stepLeft, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
-    EXPECT_EQ(motor->flags.isOn, 0);
-    EXPECT_EQ(motor->flags.sleep, 1);
-}
-
-TEST_F(A4988_stepstick_test, a4988_stepstick__Start__test)
-{
-    bool ret;
-
-    motor->changeTime = 1;
-    motor->counters.changeTime = 1;
-    motor->counters.stepLeft = 2; // 1 step
-
-    EXPECT_EQ(motor->flags.reset, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
-
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStart(motor);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(motor->flags.sleep, 0);
+    stdErr = motor_update(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_EQ(motor->counters.timer, 4);
+    EXPECT_EQ(motor->counters.timer_start, 10);
+    EXPECT_EQ(motor->counters.steps, 5);
     EXPECT_EQ(motor->flags.isOn, 1);
+    EXPECT_EQ(motor->flags.sleep, 0);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__StopBeforeMoveIsEnded_HalfStepMove__test)
+TEST_F(A4988_stepstick_UT, motor_update_stepDecrease)
 {
-    bool ret;
+    Std_Err stdErr;
 
-    motor->changeTime = 1;
-    motor->counters.changeTime = 1;
-    motor->counters.stepLeft = 4; // 1 step
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 10;
+    motor->counters.steps = 5;
+    motor->flags.isOn = 1;
+    motor->flags.reset = 0;
+    motor->flags.sleep = 0;
 
-    EXPECT_EQ(motor->flags.reset, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStart(motor);
-    EXPECT_FALSE(ret);
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorUpdate(motor);
-    EXPECT_TRUE(ret);
+    stdErr = motor_update(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_EQ(motor->counters.timer, 10);
+    EXPECT_EQ(motor->counters.timer_start, 10);
+    EXPECT_EQ(motor->counters.steps, 4);
+    EXPECT_EQ(motor->flags.isOn, 1);
+    EXPECT_EQ(motor->flags.sleep, 0);
+}
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStop(motor);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(motor->counters.stepLeft, 3);
+TEST_F(A4988_stepstick_UT, motor_update_end)
+{
+    Std_Err stdErr;
+
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 10;
+    motor->counters.steps = 1;
+    motor->flags.isOn = 1;
+    motor->flags.reset = 0;
+    motor->flags.sleep = 0;
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+
+    stdErr = motor_update(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    EXPECT_EQ(motor->counters.timer, 10);
+    EXPECT_EQ(motor->counters.timer_start, 10);
+    EXPECT_EQ(motor->counters.steps, 0);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__StopBeforeMoveIsEnded_FullStepMove__test)
+TEST_F(A4988_stepstick_UT, motor_set_position_position_ok)
 {
-    bool ret;
+    Std_Err stdErr;
 
-    motor->changeTime = 1;
-    motor->counters.changeTime = 1;
-    motor->counters.stepLeft = 4; // 1 step
+    motor->settings.step_size = 203;
+
+    stdErr = motor_set_position(motor, 10.);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_EQ(motor->data.position, 49);
+    EXPECT_EQ(motor->data.position_error, 53);
+}
+
+TEST_F(A4988_stepstick_UT, motor_set_position_position_error)
+{
+    Std_Err stdErr;
+
+    motor->settings.step_size = 203;
+
+    stdErr = motor_set_position(motor, (-10.0));
+    EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
+
+    EXPECT_EQ(motor->data.position, 0);
+    EXPECT_EQ(motor->data.position_error, 0);
+}
+
+TEST_F(A4988_stepstick_UT, basic_work_2steps)
+{
+    Std_Err stdErr;
+
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 1;
+    motor->counters.steps = 2;
+
+    motor->flags.isOn = 1;
+    motor->flags.sleep = 0;
 
     EXPECT_EQ(motor->flags.reset, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStart(motor);
-    EXPECT_FALSE(ret);
     for(int i=0; i<2; ++i)
     {
-        EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-        ret = motorUpdate(motor);
-        EXPECT_TRUE(ret);
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+            .Times(4);
+
+        stdErr = motor_update(motor);
+        EXPECT_EQ(stdErr, STD_OK) << "iteration: " << i << std::endl;
     }
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStop(motor);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(motor->counters.stepLeft, 2);
+    EXPECT_EQ(motor->counters.steps, 0);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__StopAfterMoveIsEnded__test)
+TEST_F(A4988_stepstick_UT, stop_before_move_is_ended_half_step_move)
 {
-    bool ret;
+    Std_Err stdErr;
 
-    motor->changeTime = 1;
-    motor->counters.changeTime = 1;
-    motor->counters.stepLeft = 4; // 1 step
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 1;
+    motor->counters.steps = 4;
 
     EXPECT_EQ(motor->flags.reset, 0);
-    EXPECT_EQ(motor->flags.stepPhase, LOW);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStart(motor);
-    EXPECT_FALSE(ret);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_start(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_update(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_INTERRUPTED_ERROR);
+
+    EXPECT_EQ(motor->counters.steps, 3);
+    EXPECT_EQ(motor->flags.isOn, 0);
+    EXPECT_EQ(motor->flags.sleep, 1);
+}
+
+TEST_F(A4988_stepstick_UT, stop_before_move_is_ended_full_step_move)
+{
+    Std_Err stdErr;
+
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 1;
+    motor->counters.steps = 4;
+
+    EXPECT_EQ(motor->flags.reset, 0);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_start(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+    for(int i=0; i<2; ++i)
+    {
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+            .Times(4);
+        stdErr = motor_update(motor);
+        EXPECT_EQ(stdErr, STD_OK);
+    }
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_INTERRUPTED_ERROR);
+
+    EXPECT_EQ(motor->counters.steps, 2);
+    EXPECT_EQ(motor->flags.isOn, 0);
+    EXPECT_EQ(motor->flags.sleep, 1);
+}
+
+TEST_F(A4988_stepstick_UT, stop_after_move_is_ended)
+{
+    Std_Err stdErr;
+
+    motor->counters.timer = 1;
+    motor->counters.timer_start = 1;
+    motor->counters.steps = 4;
+
+    EXPECT_EQ(motor->flags.reset, 0);
+    EXPECT_EQ(motor->flags.stepPhase, 0);
+
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_start(motor);
+    EXPECT_EQ(stdErr, STD_OK);
     for(int i=0; i<4; ++i)
     {
-        EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-        ret = motorUpdate(motor);
-        EXPECT_TRUE(ret);
+        EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+            .Times(4);
+        stdErr = motor_update(motor);
+        EXPECT_EQ(stdErr, STD_OK);
     }
 
-    EXPECT_CALL(*mock, HAL_GPIO_WritePin(_, _, _)).Times(4);
-    ret = motorStop(motor);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(motor->counters.stepLeft, 0);
+    EXPECT_CALL(*mock_HAL_Drivers, HAL_GPIO_WritePin(_, _, _))
+        .Times(4);
+    stdErr = motor_stop(motor);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_EQ(motor->counters.steps, 0);
     EXPECT_EQ(motor->flags.isOn, 0);
     EXPECT_EQ(motor->flags.sleep, 1);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic1__test)
+TEST_F(A4988_stepstick_UT, linear_move_get_basic1)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = 5.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    stdErr = motor_get_linear_move_settings(motor, 5., 1., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(motor->counters.stepLeft, 50);
-    EXPECT_EQ(motor->counters.changeTime, 10);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, ((int)-75));
-    EXPECT_TRUE(compareDouble(roundingError.speedError, -0.15));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 101);
+    EXPECT_EQ(expected_countersOUT.steps, 50);
+    EXPECT_EQ(expected_directionOUT, false);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_Basic2__test)
+TEST_F(A4988_stepstick_UT, linear_move_get_basic2)
 {
+    Std_Err stdErr;
 
-    bool ret;
-    RoundingErrorData roundingError;
+    MotorCounters expected_countersOUT;
+    bool expected_directionOUT;
 
-    double testMove = 7.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    stdErr = motor_get_linear_move_settings(motor, 7., 10., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
-
-    EXPECT_EQ(motor->counters.stepLeft, 68);
-    EXPECT_EQ(motor->counters.changeTime, 10);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, ((int)98));
-    EXPECT_TRUE(compareDouble(roundingError.speedError, -0.15));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 10);
+    EXPECT_EQ(expected_countersOUT.steps, 68);
+    EXPECT_EQ(expected_directionOUT, false);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_SpeedOutOfRange__test)
+TEST_F(A4988_stepstick_UT, linear_move_speed_out_of_range)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = 5.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 100;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    stdErr = motor_get_linear_move_settings(motor, 5., motor->settings.max_speed + 1, ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
 
-    EXPECT_EQ(motor->counters.stepLeft, 0);
-    EXPECT_EQ(motor->counters.changeTime, 0);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, 0);
-    EXPECT_TRUE(compareDouble(roundingError.speedError, 0));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 0);
+    EXPECT_EQ(expected_countersOUT.steps, 0);
+    EXPECT_EQ(expected_directionOUT, false);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveLowOutOfRange__test)
+TEST_F(A4988_stepstick_UT, linear_move_move_minus_out_of_range)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = -15.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    stdErr = motor_get_linear_move_settings(motor, motor->settings.position_zero - 1, 10., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
 
-    EXPECT_EQ(motor->counters.stepLeft, 0);
-    EXPECT_EQ(motor->counters.changeTime, 0);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, 0);
-    EXPECT_TRUE(compareDouble(roundingError.speedError, 0));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 0);
+    EXPECT_EQ(expected_countersOUT.steps, 0);
+    EXPECT_EQ(expected_directionOUT, false);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveHighOutOfRange__test)
+TEST_F(A4988_stepstick_UT, linear_move_move_plus_out_of_range)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = 15.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_TRUE(ret);
+    stdErr = motor_get_linear_move_settings(motor, motor->settings.position_end + 1, 10., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_PARAMETER_ERROR);
 
-    EXPECT_EQ(motor->counters.stepLeft, 0);
-    EXPECT_EQ(motor->counters.changeTime, 0);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, 0);
-    EXPECT_TRUE(compareDouble(roundingError.speedError, 0));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 0);
+    EXPECT_EQ(expected_countersOUT.steps, 0);
+    EXPECT_EQ(expected_directionOUT, false);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveLowOnTheBorder__test)
+TEST_F(A4988_stepstick_UT, linear_move_move_minus_on_the_border)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = -10.;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
+
     motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    stdErr = motor_get_linear_move_settings(motor, -10., 10., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(motor->counters.stepLeft,98);
-    EXPECT_EQ(motor->counters.changeTime, 10);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, ((int)-53));
-    EXPECT_TRUE(compareDouble(roundingError.speedError, -0.15));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 10);
+    EXPECT_EQ(expected_countersOUT.steps, 98);
+    EXPECT_EQ(expected_directionOUT, true);
 }
 
-TEST_F(A4988_stepstick_test, a4988_stepstick__SettingMove_MoveHighOnTheBorder__test)
+TEST_F(A4988_stepstick_UT, linear_move_move_plus_on_the_border)
 {
-    bool ret;
-    RoundingErrorData roundingError;
+    Std_Err stdErr;
 
-    double testMove = 10.;
-    motor->data.position = 10 * ACCURACY;
-    motor->data.speed = 10;
-    motor->data.err.moveError = 0;
-    motor->data.err.speedError = 0;
+    MotorCounters expected_countersOUT = {};
+    bool expected_directionOUT = false;
 
-    ret = motorSetMove(motor, testMove, &roundingError);
-    EXPECT_FALSE(ret);
+    stdErr = motor_get_linear_move_settings(motor, 10., 10., ACCURACY,
+        &expected_countersOUT, &expected_directionOUT);
+    EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_EQ(motor->counters.stepLeft, 98);
-    EXPECT_EQ(motor->counters.changeTime, 10);
-    EXPECT_EQ(motor->changeTime, motor->counters.changeTime);
-    EXPECT_EQ(roundingError.moveError, ((int)53));
-    EXPECT_TRUE(compareDouble(roundingError.speedError, -0.15));
+    EXPECT_EQ(expected_countersOUT.timer, expected_countersOUT.timer_start);
+    EXPECT_EQ(expected_countersOUT.timer, 10);
+    EXPECT_EQ(expected_countersOUT.steps, 98);
+    EXPECT_EQ(expected_directionOUT, false);
 }
-*/
+
 
 
 /************************** PUBLIC FUNCTIONS **************************/
@@ -576,17 +636,7 @@ void A4988_stepstick_UT::setup_motor_values(Motor* motor)
     motor->settings.max_speed = 50;
     motor->settings.position_zero = 0 * ACCURACY;
     motor->settings.position_end = 20 * ACCURACY;
+
+    motor->data.position = 0;
+    motor->data.position_error = 0;
 }
-/*
-bool A4988_stepstick_test::compareDouble(double compared, double expected)
-{
-    if(expected + ACCURACY > compared && expected - ACCURACY < compared)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-*/

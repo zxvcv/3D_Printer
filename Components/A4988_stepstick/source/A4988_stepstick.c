@@ -156,7 +156,7 @@ Std_Err motor_stop(Motor* motor)
 
     motor_update_pins(motor);
 
-    if(motor->counters.steps > 0 || motor->counters.timer > 0)
+    if(motor->counters.steps > 0)
     {
         retVal = STD_INTERRUPTED_ERROR;
     }
@@ -291,6 +291,9 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
 
     if(accuracy1 == INT_MAX && accuracy2 == INT_MAX)
     {
+        counters->timer = 0;
+        counters->timer_start = 0;
+
         return STD_PARAMETER_ERROR;
     }
     else if(abs(accuracy1) <= abs(accuracy2))
