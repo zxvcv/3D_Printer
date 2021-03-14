@@ -16,7 +16,6 @@ set(HEADER_DIR ${COMPONENTS_DIR}/header)
 #####################################   TESTED COMPONENT LIBRARY   ################################
 include_directories(
     stubs
-    mocs
     ${HEADER_DIR}
 )
 
@@ -27,13 +26,15 @@ add_library(${TEST_COMPONENT_LIB}
 
 
 #####################################   TEST   ####################################################
-add_executable(${LOCAL_TARGET} 
+add_executable(${LOCAL_TARGET}
     Error_Codes_UT.cpp
 )
 
 target_link_libraries(${LOCAL_TARGET} PUBLIC
-    gtest_main
     ${TEST_COMPONENT_LIB}
+    gtest_main
+    gmock_main
+
 )
 
 add_test(NAME ${LOCAL_TARGET}

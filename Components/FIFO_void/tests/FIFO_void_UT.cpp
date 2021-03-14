@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "Mock_Project_Config.h"
+#include "Mock_Error_Codes.h"
+
 #define TAB_SIZE 5
 
 extern "C"
@@ -7,11 +10,11 @@ extern "C"
     #include "FIFO_void.h"
 }
 
-class FIFO_void_test : public ::testing::Test {
+class FIFO_void_UT: public ::testing::Test {
 public:
-    FIFO_void_test(){}
-    ~FIFO_void_test(){}
-    
+    FIFO_void_UT(){}
+    ~FIFO_void_UT(){}
+
     virtual void SetUp()
     {
         Std_Err stdErr;
@@ -49,7 +52,7 @@ public:
 
 /************************** TESTS **************************/
 
-TEST_F(FIFO_void_test, listC_basicOperations) 
+TEST_F(FIFO_void_UT, listC_basicOperations)
 {
     Std_Err stdErr;
     int* data = nullptr;
@@ -57,7 +60,7 @@ TEST_F(FIFO_void_test, listC_basicOperations)
     fifoType = COPY;
 
     EXPECT_EQ(fifo_getSize(list), 0);
-    
+
     for(int i=0; i<TAB_SIZE; ++i)
     {
         stdErr = fifo_push_C(list, &(tab[i]), sizeof(tab[i]));
@@ -88,11 +91,11 @@ TEST_F(FIFO_void_test, listC_basicOperations)
 
         EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i-1);
     }
-    
+
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(FIFO_void_test, listC_clear)
+TEST_F(FIFO_void_UT, listC_clear)
 {
     Std_Err stdErr;
 
@@ -106,7 +109,7 @@ TEST_F(FIFO_void_test, listC_clear)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(FIFO_void_test, listC_getDataSize)
+TEST_F(FIFO_void_UT, listC_getDataSize)
 {
     fifoType = COPY;
 
@@ -118,7 +121,7 @@ TEST_F(FIFO_void_test, listC_getDataSize)
     }
 }
 
-TEST_F(FIFO_void_test, listC_uninitializedList)
+TEST_F(FIFO_void_UT, listC_uninitializedList)
 {
     Std_Err stdErr;
 
@@ -140,7 +143,7 @@ TEST_F(FIFO_void_test, listC_uninitializedList)
     ASSERT_NE(list, nullptr);
 }
 
-TEST_F(FIFO_void_test, listNC_basicOperations) 
+TEST_F(FIFO_void_UT, listNC_basicOperations)
 {
     Std_Err stdErr;
     int* data;
@@ -178,11 +181,11 @@ TEST_F(FIFO_void_test, listNC_basicOperations)
 
         EXPECT_EQ(fifo_getSize(list), TAB_SIZE-i-1);
     }
-    
+
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(FIFO_void_test, listNC_clear)
+TEST_F(FIFO_void_UT, listNC_clear)
 {
     Std_Err stdErr;
 
@@ -196,7 +199,7 @@ TEST_F(FIFO_void_test, listNC_clear)
     EXPECT_EQ(fifo_getSize(list), 0);
 }
 
-TEST_F(FIFO_void_test, listNC_getDataSize)
+TEST_F(FIFO_void_UT, listNC_getDataSize)
 {
     fifoType = NON_COPY;
 
@@ -208,7 +211,7 @@ TEST_F(FIFO_void_test, listNC_getDataSize)
     }
 }
 
-TEST_F(FIFO_void_test, listNC_uninitializedList)
+TEST_F(FIFO_void_UT, listNC_uninitializedList)
 {
     Std_Err stdErr;
 
@@ -232,7 +235,7 @@ TEST_F(FIFO_void_test, listNC_uninitializedList)
 
 /************************** PUBLIC FUNCTIONS **************************/
 
-void FIFO_void_test::addValuesToQueue()
+void FIFO_void_UT::addValuesToQueue()
 {
     Std_Err stdErr;
 
@@ -242,7 +245,7 @@ void FIFO_void_test::addValuesToQueue()
             stdErr = fifo_push_C(list, &(tab[i]), sizeof(tab[i]));
         else
             stdErr = fifo_push_NC(list, &(tab[i]));
-        
+
         EXPECT_EQ(stdErr, STD_OK);
     }
     EXPECT_EQ(fifo_getSize(list), TAB_SIZE);

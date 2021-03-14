@@ -38,7 +38,7 @@ add_executable(${LOCAL_TARGET}
     A4988_stepstick_UT.cpp
 )
 
-target_link_libraries(${LOCAL_TARGET} PUBLIC
+target_link_libraries(${LOCAL_TARGET} PRIVATE
     ${TEST_COMPONENT_LIB}
     gtest_main
     gmock_main

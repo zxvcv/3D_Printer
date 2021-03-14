@@ -24,7 +24,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
     ${COMPONENT_DIR}/header
 )
 
-target_link_libraries(${LOCAL_TARGET} PRIVATE
+target_link_libraries(${LOCAL_TARGET} PUBLIC
     gmock_main
     Mock_HAL_Drivers
     Mock_Project_Config

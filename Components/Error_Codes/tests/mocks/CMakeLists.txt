@@ -22,10 +22,9 @@ add_library(${LOCAL_TARGET}
 target_include_directories(${LOCAL_TARGET} PUBLIC
     ${HEADER_DIR}
     ${COMPONENT_DIR}/header
-    #${MAIN_APP_DIR}/Drivers/STM32F3xx_HAL_Driver/tests/stubs
 )
 
-target_link_libraries(${LOCAL_TARGET} PRIVATE
+target_link_libraries(${LOCAL_TARGET} PUBLIC
     gmock_main
     Mock_HAL_Drivers
     Mock_Project_Config

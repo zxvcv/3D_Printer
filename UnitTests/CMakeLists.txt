@@ -22,6 +22,7 @@ add_subdirectory(googletest ../bld_googletest)
 list(APPEND TESTS
     A4988_stepstick
     Buffered_Communication
+    FIFO_void
     #---add new tests here---
 )
 
