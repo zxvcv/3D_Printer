@@ -34,7 +34,7 @@
 
 Std_Err init_G92(GCodeCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = NULL;
 
     Motor* motors = global_gcode_settings.motors;

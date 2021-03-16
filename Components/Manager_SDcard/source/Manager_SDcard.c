@@ -212,7 +212,7 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
         /* there is no next step to process, deinitialize command */
         if(sdcard_flags.executing_command && executingCmd.step == NULL && motors_state)
         {
-            stdErr = executingCmd.delete(&executingCmd);
+            stdErr = executingCmd.remove(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;

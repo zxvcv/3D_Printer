@@ -34,7 +34,7 @@
 
 Std_Err init_U21(SystemCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = NULL;
 
     // Std_Err stdErr;

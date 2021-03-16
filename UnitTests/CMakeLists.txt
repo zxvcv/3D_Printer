@@ -22,9 +22,11 @@ add_subdirectory(googletest ../bld_googletest)
 list(APPEND TESTS
     A4988_stepstick
     Buffered_Communication
+    Command_Parser
     EEPROM_24AA01
     Error_Codes
     FIFO_void
+    GCode_Parser
     IOpin
     Project_Config
     Vector_Math
@@ -32,10 +34,12 @@ list(APPEND TESTS
 )
 
 list(APPEND MOCKS
+    A4988_stepstick
     Error_Codes
     FIFO_void
     IOpin
     Project_Config
+    Vector_Math
     #---add new mocks here---
 )
 

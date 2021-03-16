@@ -62,7 +62,7 @@ typedef struct GCodeGlobal_Tag{
 
 typedef struct GCodeCommand_Tag{
     Std_Err (*init)(struct GCodeCommand_Tag*);
-    Std_Err (*delete)(struct GCodeCommand_Tag*);
+    Std_Err (*remove)(struct GCodeCommand_Tag*);
 
     Std_Err (*step)(struct GCodeCommand_Tag*);
 

@@ -42,7 +42,7 @@ Std_Err step_U11(SystemCommand* cmd)
 
 Std_Err init_U11(SystemCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = step_U11;
 
     // Std_Err stdErr;

@@ -34,7 +34,7 @@
 
 Std_Err init_M140(GCodeCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = NULL;
 
     //...

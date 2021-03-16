@@ -86,7 +86,7 @@ Std_Err step_G28(GCodeCommand* cmd)
 
 Std_Err init_G28(GCodeCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = step_G28;
 
     Motor* motors = global_gcode_settings.motors;

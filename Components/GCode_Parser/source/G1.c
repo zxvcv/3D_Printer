@@ -93,7 +93,7 @@ Std_Err step_G1(GCodeCommand* cmd)
 
 Std_Err init_G1(GCodeCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = step_G1;
 
     Motor* motors = global_gcode_settings.motors;

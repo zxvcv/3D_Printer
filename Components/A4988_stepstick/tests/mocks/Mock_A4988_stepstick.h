@@ -2,11 +2,17 @@
 
 #include <gmock/gmock.h>
 
+extern "C"
+{
+    #include "A4988_stepstick.h"
+}
 
 class Mock_A4988_stepstick {
 public:
+    Mock_A4988_stepstick() { mock = this; }
     MOCK_METHOD1(motor_update_pins, void(Motor* motor));
-    MOCK_METHOD1(motor_init, void(Motor* motor));
+    MOCK_METHOD6(motor_init, void(Motor* motor, double timer_frequency, IO_Pin reset_pins,
+        IO_Pin sleep_pins, IO_Pin direction_pins, IO_Pin step_pins));
     MOCK_METHOD1(motor_update, Std_Err(Motor* motor));
     MOCK_METHOD1(motor_start, Std_Err(Motor* motor));
     MOCK_METHOD1(motor_stop, Std_Err(Motor* motor));

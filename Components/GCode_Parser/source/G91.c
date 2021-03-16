@@ -34,7 +34,7 @@
 
 Std_Err init_G91(GCodeCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = NULL;
 
     global_gcode_settings.positioning_mode = RELATIVE;

@@ -163,7 +163,7 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
         /* there is no next step to process, deinitialize command */
         if(communication_flags.executing_command && executingCmd.step == NULL && motors_state)
         {
-            stdErr = executingCmd.delete(&executingCmd);
+            stdErr = executingCmd.remove(&executingCmd);
             if(stdErr != STD_OK)
             {
                 return stdErr;

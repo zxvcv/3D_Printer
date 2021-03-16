@@ -42,7 +42,7 @@ Std_Err step_U10(SystemCommand* cmd)
 
 Std_Err init_U10(SystemCommand* cmd)
 {
-    cmd->delete = NULL;
+    cmd->remove = NULL;
     cmd->step = step_U10;
 
     // Std_Err stdErr;

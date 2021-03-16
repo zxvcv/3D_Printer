@@ -60,7 +60,7 @@ typedef struct SystemCmdGlobal_Tag{
 
 typedef struct SystemCommand_Tag{
     Std_Err (*init)(struct SystemCommand_Tag*);
-    Std_Err (*delete)(struct SystemCommand_Tag*);
+    Std_Err (*remove)(struct SystemCommand_Tag*);
 
     Std_Err (*step)(struct SystemCommand_Tag*);
 
