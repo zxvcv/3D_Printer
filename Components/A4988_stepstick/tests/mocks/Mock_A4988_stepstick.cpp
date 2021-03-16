@@ -47,10 +47,10 @@ extern "C"
         return Mock_A4988_stepstick::mock->motor_set_position(motor, position);
     }
 
-    Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int ACCURACY,
+    Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
                                            MotorCounters* counters, bool* direction)
     {
-        return Mock_A4988_stepstick::mock->motor_get_linear_move_settings(motor, move, speed, ACCURACY,
+        return Mock_A4988_stepstick::mock->motor_get_linear_move_settings(motor, move, speed, accuracy,
                                                                    counters, direction);
     }
 }

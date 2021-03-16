@@ -20,7 +20,7 @@ public:
     MOCK_METHOD2(motor_set_direction, void(Motor* motor, unsigned int direction));
     MOCK_METHOD2(motor_set_position, Std_Err(Motor* motor, double position));
     MOCK_METHOD6(motor_get_linear_move_settings, Std_Err(Motor* motor, double move, double speed,
-        const int ACCURACY, MotorCounters* counters, bool* direction));
+        const int accuracy, MotorCounters* counters, bool* direction));
 
 
     static Mock_A4988_stepstick* mock;

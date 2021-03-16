@@ -19,10 +19,22 @@ set(HEADER_DIR ${COMPONENT_DIR}/header)
 include_directories(
     stubs
     ${HEADER_DIR}
+    ${SOURCE_DIR}
 )
 
 add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/GCode_Parser.c
+
+    ${SOURCE_DIR}/G1.c
+    ${SOURCE_DIR}/G28.c
+    ${SOURCE_DIR}/G90.c
+    ${SOURCE_DIR}/G91.c
+    ${SOURCE_DIR}/G92.c
+    ${SOURCE_DIR}/M104.c
+    ${SOURCE_DIR}/M106.c
+    ${SOURCE_DIR}/M109.c
+    ${SOURCE_DIR}/M140.c
+    ${SOURCE_DIR}/M190.c
 )
 
 target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
