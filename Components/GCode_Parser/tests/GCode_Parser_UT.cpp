@@ -2,6 +2,7 @@
 
 #include "Mock_Project_Config.h"
 #include "Mock_A4988_stepstick.h"
+#include "Mock_Vector_Math.h"
 
 using ::testing::_;
 
@@ -18,21 +19,41 @@ public:
     GCode_Parser_UT()
     {
         mock_A4988_stepstick = new Mock_A4988_stepstick();
+        mock_Vector_Math = new Mock_Vector_Math();
     }
     ~GCode_Parser_UT()
     {
         delete mock_A4988_stepstick;
+        delete mock_Vector_Math;
     }
 
-    virtual void SetUp() {}
+    virtual void SetUp()
+    {
+        for(int i=0; i<MOTORS_NUM; ++i)
+        {
+            motors[i] = (Motor*)malloc(sizeof(Motor));
+        }
 
-    virtual void TearDown() {}
+        init_GCodeParser(*motors);
+    }
+
+    virtual void TearDown()
+    {
+        for(int i=0; i<MOTORS_NUM; ++i)
+        {
+            free(motors[i]);
+        }
+    }
+
+    Motor* motors[MOTORS_NUM];
 
     /* MOCKS */
     static Mock_A4988_stepstick* mock_A4988_stepstick;
+    static Mock_Vector_Math* mock_Vector_Math;
 };
 
 Mock_A4988_stepstick* GCode_Parser_UT::mock_A4988_stepstick;
+Mock_Vector_Math* GCode_Parser_UT::mock_Vector_Math;
 
 
 
@@ -101,4 +122,208 @@ TEST_F(GCode_Parser_UT, parser_test)
 
         EXPECT_EQ(cmdOUT.used_fields, test_values[i].expected_used_fields);
     }
+}
+
+TEST_F(GCode_Parser_UT, G1_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "G1 X10 Y15 Z20 E5 F10";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+
+    EXPECT_CALL(*mock_Vector_Math, getVelocity3D(_, _));
+    EXPECT_CALL(*mock_A4988_stepstick, motor_get_linear_move_settings(_, _, _, ACCURACY, _, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_set_counters(_, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_set_direction(_, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_start(_))
+        .Times(MOTORS_NUM);
+
+    stdErr = cmdOUT.step(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, G28_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "G28";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+
+    EXPECT_CALL(*mock_Vector_Math, getVelocity3D(_, _));
+    EXPECT_CALL(*mock_A4988_stepstick, motor_get_linear_move_settings(_, _, _, ACCURACY, _, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_set_counters(_, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_set_direction(_, _))
+        .Times(MOTORS_NUM);
+    EXPECT_CALL(*mock_A4988_stepstick, motor_start(_))
+        .Times(MOTORS_NUM);
+
+    stdErr = cmdOUT.step(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, G90_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "G90";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    // EXPECT_EQ(global_gcode_settings.positioning_mode, ABSOLUTE);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, G91_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "G91";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    // EXPECT_EQ(global_gcode_settings.positioning_mode, RELATIVE);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, G92_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "G92 X10 Y20 Z30 E15";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    EXPECT_CALL(*mock_A4988_stepstick, motor_set_position(_, _))
+        .Times(MOTORS_NUM);
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, M104_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "M104 S80";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, M106_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "M106 S100";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, M109_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "M109 S80";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, M140_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "M140 S80";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
+}
+
+TEST_F(GCode_Parser_UT, M190_test)
+{
+    Std_Err stdErr;
+
+    char cmdStr[] = "M190 S80";
+
+    GCodeCommand cmdOUT;
+
+    stdErr = parse_GCodeCommand(cmdStr, &cmdOUT);
+
+    stdErr = cmdOUT.init(&cmdOUT);
+    EXPECT_EQ(stdErr, STD_OK);
+
+    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.remove == NULL);
 }

@@ -68,6 +68,15 @@ Std_Err init_G92(GCodeCommand* cmd)
         }
     }
 
+    if(cmd->used_fields & PARAM_E)
+    {
+        stdErr = motor_set_position(&motors[MOTOR_E], cmd->data.e);
+        if(stdErr != STD_OK)
+        {
+            return stdErr;
+        }
+    }
+
     return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/

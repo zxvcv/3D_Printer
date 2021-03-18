@@ -63,7 +63,7 @@ Std_Err step_G1(GCodeCommand* cmd)
     double move_tab[3] = { move.x, move.y, move.z };
     double velocity_tab[3] = { velocity.x, velocity.y, velocity.z };
 
-    for(int i=MOTOR_X; i<MOTOR_Z ; ++i)
+    for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
         stdErr = motor_get_linear_move_settings(&motors[i],
                          move_tab[i],
@@ -77,7 +77,7 @@ Std_Err step_G1(GCodeCommand* cmd)
         motor_set_direction(&motors[i], direction);
     }
 
-    for(int i=MOTOR_X; i<MOTOR_Z ; ++i)
+    for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
         stdErr = motor_start(&motors[i]);
         if(stdErr != STD_OK)
