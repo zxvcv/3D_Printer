@@ -19,10 +19,22 @@ set(HEADER_DIR ${COMPONENT_DIR}/header)
 include_directories(
     stubs
     ${HEADER_DIR}
+    ${SOURCE_DIR}
 )
 
 add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/Command_Parser.c
+
+    ${SOURCE_DIR}/U00.c
+    ${SOURCE_DIR}/U10.c
+    ${SOURCE_DIR}/U11.c
+    ${SOURCE_DIR}/U20.c
+    ${SOURCE_DIR}/U21.c
+    ${SOURCE_DIR}/U22.c
+    ${SOURCE_DIR}/U23.c
+    ${SOURCE_DIR}/U24.c
+    ${SOURCE_DIR}/U25.c
+    ${SOURCE_DIR}/U40.c
 )
 
 target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
