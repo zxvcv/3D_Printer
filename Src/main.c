@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -17,16 +17,14 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "manager.h"
-#include "managerBT.h"
-#include "managerSDCard.h"
-#include "ProjectObjects.h"
+#include "Project_Objects.h"
+#include "Init_Manager.h"
+#include "Manager.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -111,54 +109,15 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-	for(int i=0; i<MOTORS_NUM; ++i)
-		motorInit(printerSettings.motors[i]);
-	HAL_TIM_Base_Start_IT(&htim6);
-	ST7565_begin(printerSettings.lcd, 0x08);
-	ST7565_clear_display(printerSettings.lcd);
-	/*
-	ST7565_clear();
-	drawInterface();
-	InterfaceValues val = { .instruction = 0,
-			  	  	  	  	.numOfInstructions = 0,
-							.posX = 0.0,
-							.posY = 0.0,
-							.posZ = 0.0,
-							.tmpH = 0.0,
-							.tmpB = 0.0
-	};
-	updateValues(&val);
-	*/
-	//reading data form EEPROM
-	for(int i=0; i<MOTORS_NUM; ++i)
-		getMotorData_EEPROM(printerSettings.motors[i], printerSettings.eeprom);
-
-	init_manager(&printerSettings);
-
+  init_manager(&printerSettings);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //System Commands
-	  parse_data_BT(&printerSettings);
-	  execute_command_BT(&printerSettings);
-	  send_command_BT(printerSettings.bt);
-
-
-	  //SDcard Commands
-	  parse_data_SDcard(printerSettings.sd);
-	  execute_command_SDcard(&printerSettings);
-
-#ifdef LOG_ENABLE
-	  send_logs_SDcard();
-#endif
-
-	  reset_commands_SDcard(printerSettings.sd);
-	  detecting_endCommand_SDcard(&printerSettings);
-
-	/* USER CODE END WHILE */
+    execute_step(&printerSettings);
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
@@ -175,7 +134,8 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -188,7 +148,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -240,13 +200,13 @@ static void MX_I2C1_Init(void)
   {
     Error_Handler();
   }
-  /** Configure Analogue filter 
+  /** Configure Analogue filter
   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure Digital filter 
+  /** Configure Digital filter
   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
@@ -463,15 +423,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin 
+  HAL_GPIO_WritePin(GPIOC, MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin
                           |MOT3_SLEEP_Pin|MOT3_RESET_Pin|MOT3_DIRECTION_Pin|MOT3_STEP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin 
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin
                           |MOT4_STEP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin 
+  HAL_GPIO_WritePin(GPIOB, ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin
                           |MOT2_RESET_Pin|MOT2_DIRECTION_Pin|MOT2_STEP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -483,27 +443,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : MOT1_STEP_Pin MOT1_DIRECTION_Pin MOT1_RESET_Pin MOT1_SLEEP_Pin 
+  /*Configure GPIO pins : MOT1_STEP_Pin MOT1_DIRECTION_Pin MOT1_RESET_Pin MOT1_SLEEP_Pin
                            MOT3_SLEEP_Pin MOT3_RESET_Pin MOT3_DIRECTION_Pin MOT3_STEP_Pin */
-  GPIO_InitStruct.Pin = MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin 
+  GPIO_InitStruct.Pin = MOT1_STEP_Pin|MOT1_DIRECTION_Pin|MOT1_RESET_Pin|MOT1_SLEEP_Pin
                           |MOT3_SLEEP_Pin|MOT3_RESET_Pin|MOT3_DIRECTION_Pin|MOT3_STEP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin MOT4_SLEEP_Pin MOT4_RESET_Pin MOT4_DIRECTION_Pin 
+  /*Configure GPIO pins : LD2_Pin MOT4_SLEEP_Pin MOT4_RESET_Pin MOT4_DIRECTION_Pin
                            MOT4_STEP_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin 
+  GPIO_InitStruct.Pin = LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin
                           |MOT4_STEP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ST7565R_CS_Pin ST7565R_RST_Pin ST7565R_A0_Pin MOT2_SLEEP_Pin 
+  /*Configure GPIO pins : ST7565R_CS_Pin ST7565R_RST_Pin ST7565R_A0_Pin MOT2_SLEEP_Pin
                            MOT2_RESET_Pin MOT2_DIRECTION_Pin MOT2_STEP_Pin */
-  GPIO_InitStruct.Pin = ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin 
+  GPIO_InitStruct.Pin = ST7565R_CS_Pin|ST7565R_RST_Pin|ST7565R_A0_Pin|MOT2_SLEEP_Pin
                           |MOT2_RESET_Pin|MOT2_DIRECTION_Pin|MOT2_STEP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -531,7 +491,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -544,10 +507,10 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
