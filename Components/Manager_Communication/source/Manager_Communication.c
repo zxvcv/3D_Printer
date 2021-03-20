@@ -19,6 +19,7 @@
 #include <string.h>
 #include "Command_Parser.h"
 #include "Project_Config.h"
+#include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 

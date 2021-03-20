@@ -34,6 +34,11 @@ typedef struct __I2C_HandleTypeDef
 
 } I2C_HandleTypeDef;
 
+typedef struct __SPI_HandleTypeDef
+{
+
+} SPI_HandleTypeDef;
+
 
 HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
 HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);

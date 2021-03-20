@@ -35,9 +35,16 @@ list(APPEND TESTS
 
 list(APPEND MOCKS
     A4988_stepstick
+    Buffered_Communication
+    Command_Parser
+    EEPROM_24AA01
     Error_Codes
     FIFO_void
+    GCode_Parser
     IOpin
+    Manager_Communication
+    Manager_EEPROM
+    Manager_SDcard
     Project_Config
     Vector_Math
     #---add new mocks here---
@@ -53,3 +60,4 @@ foreach(MOCK IN LISTS MOCKS)
     add_subdirectory(${COMPONENTS_DIR}/${MOCK}/tests/mocks ${MOCKS_DIR}/Mock_${MOCK})
 endforeach()
 add_subdirectory(../Drivers/STM32F3xx_HAL_Driver/tests/mocks ${MOCKS_DIR}/Mock_HAL_Drivers)
+add_subdirectory(../Drivers/FATFS/tests/mocks ${MOCKS_DIR}/Mock_SD)

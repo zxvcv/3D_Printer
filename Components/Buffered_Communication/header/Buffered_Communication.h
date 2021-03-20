@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include "FIFO_void.h"
+#include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
