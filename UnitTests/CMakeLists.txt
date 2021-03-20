@@ -28,6 +28,9 @@ list(APPEND TESTS
     FIFO_void
     GCode_Parser
     IOpin
+    Manager_Communication
+    Manager_EEPROM
+    Manager_SDcard
     Project_Config
     Vector_Math
     #---add new tests here---
