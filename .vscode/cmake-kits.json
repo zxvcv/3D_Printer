@@ -1,0 +1,6 @@
+[
+    {
+        "name": "C/C++ CMake-Kit for arm-none-eabi 9.2.1",
+        "toolchainFile": "/mnt/c/Users/ppisk/Projects/3D_Printer/arm-none-eabi-gcc.cmake"
+    }
+]
