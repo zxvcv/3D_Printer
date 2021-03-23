@@ -4,8 +4,11 @@
         {
             "type": "shell",
             "label": "build",
-            "command": "cmake --build ${workspaceFolder}/bld",
-            "args": [],
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/bld"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bld"
             },
@@ -17,10 +20,30 @@
         {
             "type": "shell",
             "label": "UT_build",
-            "command": "cmake --build ${workspaceFolder}/UnitTests/bld",
-            "args": [],
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/UnitTests/bld"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/UnitTests/bld"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "flash",
+            "command": "/mnt/c/'Program Files (x86)'/STMicroelectronics/'STM32 ST-LINK Utility'/'ST-LINK Utility'/ST-LINK_CLI.exe",
+            "args": [
+                "-P",
+                "3D_Printer.hex",
+                "-V"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/bld",
             },
             "group": {
                 "kind": "build",
