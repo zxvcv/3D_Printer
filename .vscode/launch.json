@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Debug 3D_Printer",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceRoot}/bld",
+            "executable": "3D_Printer",
+            "servertype": "openocd"
+        }
+    ]
+}
