@@ -42,9 +42,19 @@ Std_Err init_U23(SystemCommand* cmd)
 
     // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
     // {
-    //     if(cmd->arg[0] <= cmd->motor[i]->device.maxSpeed && cmd->arg[0] >= 0)
+    //     if(cmd->arg[0] >= 0)
     //     {
-    //         cmd->motor[i]->data.speed = cmd->arg[0];
+    //         cmd->motor[i]->device.maxSpeed = cmd->arg[0];
+    //     }
+
+    //     stdErr = EEPROM_writeData(settings->eeprom,
+    //         cmd->motor[i]->device.eepromDataAddress + _OFFSET_MAXSPEED,
+    //         (uint8_t*)(cmd->arg),
+    //         sizeof(double));
+
+    //     if(stdErr != STD_OK)
+    //     {
+    //         return stdErr;
     //     }
     // }
 

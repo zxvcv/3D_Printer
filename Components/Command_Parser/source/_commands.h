@@ -46,6 +46,8 @@
 #define PARAM_Y     0x02
 #define PARAM_Z     0x04
 #define PARAM_E     0x08
+#define PARAM_F     0x10
+#define PARAM_LAST  PARAM_F
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -71,7 +73,15 @@ extern SystemCmdGlobal global_systemCmd_settings;
  *                                      PRIVATE DECLARATIONS                                    *
  * ############################################################################################ */
 
+Std_Err step_forward_GCode(SystemCommand* cmd);
+
+Std_Err remove_forward_GCode(SystemCommand* cmd);
+
 Std_Err init_U00(SystemCommand* cmd);
+
+Std_Err init_U01(SystemCommand* cmd);
+
+Std_Err init_U02(SystemCommand* cmd);
 
 Std_Err init_U10(SystemCommand* cmd);
 
@@ -86,8 +96,6 @@ Std_Err init_U22(SystemCommand* cmd);
 Std_Err init_U23(SystemCommand* cmd);
 
 Std_Err init_U24(SystemCommand* cmd);
-
-Std_Err init_U25(SystemCommand* cmd);
 
 Std_Err init_U40(SystemCommand* cmd);
 

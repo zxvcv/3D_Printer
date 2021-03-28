@@ -32,67 +32,65 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err step_U11(SystemCommand* cmd)
-{
-    //...
-
-    return STD_OK;
-}
-
-
 Std_Err init_U11(SystemCommand* cmd)
 {
-    cmd->remove = NULL;
-    cmd->step = step_U11;
+    char temp[15];
 
-    // Std_Err stdErr;
+    // prepare GCode command for set relative movement
+    cmd->remove = remove_forward_GCode;
+    cmd->step = step_forward_GCode;
 
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    // {
-    //     stdErr = motorSetMove(cmd->motor[i],
-    //             cmd->arg[0] + (double)settings->motors[i]->data.err.moveError / ACCURACY,
-    //             &(settings->motors[i]->data.err));
+    uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff, "G91\n");
+    stdErr = parse_GCodeCommand(&(global_systemCmd_settings->msg_buff), &(cmd->gcode_cmd));
+    if(stdErr != STD_OK) { return stdErr; }
 
-    //     if(stdErr != STD_OK)
-    //     {
-    //         return stdErr;
-    //     }
-    // }
+    stdErr = cmd->gcode_cmd.init(cmd->gcode_cmd);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    // #ifdef USE_INTERRUPTS
-    // IRQ_DISABLE;
-    // #endif /* USE_INTERRUPTS */
+    while(cmd->gcode_cmd.step != NULL)
+    {
+        stdErr = cmd->gcode_cmd.step(cmd->gcode_cmd);
+        if(stdErr != STD_OK) { return stdErr; }
+    }
 
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    // {
-    //     stdErr = motorStart(cmd->motor[i]);
+    stdErr = cmd->gcode_cmd.remove(cmd->gcode_cmd);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    //     if(stdErr != STD_OK)
-    //     {
-    //         for(int j=0; j < cmd->motorsNum && j < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++j)
-    //         {
-    //             motorStop(cmd->motor[j]);
-    //         }
-    //         return stdErr;
-    //     }
-    // }
 
-    // #ifdef USE_INTERRUPTS
-    // IRQ_ENABLE;
-    // #endif /* USE_INTERRUPTS */
+    // prepare GCode command for movement
+    cmd->remove = remove_forward_GCode;
+    cmd->step = step_forward_GCode;
 
-    // bool state;
-    // do
-    // {
-    //     state = false;
-    //     for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    //     {
-    //         state |= motorIsOn(cmd->motor[i]);
-    //     }
-    // }while(state);
+    global_systemCmd_settings->msg_buff = "G1"
 
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+    for(int i=0x01; i<=PARAM_LAST; i<<=1)
+    {
+        if(cmd->used_fields & i)
+        {
+            switch(i)
+            {
+                case PARAM_X: sprintf(temp, "%c%f", 'X', cmd->data.x); break;
+                case PARAM_Y: sprintf(temp, "%c%f", 'Y', cmd->data.y); break;
+                case PARAM_Z: sprintf(temp, "%c%f", 'Z', cmd->data.z); break;
+                case PARAM_E: sprintf(temp, "%c%f", 'E', cmd->data.e); break;
+                case PARAM_F: sprintf(temp, "%c%f", 'F', cmd->data.f); break;
+                default: break;
+            }
+
+            uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
+                "%s %s",
+                global_systemCmd_settings->msg_buff,
+                temp);
+        }
+    }
+
+    uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
+        "%s\n", global_systemCmd_settings->msg_buff);
+
+    stdErr = parse_GCodeCommand(&(global_systemCmd_settings->msg_buff), &(cmd->gcode_cmd));
+    if(stdErr != STD_OK) { return stdErr; }
+
+    stdErr = cmd->gcode_cmd.init(cmd->gcode_cmd);
 
     return STD_OK;
 }

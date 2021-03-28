@@ -40,25 +40,18 @@ Std_Err init_U24(SystemCommand* cmd)
     // Std_Err stdErr;
     // /*TODO: distinguishing between errors*/
 
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
+    // int argInt = (int)(cmd->arg[0] * ACCURACY);
+    // cmd->motor[0]->device.stepSize = argInt;
+    // stdErr = EEPROM_writeData(settings->eeprom,
+    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_STEPSIZE,
+    //         (uint8_t*)(&argInt),
+    //         sizeof(argInt));
+    // if(stdErr != STD_OK)
     // {
-    //     if(cmd->arg[0] >= 0)
-    //     {
-    //         cmd->motor[i]->device.maxSpeed = cmd->arg[0];
-    //     }
-
-    //     stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[i]->device.eepromDataAddress + _OFFSET_MAXSPEED,
-    //         (uint8_t*)(cmd->arg),
-    //         sizeof(double));
-
-    //     if(stdErr != STD_OK)
-    //     {
-    //         return stdErr;
-    //     }
+    //     return stdErr;
     // }
 
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
+    // stdErr = systemCmd_MotorStepSizeRequest(cmd, settings);
     // return stdErr;
 
     return STD_OK;

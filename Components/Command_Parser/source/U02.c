@@ -32,30 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U25(SystemCommand* cmd)
-{
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
-
-    // int argInt = (int)(cmd->arg[0] * ACCURACY);
-    // cmd->motor[0]->device.stepSize = argInt;
-    // stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_STEPSIZE,
-    //         (uint8_t*)(&argInt),
-    //         sizeof(argInt));
-    // if(stdErr != STD_OK)
-    // {
-    //     return stdErr;
-    // }
-
-    // stdErr = systemCmd_MotorStepSizeRequest(cmd, settings);
-    // return stdErr;
-
-    return STD_OK;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -64,4 +40,37 @@ Std_Err init_U25(SystemCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+Std_Err step_U02(SystemCommand* cmd)
+{
+    Std_Err stdErr = STD_ERROR;
+
+    uint8_t val = 0x01
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
+                "%cU02 %c %u\n",
+                '3',
+                'X', // TODO: motor indentyficator (X, Y, Z, E)
+                global_systemCmd_settings->motors[0]->flags); // TODO: motor number not only 0
+
+            stdErr = fifo_push_C(global_systemCmd_settings->buff_comm->Buff_OUT,
+                (char*)global_systemCmd_settings->msg_buff, msgSize);
+
+            if(stdErr != STD_OK) { return stdErr; }
+        }
+    }
+
+    return stdErr;
+}
+
+
+Std_Err init_U02(SystemCommand* cmd)
+{
+    cmd->remove = NULL;
+    cmd->step = step_U02;
+
+    return STD_OK;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -25,6 +25,8 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Buffered_Communication.h"
+#include "GCode_Parser.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -33,6 +35,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define MSG_BUFF_SIZE 100
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -55,7 +58,10 @@ typedef enum ExecutionPolicy_Tag{
 }ExecutionPolicy;
 
 typedef struct SystemCmdGlobal_Tag{
-    uint8_t none;
+    BuffCommunication_Settings* buff_comm;
+    Motor* motors;
+
+    char msg_buff[MSG_BUFF_SIZE];
 }SystemCmdGlobal;
 
 typedef struct SystemCommand_Tag{
@@ -72,7 +78,10 @@ typedef struct SystemCommand_Tag{
         double y;       //Y-axis
         double z;       //Z-axis
         double e;       //extruder-axis
+        double f;       //speed of the movement
     }data;
+
+    GCodeCommand gcode_cmd;
 }SystemCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -82,7 +91,7 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser();
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors);
 
 Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

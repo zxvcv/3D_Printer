@@ -44,6 +44,7 @@
 #define PARAM_E     0x08
 #define PARAM_F     0x10
 #define PARAM_S     0x20
+#define PARAM_LAST  PARAM_S
 /*[[COMPONENT_DEFINES_H]]*/
 
 
