@@ -34,32 +34,39 @@
 
 Std_Err init_U23(SystemCommand* cmd)
 {
+    Std_Err stdErr;
+    MotorData_EEPROM motor_data;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint8_t val = 0x01;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            stdErr = get_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
+                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    // {
-    //     if(cmd->arg[0] >= 0)
-    //     {
-    //         cmd->motor[i]->device.maxSpeed = cmd->arg[0];
-    //     }
+            int data;
+            switch(i)
+            {
+                case MOTOR_X: data = (int)cmd->data.x; break;
+                case MOTOR_Y: data = (int)cmd->data.y; break;
+                case MOTOR_Z: data = (int)cmd->data.z; break;
+                case MOTOR_E: data = (int)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
+            motor_data.max_speed = data;
 
-    //     stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[i]->device.eepromDataAddress + _OFFSET_MAXSPEED,
-    //         (uint8_t*)(cmd->arg),
-    //         sizeof(double));
+            stdErr = set_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
+                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    //     if(stdErr != STD_OK)
-    //     {
-    //         return stdErr;
-    //     }
-    // }
-
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+            global_systemCmd_settings->motors[i].settings.max_speed = data;
+        }
+    }
 
     return STD_OK;
 }

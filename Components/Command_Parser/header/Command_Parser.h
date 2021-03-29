@@ -35,7 +35,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define MSG_BUFF_SIZE 100
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -56,13 +55,6 @@ typedef enum ExecutionPolicy_Tag{
     PRIORITY    = 0,
     NORMAL      = 1
 }ExecutionPolicy;
-
-typedef struct SystemCmdGlobal_Tag{
-    BuffCommunication_Settings* buff_comm;
-    Motor* motors;
-
-    char msg_buff[MSG_BUFF_SIZE];
-}SystemCmdGlobal;
 
 typedef struct SystemCommand_Tag{
     Std_Err (*init)(struct SystemCommand_Tag*);
@@ -91,7 +83,8 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors);
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors,
+    EEPROMSettings* eeprom, uint8_t* motor_data_addresses[]);
 
 Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

@@ -34,20 +34,29 @@
 
 Std_Err init_U20(SystemCommand* cmd)
 {
+    Std_Err stdErr;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint8_t val = 0x01;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            int data;
+            switch(i)
+            {
+                case MOTOR_X: data = (int)cmd->data.x; break;
+                case MOTOR_Y: data = (int)cmd->data.y; break;
+                case MOTOR_Z: data = (int)cmd->data.z; break;
+                case MOTOR_E: data = (int)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
 
-    // int argInt = (int)(cmd->arg[0] * ACCURACY);
-    // if(argInt >= cmd->motor[0]->device.positionZero && argInt <= cmd->motor[0]->device.positionEnd)
-    // {
-    //     cmd->motor[0]->data.position = argInt;
-    // }
-
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+            global_systemCmd_settings->motors[i].data.position = data;
+        }
+    }
 
     return STD_OK;
 }

@@ -35,6 +35,8 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
+SystemCmdGlobal global_systemCmd_settings;
+
 const struct {
     char* name;
     Std_Err (*execute)(SystemCommand*);
@@ -59,10 +61,13 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors)
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors,
+    EEPROMSettings* eeprom_settings, uint8_t* motor_data_addresses[])
 {
     global_systemCmd_settings.buff_comm = buff_comm;
     global_systemCmd_settings.motors = motors;
+    global_systemCmd_settings.eeprom_settings = eeprom_settings;
+    global_systemCmd_settings.motor_data_addresses = motor_data_addresses;
 }
 
 

@@ -25,6 +25,7 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Project_Config.h"
 #include "EEPROM_24AA01.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 

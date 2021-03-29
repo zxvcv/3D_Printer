@@ -127,6 +127,11 @@ Std_Err init_manager(DeviceSettings* settings)
 
     HAL_TIM_Base_Start_IT(&htim6);
 
+    for(int i=0; i<MOTORS_NUM; ++i)
+    {
+        settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM)
+    }
+
     _init_motors(settings);
 
     EEPROM_init(settings->eeprom, &hi2c1);
@@ -136,6 +141,9 @@ Std_Err init_manager(DeviceSettings* settings)
     {
         return stdErr;
     }
+
+    init_SystemCommandsParser(settings->buff_comm, settings->motors, settings->eeprom,
+        settings->motor_data_addresses);
 
     HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
     stdErr = init_manager_SDcard(settings->sd, settings->file, *(settings->motors));

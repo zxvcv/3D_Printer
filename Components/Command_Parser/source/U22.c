@@ -34,25 +34,39 @@
 
 Std_Err init_U22(SystemCommand* cmd)
 {
+    Std_Err stdErr;
+    MotorData_EEPROM motor_data;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint8_t val = 0x01;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            stdErr = get_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
+                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    // int argInt = (int)(cmd->arg[0] * ACCURACY);
-    // cmd->motor[0]->device.positionEnd = argInt;
-    // stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONEND,
-    //         (uint8_t*)(&argInt),
-    //         sizeof(argInt));
-    // if(stdErr != STD_OK)
-    // {
-    //     return stdErr;
-    // }
+            int data;
+            switch(i)
+            {
+                case MOTOR_X: data = (int)cmd->data.x; break;
+                case MOTOR_Y: data = (int)cmd->data.y; break;
+                case MOTOR_Z: data = (int)cmd->data.z; break;
+                case MOTOR_E: data = (int)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
+            motor_data.position_end = data;
 
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+            stdErr = set_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
+                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
+
+            global_systemCmd_settings->motors[i].settings.position_end = data;
+        }
+    }
 
     return STD_OK;
 }
