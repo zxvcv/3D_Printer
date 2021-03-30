@@ -63,6 +63,7 @@ typedef struct SDCard_Flags_Tag{
 }SDCard_Flags;
 
 typedef struct SDCard_Settings_Tag{
+    FATFS* fatfs;
     FIL* file;
 
     Fifo_C* BuffIN_SDcmd;
@@ -74,7 +75,7 @@ typedef struct SDCard_Settings_Tag{
     UINT bytesRead;
     uint8_t cnt;
 
-    SDCard_Flags sdcard_flags;
+    SDCard_Flags flags;
 }SDCard_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -84,7 +85,7 @@ typedef struct SDCard_Settings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_manager_SDcard(SDCard_Settings* settings, FIL* file, Motor* motors);
+Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors);
 
 Std_Err parse_command_SDcard(SDCard_Settings* settings);
 

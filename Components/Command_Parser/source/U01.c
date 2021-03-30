@@ -49,18 +49,18 @@ Std_Err step_U01(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
+            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
                 "%cU01 %c %f %d %f %d %d\n",
                 '3',
                 'X', // TODO: motor indentyficator (X, Y, Z, E)
-                global_systemCmd_settings->motors[0]->settings.timer_frequency, // TODO: motor number not only 0
-                global_systemCmd_settings->motors[0]->settings.step_size, // TODO: motor number not only 0
-                global_systemCmd_settings->motors[0]->settings.max_speed, // TODO: motor number not only 0
-                global_systemCmd_settings->motors[0]->settings.position_zero, // TODO: motor number not only 0
-                global_systemCmd_settings->motors[0]->settings.position_end); // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->settings.timer_frequency, // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->settings.step_size, // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->settings.max_speed, // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->settings.position_zero, // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->settings.position_end); // TODO: motor number not only 0
 
-            stdErr = fifo_push_C(global_systemCmd_settings->buff_comm->Buff_OUT,
-                (char*)global_systemCmd_settings->msg_buff, msgSize);
+            stdErr = fifo_push_C(global_systemCmd_settings.buff_comm->Buff_OUT,
+                (char*)global_systemCmd_settings.msg_buff, msgSize);
 
             if(stdErr != STD_OK) { return stdErr; }
         }

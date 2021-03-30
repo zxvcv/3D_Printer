@@ -61,13 +61,13 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors,
-    EEPROMSettings* eeprom_settings, SDCard_Settings* sd_settings, uint8_t* motor_data_addresses[])
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
+    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t** motor_data_addresses)
 {
     global_systemCmd_settings.buff_comm = buff_comm;
     global_systemCmd_settings.motors = motors;
-    global_systemCmd_settings.eeprom_settings = eeprom_settings;
-    global_systemCmd_settings.sd_settings = sd_settings;
+    global_systemCmd_settings.eeprom = eeprom;
+    global_systemCmd_settings.sd = sd;
     global_systemCmd_settings.motor_data_addresses = motor_data_addresses;
 }
 

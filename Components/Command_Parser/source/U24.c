@@ -45,8 +45,8 @@ Std_Err init_U24(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            stdErr = get_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
-                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            stdErr = get_motor_data_EEPROM(global_systemCmd_settings.eeprom,
+                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
             int data;
@@ -60,11 +60,11 @@ Std_Err init_U24(SystemCommand* cmd)
             }
             motor_data.step_size = data;
 
-            stdErr = set_motor_data_EEPROM(global_systemCmd_settings->eeprom_settings,
-                global_systemCmd_settings->motor_data_addresses[i], &motor_data);
+            stdErr = set_motor_data_EEPROM(global_systemCmd_settings.eeprom,
+                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
-            global_systemCmd_settings->motors[i].settings.step_size = data;
+            global_systemCmd_settings.motors[i]->settings.step_size = data;
         }
     }
 

@@ -37,7 +37,7 @@ Std_Err init_G92(GCodeCommand* cmd)
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    Motor* motors = global_gcode_settings.motors;
+    Motor** motors = global_gcode_settings.motors;
 
     Std_Err stdErr;
 
@@ -45,7 +45,7 @@ Std_Err init_G92(GCodeCommand* cmd)
     {
         if(cmd->used_fields & i)
         {
-            stdErr = motor_set_position(&motors[MOTOR_X], cmd->data.x);
+            stdErr = motor_set_position(motors[MOTOR_X], cmd->data.x);
             if(stdErr != STD_OK)
             {
                 return stdErr;

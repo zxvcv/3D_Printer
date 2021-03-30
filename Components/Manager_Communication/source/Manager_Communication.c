@@ -55,7 +55,6 @@ Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_Ha
     communication_flags.executing_program = false;
     communication_flags.executing_command = false;
 
-    init_SystemCommandsParser();
     stdErr = init_buffered_communication(settings, huart);
 
     return stdErr;

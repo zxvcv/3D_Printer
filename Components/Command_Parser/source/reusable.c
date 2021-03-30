@@ -46,7 +46,7 @@ Std_Err step_forward_GCode(SystemCommand* cmd)
 
     if(cmd->gcode_cmd.step != NULL)
     {
-        stdErr = cmd->gcode_cmd.step(cmd->gcode_cmd);
+        stdErr = cmd->gcode_cmd.step(&(cmd->gcode_cmd));
     }
     else
     {
@@ -63,9 +63,9 @@ Std_Err remove_forward_GCode(SystemCommand* cmd)
 
     if(cmd->gcode_cmd.step != NULL)
     {
-        stdErr = cmd->gcode_cmd.remove(cmd->gcode_cmd);
+        stdErr = cmd->gcode_cmd.remove(&(cmd->gcode_cmd));
     }
 
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

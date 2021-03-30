@@ -27,6 +27,8 @@
 #include "Error_Codes.h"
 #include "Buffered_Communication.h"
 #include "GCode_Parser.h"
+#include "Manager_EEPROM.h"
+#include "Manager_SDcard.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -83,8 +85,8 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor* motors,
-    EEPROMSettings* eeprom, SDCard_Settings* sd_settings, uint8_t* motor_data_addresses[]);
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
+    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t** motor_data_addresses);
 
 Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

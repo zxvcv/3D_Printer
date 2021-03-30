@@ -37,10 +37,10 @@ Std_Err init_U40(SystemCommand* cmd)
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    f_mount(settings->fatfs, "", 0);
-    f_open(settings->sd->file, "fl.txt", FA_READ);
+    f_mount(global_systemCmd_settings.sd->fatfs, "", 0);
+    f_open(global_systemCmd_settings.sd->file, "fl.txt", FA_READ);
 
-    settings->sd->executing_SDprogram = true;
+    global_systemCmd_settings.sd->flags.executing_program = true;
     return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/

@@ -129,7 +129,7 @@ Std_Err init_manager(DeviceSettings* settings)
 
     for(int i=0; i<MOTORS_NUM; ++i)
     {
-        settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM)
+        settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM);
     }
 
     _init_motors(settings);
@@ -142,15 +142,15 @@ Std_Err init_manager(DeviceSettings* settings)
         return stdErr;
     }
 
-    init_SystemCommandsParser(settings->buff_comm, settings->motors, settings->eeprom,
-        settings->sd, settings->motor_data_addresses);
-
     HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
-    stdErr = init_manager_SDcard(settings->sd, settings->file, *(settings->motors));
+    stdErr = init_manager_SDcard(settings->sd, settings->motors);
     if(stdErr != STD_OK)
     {
         return stdErr;
     }
+
+    init_SystemCommandsParser(settings->buff_comm, settings->motors, settings->eeprom,
+        settings->sd, (uint8_t**)(settings->motor_data_addresses));
 
     return STD_OK;
 }

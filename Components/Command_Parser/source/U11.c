@@ -34,26 +34,27 @@
 
 Std_Err init_U11(SystemCommand* cmd)
 {
+    Std_Err stdErr;
     char temp[15];
 
     // prepare GCode command for set relative movement
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff, "G91\n");
-    stdErr = parse_GCodeCommand(&(global_systemCmd_settings->msg_buff), &(cmd->gcode_cmd));
+    sprintf((char*)(global_systemCmd_settings.msg_buff), "G91\n");
+    stdErr = parse_GCodeCommand((char*)(&(global_systemCmd_settings.msg_buff)), &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = cmd->gcode_cmd.init(cmd->gcode_cmd);
+    stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     while(cmd->gcode_cmd.step != NULL)
     {
-        stdErr = cmd->gcode_cmd.step(cmd->gcode_cmd);
+        stdErr = cmd->gcode_cmd.step(&(cmd->gcode_cmd));
         if(stdErr != STD_OK) { return stdErr; }
     }
 
-    stdErr = cmd->gcode_cmd.remove(cmd->gcode_cmd);
+    stdErr = cmd->gcode_cmd.remove(&(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
 
@@ -61,7 +62,7 @@ Std_Err init_U11(SystemCommand* cmd)
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    global_systemCmd_settings->msg_buff = "G1"
+    sprintf((char*)(global_systemCmd_settings.msg_buff), "G1");
 
     for(int i=0x01; i<=PARAM_LAST; i<<=1)
     {
@@ -77,22 +78,18 @@ Std_Err init_U11(SystemCommand* cmd)
                 default: break;
             }
 
-            uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
-                "%s %s",
-                global_systemCmd_settings->msg_buff,
-                temp);
+            strcat((char*)(global_systemCmd_settings.msg_buff), temp);
         }
     }
 
-    uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
-        "%s\n", global_systemCmd_settings->msg_buff);
+    strcat((char*)(global_systemCmd_settings.msg_buff), "\n");
 
-    stdErr = parse_GCodeCommand(&(global_systemCmd_settings->msg_buff), &(cmd->gcode_cmd));
+    stdErr = parse_GCodeCommand((char*)(&(global_systemCmd_settings.msg_buff)), &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = cmd->gcode_cmd.init(cmd->gcode_cmd);
+    stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
 
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

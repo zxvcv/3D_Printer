@@ -34,7 +34,7 @@
 
 Std_Err init_U20(SystemCommand* cmd)
 {
-    Std_Err stdErr;
+    Std_Err stdErr = STD_OK;
 
     cmd->remove = NULL;
     cmd->step = NULL;
@@ -54,11 +54,11 @@ Std_Err init_U20(SystemCommand* cmd)
                 default: return STD_ERROR;
             }
 
-            global_systemCmd_settings->motors[i].data.position = data;
+            global_systemCmd_settings.motors[i]->data.position = data;
         }
     }
 
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

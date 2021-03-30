@@ -49,14 +49,19 @@ Std_Err step_U02(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            uint8_t msgSize = sprintf(global_systemCmd_settings->msg_buff,
-                "%cU02 %c %u\n",
+            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
+                "%cU02 %c %u %u %u %u %u %u\n",
                 '3',
                 'X', // TODO: motor indentyficator (X, Y, Z, E)
-                global_systemCmd_settings->motors[0]->flags); // TODO: motor number not only 0
+                global_systemCmd_settings.motors[0]->flags.isOn,
+                global_systemCmd_settings.motors[0]->flags.reset,
+                global_systemCmd_settings.motors[0]->flags.sleep,
+                global_systemCmd_settings.motors[0]->flags.stepPhase,
+                global_systemCmd_settings.motors[0]->flags.direction,
+                global_systemCmd_settings.motors[0]->flags.reversed); // TODO: motor number not only 0
 
-            stdErr = fifo_push_C(global_systemCmd_settings->buff_comm->Buff_OUT,
-                (char*)global_systemCmd_settings->msg_buff, msgSize);
+            stdErr = fifo_push_C(global_systemCmd_settings.buff_comm->Buff_OUT,
+                (char*)global_systemCmd_settings.msg_buff, msgSize);
 
             if(stdErr != STD_OK) { return stdErr; }
         }

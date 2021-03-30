@@ -22,7 +22,10 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/Command_Parser.c
 
+    ${SOURCE_DIR}/reusable.c
     ${SOURCE_DIR}/U00.c
+    ${SOURCE_DIR}/U01.c
+    ${SOURCE_DIR}/U02.c
     ${SOURCE_DIR}/U10.c
     ${SOURCE_DIR}/U11.c
     ${SOURCE_DIR}/U20.c
@@ -30,7 +33,6 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/U22.c
     ${SOURCE_DIR}/U23.c
     ${SOURCE_DIR}/U24.c
-    ${SOURCE_DIR}/U25.c
     ${SOURCE_DIR}/U40.c
 )
 
@@ -41,6 +43,10 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 target_link_libraries(${LOCAL_TARGET}
     Error_Codes
     Project_Config
+    Buffered_Communication
+    GCode_Parser
+    Manager_EEPROM
+    Manager_SDcard
 )
 
 

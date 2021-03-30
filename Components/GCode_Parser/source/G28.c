@@ -35,12 +35,12 @@
 Std_Err step_G28(GCodeCommand* cmd)
 {
     Std_Err stdErr;
-    Motor* motors = global_gcode_settings.motors;
+    Motor** motors = global_gcode_settings.motors;
     vect3D_d move;
 
-    move.x = cmd->target_position.x - motors[MOTOR_X].data.position;
-    move.y = cmd->target_position.y - motors[MOTOR_Y].data.position;
-    move.z = cmd->target_position.z - motors[MOTOR_Z].data.position;
+    move.x = cmd->target_position.x - motors[MOTOR_X]->data.position;
+    move.y = cmd->target_position.y - motors[MOTOR_Y]->data.position;
+    move.z = cmd->target_position.z - motors[MOTOR_Z]->data.position;
 
     // ??? is this command supports F parameter?
     if(cmd->used_fields & PARAM_F)
@@ -58,7 +58,7 @@ Std_Err step_G28(GCodeCommand* cmd)
 
     for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
-        stdErr = motor_get_linear_move_settings(&motors[i],
+        stdErr = motor_get_linear_move_settings(motors[i],
                          move_tab[i],
                          velocity_tab[i],
                          ACCURACY, &counters_val, &direction);
@@ -66,13 +66,13 @@ Std_Err step_G28(GCodeCommand* cmd)
         {
             return stdErr;
         }
-        motor_set_counters(&motors[i], &counters_val);
-        motor_set_direction(&motors[i], direction);
+        motor_set_counters(motors[i], &counters_val);
+        motor_set_direction(motors[i], direction);
     }
 
     for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
-        stdErr = motor_start(&motors[i]);
+        stdErr = motor_start(motors[i]);
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -89,33 +89,36 @@ Std_Err init_G28(GCodeCommand* cmd)
     cmd->remove = NULL;
     cmd->step = step_G28;
 
-    Motor* motors = global_gcode_settings.motors;
+    Motor** motors = global_gcode_settings.motors;
 
     if(cmd->used_fields & PARAM_X)
     {
-        cmd->target_position.x = motors[MOTOR_X].settings.position_zero;
+        cmd->target_position.x = motors[MOTOR_X]->settings.position_zero;
     }
     else
     {
-        cmd->target_position.x = motors[MOTOR_X].data.position + motors[MOTOR_X].data.position_error;
+        cmd->target_position.x = motors[MOTOR_X]->data.position +
+            motors[MOTOR_X]->data.position_error;
     }
 
     if(cmd->used_fields & PARAM_Y)
     {
-        cmd->target_position.y = motors[MOTOR_Y].settings.position_zero;
+        cmd->target_position.y = motors[MOTOR_Y]->settings.position_zero;
     }
     else
     {
-        cmd->target_position.y = motors[MOTOR_Y].data.position + motors[MOTOR_Y].data.position_error;
+        cmd->target_position.y = motors[MOTOR_Y]->data.position +
+            motors[MOTOR_Y]->data.position_error;
     }
 
     if(cmd->used_fields & PARAM_Z)
     {
-        cmd->target_position.z = motors[MOTOR_Z].settings.position_zero;
+        cmd->target_position.z = motors[MOTOR_Z]->settings.position_zero;
     }
     else
     {
-        cmd->target_position.z = motors[MOTOR_Z].data.position + motors[MOTOR_Z].data.position_error;
+        cmd->target_position.z = motors[MOTOR_Z]->data.position +
+            motors[MOTOR_Z]->data.position_error;
     }
 
     return STD_OK;

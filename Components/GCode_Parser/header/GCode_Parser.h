@@ -51,15 +51,6 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct GCodeGlobal_Tag{
-    Motor* motors;
-    enum{
-        RELATIVE,
-        ABSOLUTE
-    }positioning_mode;
-    double speed;
-}GCodeGlobal;
-
 typedef struct GCodeCommand_Tag{
     Std_Err (*init)(struct GCodeCommand_Tag*);
     Std_Err (*remove)(struct GCodeCommand_Tag*);
@@ -92,7 +83,7 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor* motors);
+void init_GCodeParser(Motor** motors);
 
 Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

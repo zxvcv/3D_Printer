@@ -26,8 +26,8 @@
 
 #include "Command_Parser.h"
 #include <stdio.h>
+#include <string.h>
 #include "Project_Config.h"
-#include "Manager_EEPROM.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -60,10 +60,11 @@
 
 typedef struct SystemCmdGlobal_Tag{
     BuffCommunication_Settings* buff_comm;
-    Motor* motors;
-    EEPROMSettings* eeprom_settings;
-    SDCard_Settings* sd_settings;
-    uint8_t* motor_data_addresses[];
+    Motor** motors;
+    EEPROMSettings* eeprom;
+    SDCard_Settings* sd;
+
+    uint8_t** motor_data_addresses;
 
     char msg_buff[MSG_BUFF_SIZE];
 }SystemCmdGlobal;
