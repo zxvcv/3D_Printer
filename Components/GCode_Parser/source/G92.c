@@ -41,7 +41,7 @@ Std_Err init_G92(GCodeCommand* cmd)
 
     Std_Err stdErr;
 
-    for(uint8_t i=0x01; i>PARAM_E; i<<=1)
+    for(uint8_t i=0x01; i<=PARAM_E; i<<=1)
     {
         if(cmd->used_fields & i)
         {

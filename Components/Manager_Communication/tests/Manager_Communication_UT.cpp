@@ -30,26 +30,24 @@ public:
     {
         Std_Err stdErr;
 
-        settings = (BuffCommunication_Settings*)malloc(sizeof(BuffCommunication_Settings));
+        buff_comm = (BuffCommunication_Settings*)malloc(sizeof(BuffCommunication_Settings));
         huart = (UART_HandleTypeDef*)malloc(sizeof(UART_HandleTypeDef));
 
-        EXPECT_CALL(*mock_Command_Parser, init_SystemCommandsParser())
-            .Times(1);
-        EXPECT_CALL(*mock_Buffered_Communication, init_buffered_communication(settings, huart))
+        EXPECT_CALL(*mock_Buffered_Communication, init_buffered_communication(buff_comm, huart))
             .Times(1)
             .WillOnce(Return(STD_OK));
 
-        stdErr = init_communication_manager(settings, huart);
+        stdErr = init_communication_manager(buff_comm, huart);
         EXPECT_EQ(stdErr, STD_OK);
     }
 
     virtual void TearDown()
     {
-        free(settings);
+        free(buff_comm);
         free(huart);
     }
 
-    BuffCommunication_Settings* settings;
+    BuffCommunication_Settings* buff_comm;
     UART_HandleTypeDef* huart;
 
     /* MOCKS */
@@ -76,10 +74,10 @@ TEST_F(Manager_Communication_UT, send_communication_command_test)
 {
     Std_Err stdErr;
 
-    EXPECT_CALL(*mock_Buffered_Communication, send_buffered_message(settings))
+    EXPECT_CALL(*mock_Buffered_Communication, send_buffered_message(buff_comm))
         .Times(1)
         .WillOnce(Return(STD_OK));
 
-    stdErr = send_communication_command(settings);
+    stdErr = send_communication_command(buff_comm);
     EXPECT_EQ(stdErr, STD_OK);
 }

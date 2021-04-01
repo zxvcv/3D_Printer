@@ -35,14 +35,14 @@ public:
 
         settings = (SDCard_Settings*)malloc(sizeof(SDCard_Settings));
         file = (FIL*)malloc(sizeof(FIL));
-        motors = (Motor*)malloc(sizeof(Motor));
+        motors[0] = (Motor*)malloc(sizeof(Motor));
 
         EXPECT_CALL(*mock_FIFO_void, fifo_create(_))
             .Times(1)
             .WillOnce(Return(STD_OK));
         EXPECT_CALL(*mock_GCode_Parser, init_GCodeParser(motors))
             .Times(1);
-        stdErr = init_manager_SDcard(settings, file, motors);
+        stdErr = init_manager_SDcard(settings, motors);
         EXPECT_EQ(stdErr, STD_OK);
     }
 
@@ -50,12 +50,12 @@ public:
     {
         free(settings);
         free(file);
-        free(motors);
+        free(motors[0]);
     }
 
     SDCard_Settings* settings;
     FIL* file;
-    Motor* motors;
+    Motor* motors[1];
 
     /* MOCKS */
     static Mock_FIFO_void* mock_FIFO_void;

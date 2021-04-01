@@ -34,7 +34,7 @@
 
 Std_Err init_U21(SystemCommand* cmd)
 {
-    Std_Err stdErr;
+    Std_Err stdErr = STD_OK;
     MotorData_EEPROM motor_data;
 
     cmd->remove = NULL;
