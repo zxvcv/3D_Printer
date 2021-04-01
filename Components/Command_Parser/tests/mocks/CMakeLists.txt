@@ -29,4 +29,8 @@ target_link_libraries(${LOCAL_TARGET} PUBLIC
     Mock_HAL_Drivers
     Mock_Project_Config
     Mock_Error_Codes
+    Mock_Buffered_Communication
+    Mock_GCode_Parser
+    Mock_Manager_EEPROM
+    Mock_Manager_SDcard
 )

@@ -32,44 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U22(SystemCommand* cmd)
-{
-    Std_Err stdErr;
-    MotorData_EEPROM motor_data;
-
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    uint8_t val = 0x01;
-    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
-    {
-        if(cmd->used_fields & val)
-        {
-            stdErr = get_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            int data;
-            switch(i)
-            {
-                case MOTOR_X: data = (int)cmd->data.x; break;
-                case MOTOR_Y: data = (int)cmd->data.y; break;
-                case MOTOR_Z: data = (int)cmd->data.z; break;
-                case MOTOR_E: data = (int)cmd->data.e; break;
-                default: return STD_ERROR;
-            }
-            motor_data.position_end = data;
-
-            stdErr = set_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            global_systemCmd_settings.motors[i]->settings.position_end = data;
-        }
-    }
-
-    return STD_OK;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -78,4 +40,42 @@ Std_Err init_U22(SystemCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+Std_Err step_U02(SystemCommand* cmd)
+{
+    Std_Err stdErr = STD_ERROR;
+
+    uint8_t val = 0x01;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
+                "%cU02 %c %u %u %u %u %u %u\n",
+                '3',
+                'X', // TODO: motor indentyficator (X, Y, Z, E)
+                global_systemCmd_settings.motors[0]->flags.isOn,
+                global_systemCmd_settings.motors[0]->flags.reset,
+                global_systemCmd_settings.motors[0]->flags.sleep,
+                global_systemCmd_settings.motors[0]->flags.stepPhase,
+                global_systemCmd_settings.motors[0]->flags.direction,
+                global_systemCmd_settings.motors[0]->flags.reversed); // TODO: motor number not only 0
+
+            stdErr = fifo_push_C(global_systemCmd_settings.buff_comm->Buff_OUT,
+                (char*)global_systemCmd_settings.msg_buff, msgSize);
+
+            if(stdErr != STD_OK) { return stdErr; }
+        }
+    }
+
+    return stdErr;
+}
+
+
+Std_Err init_U02(SystemCommand* cmd)
+{
+    cmd->remove = NULL;
+    cmd->step = step_U02;
+
+    return STD_OK;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -5,7 +5,7 @@ Mock_GCode_Parser* Mock_GCode_Parser::mock;
 
 extern "C"
 {
-    void init_GCodeParser(Motor* motors)
+    void init_GCodeParser(Motor** motors)
     {
         Mock_GCode_Parser::mock->init_GCodeParser(motors);
     }

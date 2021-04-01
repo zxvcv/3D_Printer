@@ -55,9 +55,7 @@
  * ############################################################################################ */
 
 typedef struct DeviceSettings_Tag{
-    FATFS* fatfs;
     SDCard_Settings* sd;
-    FIL* file;
 
     Motor* motors[MOTORS_NUM];
     uint8_t motor_data_addresses[MOTORS_NUM];

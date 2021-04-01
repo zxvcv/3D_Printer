@@ -26,6 +26,7 @@
 
 #include "Command_Parser.h"
 #include <stdio.h>
+#include <string.h>
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -35,6 +36,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define MSG_BUFF_SIZE 100
 
 #define _OFFSET_MAXSPEED        (0)
 #define _OFFSET_STEPSIZE        (_OFFSET_MAXSPEED+sizeof(double))
@@ -46,7 +48,27 @@
 #define PARAM_Y     0x02
 #define PARAM_Z     0x04
 #define PARAM_E     0x08
+#define PARAM_F     0x10
+#define PARAM_LAST  PARAM_F
 /*[[COMPONENT_DEFINES_H]]*/
+
+
+
+/* ############################################################################################ *
+ *                                      DATA TYPES                                              *
+ * ############################################################################################ */
+
+typedef struct SystemCmdGlobal_Tag{
+    BuffCommunication_Settings* buff_comm;
+    Motor** motors;
+    EEPROMSettings* eeprom;
+    SDCard_Settings* sd;
+
+    uint8_t** motor_data_addresses;
+
+    char msg_buff[MSG_BUFF_SIZE];
+}SystemCmdGlobal;
+/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
 
@@ -60,18 +82,18 @@ extern SystemCmdGlobal global_systemCmd_settings;
 
 
 /* ############################################################################################ *
- *                                      DATA TYPES                                              *
- * ############################################################################################ */
-
-/*[[COMPONENT_DATA_TYPES_H]]*/
-
-
-
-/* ############################################################################################ *
  *                                      PRIVATE DECLARATIONS                                    *
  * ############################################################################################ */
 
+Std_Err step_forward_GCode(SystemCommand* cmd);
+
+Std_Err remove_forward_GCode(SystemCommand* cmd);
+
 Std_Err init_U00(SystemCommand* cmd);
+
+Std_Err init_U01(SystemCommand* cmd);
+
+Std_Err init_U02(SystemCommand* cmd);
 
 Std_Err init_U10(SystemCommand* cmd);
 
@@ -86,8 +108,6 @@ Std_Err init_U22(SystemCommand* cmd);
 Std_Err init_U23(SystemCommand* cmd);
 
 Std_Err init_U24(SystemCommand* cmd);
-
-Std_Err init_U25(SystemCommand* cmd);
 
 Std_Err init_U40(SystemCommand* cmd);
 

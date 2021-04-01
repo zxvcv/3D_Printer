@@ -44,7 +44,24 @@
 #define PARAM_E     0x08
 #define PARAM_F     0x10
 #define PARAM_S     0x20
+#define PARAM_LAST  PARAM_S
 /*[[COMPONENT_DEFINES_H]]*/
+
+
+
+/* ############################################################################################ *
+ *                                      DATA TYPES                                              *
+ * ############################################################################################ */
+
+typedef struct GCodeGlobal_Tag{
+    Motor** motors;
+    enum{
+        RELATIVE,
+        ABSOLUTE
+    }positioning_mode;
+    double speed;
+}GCodeGlobal;
+/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
 
@@ -54,14 +71,6 @@
 
 extern GCodeGlobal global_gcode_settings;
 /*[[COMPONENT_EXTERNS_H]]*/
-
-
-
-/* ############################################################################################ *
- *                                      DATA TYPES                                              *
- * ############################################################################################ */
-
-/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
 

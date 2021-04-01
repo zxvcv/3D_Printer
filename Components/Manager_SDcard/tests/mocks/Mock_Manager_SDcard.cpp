@@ -5,9 +5,9 @@ Mock_Manager_SDcard* Mock_Manager_SDcard::mock;
 
 extern "C"
 {
-    Std_Err init_manager_SDcard(SDCard_Settings* settings, FIL* file, Motor* motors)
+    Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors)
     {
-        return Mock_Manager_SDcard::mock->init_manager_SDcard(settings, file, motors);
+        return Mock_Manager_SDcard::mock->init_manager_SDcard(settings, motors);
     }
 
     Std_Err parse_command_SDcard(SDCard_Settings* settings)

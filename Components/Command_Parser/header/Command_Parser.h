@@ -25,6 +25,10 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Buffered_Communication.h"
+#include "GCode_Parser.h"
+#include "Manager_EEPROM.h"
+#include "Manager_SDcard.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -54,10 +58,6 @@ typedef enum ExecutionPolicy_Tag{
     NORMAL      = 1
 }ExecutionPolicy;
 
-typedef struct SystemCmdGlobal_Tag{
-    uint8_t none;
-}SystemCmdGlobal;
-
 typedef struct SystemCommand_Tag{
     Std_Err (*init)(struct SystemCommand_Tag*);
     Std_Err (*remove)(struct SystemCommand_Tag*);
@@ -72,7 +72,10 @@ typedef struct SystemCommand_Tag{
         double y;       //Y-axis
         double z;       //Z-axis
         double e;       //extruder-axis
+        double f;       //speed of the movement
     }data;
+
+    GCodeCommand gcode_cmd;
 }SystemCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -82,7 +85,8 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser();
+void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
+    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t** motor_data_addresses);
 
 Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

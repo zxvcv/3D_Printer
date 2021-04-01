@@ -37,24 +37,10 @@ Std_Err init_U40(SystemCommand* cmd)
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr = STD_OK;
-    // /*TODO: distinguishing between errors*/
-    // /*TODO: add forwarding SDcard error*/
-    // f_mount(settings->fatfs, "", 0);
-    // f_open(settings->sd->file, "fl.txt", FA_READ);
+    f_mount(global_systemCmd_settings.sd->fatfs, "", 0);
+    f_open(global_systemCmd_settings.sd->file, "fl.txt", FA_READ);
 
-    // #ifdef LOG_ENABLE
-    // #include "manager.h"
-    // extern FIL logFile;
-    // f_open(&logFile, "logs.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    // UINT writeSize;
-    // f_write(&logFile, "[START]\r\n", 9, &writeSize);
-    // f_sync(&logFile);
-    // #endif
-
-    // settings->sd->executing_SDprogram = true;
-    // return stdErr;
-
+    global_systemCmd_settings.sd->flags.executing_program = true;
     return STD_OK;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/

@@ -55,7 +55,15 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
+typedef struct SDCard_Flags_Tag{
+    bool eofRecieved;
+    bool end_program;
+    bool executing_program;
+    bool executing_command;
+}SDCard_Flags;
+
 typedef struct SDCard_Settings_Tag{
+    FATFS* fatfs;
     FIL* file;
 
     Fifo_C* BuffIN_SDcmd;
@@ -66,14 +74,9 @@ typedef struct SDCard_Settings_Tag{
     uint8_t counterTab[2];
     UINT bytesRead;
     uint8_t cnt;
-}SDCard_Settings;
 
-typedef struct SDCard_Flags_Tag{
-    bool eofRecieved;
-    bool end_program;
-    bool executing_program;
-    bool executing_command;
-}SDCard_Flags;
+    SDCard_Flags flags;
+}SDCard_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -82,7 +85,7 @@ typedef struct SDCard_Flags_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_manager_SDcard(SDCard_Settings* settings, FIL* file, Motor* motors);
+Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors);
 
 Std_Err parse_command_SDcard(SDCard_Settings* settings);
 

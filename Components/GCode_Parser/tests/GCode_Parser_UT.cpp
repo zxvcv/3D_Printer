@@ -34,7 +34,7 @@ public:
             motors[i] = (Motor*)malloc(sizeof(Motor));
         }
 
-        init_GCodeParser(*motors);
+        init_GCodeParser(motors);
     }
 
     virtual void TearDown()

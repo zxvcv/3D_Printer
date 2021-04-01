@@ -52,11 +52,7 @@ extern SPI_HandleTypeDef hspi2;
  *                                      PRIVATE OBJECTS                                         *
  * ############################################################################################ */
 
-
-FATFS fatfs;
-
 SDCard_Settings sd;
-FIL file;
 
 Motor motor1;
 Motor motor2;
@@ -83,9 +79,7 @@ DeviceSettings printerSettings;
 
 void init_deviceSettings(DeviceSettings* settings)
 {
-    settings->fatfs = &fatfs;
     settings->sd = &sd;
-    settings->file = &file;
 
     settings->motors[0] = &motor1;
     settings->motors[1] = &motor2;
