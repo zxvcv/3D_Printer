@@ -81,7 +81,7 @@ Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_H
 
 Std_Err send_buffered_message(BuffCommunication_Settings* settings)
 {
-    Std_Err stdErr = STD_OK; 
+    Std_Err stdErr = STD_OK;
     HAL_StatusTypeDef halErr;
     uint8_t* data = NULL;
 
@@ -179,7 +179,7 @@ Std_Err add_message_to_send(BuffCommunication_Settings* settings, char* msg, uin
 
     stdErr = fifo_push_C(settings->Buff_OUT, msg, msgSize);
 
-    send_buffered_message(settings);
+    stdErr = send_buffered_message(settings);
 
     return stdErr;
 }

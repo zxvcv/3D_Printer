@@ -52,7 +52,7 @@ Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_Ha
 
     // communication_flags.eofRecieved = false;
     // communication_flags.end_program = false;
-    communication_flags.executing_program = false;
+    // communication_flags.executing_program = false;
     communication_flags.executing_command = false;
 
     stdErr = init_buffered_communication(settings, huart);
@@ -78,25 +78,16 @@ Std_Err parse_communication_command(BuffCommunication_Settings* settings)
         {
             stdErr = fifo_front(settings->Buff_IN, (void**)&data);
             temp[sizeTemp++] = *data;
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = fifo_pop_C(settings->Buff_IN);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
         }while(temp[sizeTemp - 1] != '\n');
         temp[sizeTemp - 1] = '\0';
 
         stdErr = parse_SystemCommand((char*)temp, &cmd);
-        if(stdErr != STD_OK)
-        {
-            return stdErr;
-        }
+        if(stdErr != STD_OK) { return stdErr; }
 
         #ifdef USE_INTERRUPTS
         IRQ_DISABLE;
@@ -120,57 +111,41 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
     SystemCommand* cmd = NULL;
     uint8_t listSize;
 
+    listSize = fifo_getSize(settings->Buff_InputCommands);
 
-    if(communication_flags.executing_program)
+    /* no command ongoing, initialize new command */
+    if(listSize > 0 && !communication_flags.executing_command)
     {
-        listSize = fifo_getSize(settings->Buff_InputCommands);
+        stdErr = fifo_front(settings->Buff_InputCommands, (void**)&cmd);
+        if(stdErr != STD_OK) { return stdErr; }
 
-        /* no command ongoing, initialize new command */
-        if(listSize > 0 && !communication_flags.executing_command)
-        {
-            stdErr = fifo_front(settings->Buff_InputCommands, (void**)&cmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+        memcpy(&executingCmd, cmd, sizeof(SystemCommand));
+        stdErr = fifo_pop_C(settings->Buff_InputCommands);
+        if(stdErr != STD_OK) { return stdErr; }
 
-            memcpy(&executingCmd, cmd, sizeof(SystemCommand));
-            stdErr = fifo_pop_C(settings->Buff_InputCommands);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+        stdErr = executingCmd.init(&executingCmd);
+        if(stdErr != STD_OK) { return stdErr; }
 
-            stdErr = executingCmd.init(&executingCmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+        communication_flags.executing_command = true;
+    }
 
-            communication_flags.executing_command = true;
-        }
+    /* there is command ongoing, process next step */
+    if(communication_flags.executing_command && executingCmd.step != NULL)// && motors_state)
+    {
+        stdErr = executingCmd.step(&executingCmd);
+        if(stdErr != STD_OK) { return stdErr; }
+    }
 
-        /* there is command ongoing, process next step */
-        if(communication_flags.executing_command && executingCmd.step != NULL && motors_state)
-        {
-            stdErr = executingCmd.step(&executingCmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
-        }
-
-        /* there is no next step to process, deinitialize command */
-        if(communication_flags.executing_command && executingCmd.step == NULL && motors_state)
+    /* there is no next step to process, deinitialize command */
+    if(communication_flags.executing_command && executingCmd.step == NULL)// && motors_state)
+    {
+        if(executingCmd.remove != NULL)
         {
             stdErr = executingCmd.remove(&executingCmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
-
-            communication_flags.executing_command = false;
+            if(stdErr != STD_OK) { return stdErr; }
         }
+
+        communication_flags.executing_command = false;
     }
 
     return STD_OK;
@@ -179,12 +154,22 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
 
 Std_Err send_communication_command(BuffCommunication_Settings* settings)
 {
-    return send_buffered_message(settings);
+    Std_Err stdErr;
+
+    stdErr = send_buffered_message(settings);
+    if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
+
+    return stdErr;
 }
 
 
 Std_Err send_message(BuffCommunication_Settings* settings, char* msg, uint8_t msgSize)
 {
-    return add_message_to_send(settings, msg, msgSize);
+    Std_Err stdErr;
+
+    stdErr = add_message_to_send(settings, msg, msgSize);
+    if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
+
+    return stdErr;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

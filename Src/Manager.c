@@ -64,12 +64,12 @@ Std_Err execute_step(DeviceSettings* settings)
     if(stdErr != STD_OK) { return stdErr; }
     stdErr = execute_communication_command(settings->buff_comm, settings->motors_are_on);
     if(stdErr != STD_OK) { return stdErr; }
-    stdErr = send_communication_command(settings->buff_comm);
-    if(stdErr != STD_OK) { return stdErr; }
+    // stdErr = send_communication_command(settings->buff_comm);
+    // if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = parse_command_SDcard(settings->sd);
-    if(stdErr != STD_OK) { return stdErr; }
-    stdErr = execute_command_SDcard(settings->sd, settings->motors_are_on);
+    // stdErr = parse_command_SDcard(settings->sd);
+    // if(stdErr != STD_OK) { return stdErr; }
+    // stdErr = execute_command_SDcard(settings->sd, settings->motors_are_on);
 
     return stdErr;
 }

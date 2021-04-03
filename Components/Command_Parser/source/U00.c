@@ -56,13 +56,14 @@ Std_Err step_U00(SystemCommand* cmd)
                 global_systemCmd_settings.motors[0]->data.position, // TODO: motor number not only 0
                 global_systemCmd_settings.motors[0]->data.position_error);  // TODO: motor number not only 0
 
-            stdErr = fifo_push_C(global_systemCmd_settings.buff_comm->Buff_OUT,
+            stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
                 (char*)global_systemCmd_settings.msg_buff, msgSize);
-
+            if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }
     }
 
+    cmd->step = NULL;
     return stdErr;
 }
 

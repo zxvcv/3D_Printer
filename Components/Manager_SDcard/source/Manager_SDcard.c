@@ -67,10 +67,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors)
     settings->bytesRead = 0;
 
     stdErr = fifo_create(&(settings->BuffIN_SDcmd));
-    if(stdErr != STD_OK)
-    {
-        return stdErr;
-    }
+    if(stdErr != STD_OK) { return stdErr; }
 
     init_GCodeParser(motors);
     return stdErr;
@@ -144,16 +141,10 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
             GCodeCommand cmd;
             stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
 
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             ++(settings->cnt);
         }
@@ -181,23 +172,14 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
         if(listSize > 0 && !settings->flags.executing_command)
         {
             stdErr = fifo_front(settings->BuffIN_SDcmd, (void**)&cmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             memcpy(&executingCmd, cmd, sizeof(GCodeCommand));
             stdErr = fifo_pop_C(settings->BuffIN_SDcmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = executingCmd.init(&executingCmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
 
             settings->flags.executing_command = true;
         }
@@ -206,19 +188,16 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
         if(settings->flags.executing_command && executingCmd.step != NULL && motors_state)
         {
             stdErr = executingCmd.step(&executingCmd);
-            if(stdErr != STD_OK)
-            {
-                return stdErr;
-            }
+            if(stdErr != STD_OK) { return stdErr; }
         }
 
         /* there is no next step to process, deinitialize command */
         if(settings->flags.executing_command && executingCmd.step == NULL && motors_state)
         {
-            stdErr = executingCmd.remove(&executingCmd);
-            if(stdErr != STD_OK)
+            if(executingCmd.remove != NULL)
             {
-                return stdErr;
+                stdErr = executingCmd.remove(&executingCmd);
+                if(stdErr != STD_OK) { return stdErr; }
             }
 
             settings->flags.executing_command = false;
