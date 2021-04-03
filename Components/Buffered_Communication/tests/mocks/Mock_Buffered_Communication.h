@@ -15,6 +15,8 @@ public:
     MOCK_METHOD1(send_buffered_message, Std_Err(BuffCommunication_Settings* settings));
     MOCK_METHOD1(send_buffered_message_IT, Std_Err(BuffCommunication_Settings* settings));
     MOCK_METHOD1(receive_buffered_message_IT, Std_Err(BuffCommunication_Settings* settings));
+    MOCK_METHOD3(add_message_to_send, Std_Err(BuffCommunication_Settings* settings, char* msg,
+        uint8_t msgSize));
     MOCK_METHOD1(deinit_buffered_communication, Std_Err(BuffCommunication_Settings* settings));
 
     static Mock_Buffered_Communication* mock;

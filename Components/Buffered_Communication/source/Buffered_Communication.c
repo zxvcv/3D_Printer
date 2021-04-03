@@ -81,7 +81,7 @@ Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_H
 
 Std_Err send_buffered_message(BuffCommunication_Settings* settings)
 {
-    Std_Err stdErr = STD_OK;
+    Std_Err stdErr = STD_OK; 
     HAL_StatusTypeDef halErr;
     uint8_t* data = NULL;
 

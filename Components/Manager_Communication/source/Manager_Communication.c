@@ -50,8 +50,8 @@ Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_Ha
 {
     Std_Err stdErr;
 
-    communication_flags.eofRecieved = false;
-    communication_flags.end_program = false;
+    // communication_flags.eofRecieved = false;
+    // communication_flags.end_program = false;
     communication_flags.executing_program = false;
     communication_flags.executing_command = false;
 

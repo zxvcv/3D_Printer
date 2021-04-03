@@ -26,7 +26,8 @@
 #include "Project_Objects.h"
 #include "Init_Manager.h"
 #include "Manager.h"
-#include "Manager_Communication.h" // DEBUG
+#include "Manager_Communication.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,14 +120,19 @@ int main(void)
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); //DEBUG
   while (1)
   {
-    execute_step(&printerSettings);
+    stdErr = execute_step(&printerSettings);
+    if(stdErr != STD_OK)
+    {
+      break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
   }
-
-  stdErr = send_message(printerSettings.buff_comm, "MAIN_LOOP_ERROR!\n", 17); // DEBUG
+  uint8_t msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
+                get_str_error_code(stdErr));
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize); // DEBUG
   /* USER CODE END 3 */
 }
 

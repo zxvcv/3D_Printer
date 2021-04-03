@@ -50,8 +50,8 @@
  * ############################################################################################ */
 
 typedef struct Communication_Flags_Tag{
-    bool eofRecieved;
-    bool end_program;
+    // bool eofRecieved;
+    // bool end_program;
     bool executing_program;
     bool executing_command;
 }Communication_Flags;
