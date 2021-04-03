@@ -181,4 +181,10 @@ Std_Err send_communication_command(BuffCommunication_Settings* settings)
 {
     return send_buffered_message(settings);
 }
+
+
+Std_Err send_message(BuffCommunication_Settings* settings, char* msg, uint8_t msgSize)
+{
+    return add_message_to_send(settings, msg, msgSize);
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -22,9 +22,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Error_Codes.h"
 #include "Project_Objects.h"
 #include "Init_Manager.h"
 #include "Manager.h"
+#include "Manager_Communication.h" // DEBUG
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,7 +83,7 @@ static void MX_I2C1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  Std_Err stdErr = STD_OK;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,18 +111,22 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  init_manager(&printerSettings);
+  stdErr = init_manager(&printerSettings);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); //DEBUG
   while (1)
   {
     execute_step(&printerSettings);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
+
+  stdErr = send_message(printerSettings.buff_comm, "MAIN_LOOP_ERROR!\n", 17); // DEBUG
   /* USER CODE END 3 */
 }
 
