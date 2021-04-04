@@ -102,6 +102,7 @@ target_link_options(${LOCAL_TARGET} PRIVATE
     -lnosys
     -Wl,-Map=${PROJECT_NAME}.map,--cref
     -Wl,--gc-sections
+    -u _printf_float
 )
 
 

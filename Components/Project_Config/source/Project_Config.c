@@ -40,4 +40,5 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+char motor_indentyficator[MOTORS_NUM] = { 'X', 'Y', 'Z', 'E' };
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

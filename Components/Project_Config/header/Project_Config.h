@@ -57,6 +57,7 @@
  *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
+extern char motor_indentyficator[MOTORS_NUM];
 /*[[COMPONENT_EXTERNS_H]]*/
 
 

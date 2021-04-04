@@ -52,20 +52,21 @@ Std_Err step_U01(SystemCommand* cmd)
             uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
                 "%cU01 %c %f %d %f %d %d\n",
                 '3',
-                'X', // TODO: motor indentyficator (X, Y, Z, E)
-                global_systemCmd_settings.motors[0]->settings.timer_frequency, // TODO: motor number not only 0
-                global_systemCmd_settings.motors[0]->settings.step_size, // TODO: motor number not only 0
-                global_systemCmd_settings.motors[0]->settings.max_speed, // TODO: motor number not only 0
-                global_systemCmd_settings.motors[0]->settings.position_zero, // TODO: motor number not only 0
-                global_systemCmd_settings.motors[0]->settings.position_end); // TODO: motor number not only 0
+                motor_indentyficator[i],
+                global_systemCmd_settings.motors[i]->settings.timer_frequency,
+                global_systemCmd_settings.motors[i]->settings.step_size,
+                global_systemCmd_settings.motors[i]->settings.max_speed,
+                global_systemCmd_settings.motors[i]->settings.position_zero,
+                global_systemCmd_settings.motors[i]->settings.position_end);
 
-            stdErr = fifo_push_C(global_systemCmd_settings.buff_comm->Buff_OUT,
+            stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
                 (char*)global_systemCmd_settings.msg_buff, msgSize);
-
+            if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }
     }
 
+    cmd->step = NULL;
     return stdErr;
 }
 

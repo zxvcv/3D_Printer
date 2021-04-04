@@ -52,9 +52,9 @@ Std_Err step_U00(SystemCommand* cmd)
             uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
                 "%cU00 %c %d %d\n",
                 '3',
-                'X', // TODO: motor indentyficator (X, Y, Z, E)
-                global_systemCmd_settings.motors[0]->data.position, // TODO: motor number not only 0
-                global_systemCmd_settings.motors[0]->data.position_error);  // TODO: motor number not only 0
+                motor_indentyficator[i],
+                global_systemCmd_settings.motors[i]->data.position,
+                global_systemCmd_settings.motors[i]->data.position_error);
 
             stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
                 (char*)global_systemCmd_settings.msg_buff, msgSize);
