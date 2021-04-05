@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include "Error_Codes.h"
 #include "A4988_stepstick.h"
+#include "Buffered_Communication.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -83,7 +84,7 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor** motors);
+void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm);
 
 Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

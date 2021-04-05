@@ -37,6 +37,8 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define MSG_BUFF_SIZE 100
+
 /* used_fields */
 #define PARAM_X     0x01
 #define PARAM_Y     0x02
@@ -54,6 +56,7 @@
  * ############################################################################################ */
 
 typedef struct GCodeGlobal_Tag{
+    BuffCommunication_Settings* buff_comm; // DEBUG
     Motor** motors;
     enum{
         RELATIVE,

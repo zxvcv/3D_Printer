@@ -64,7 +64,7 @@ typedef struct SystemCmdGlobal_Tag{
     EEPROMSettings* eeprom;
     SDCard_Settings* sd;
 
-    uint8_t** motor_data_addresses;
+    uint8_t* motor_data_addresses;
 
     char msg_buff[MSG_BUFF_SIZE];
 }SystemCmdGlobal;

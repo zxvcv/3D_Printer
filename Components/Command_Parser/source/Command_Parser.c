@@ -62,7 +62,7 @@ const struct {
  * ############################################################################################ */
 
 void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
-    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t** motor_data_addresses)
+    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t* motor_data_addresses)
 {
     global_systemCmd_settings.buff_comm = buff_comm;
     global_systemCmd_settings.motors = motors;

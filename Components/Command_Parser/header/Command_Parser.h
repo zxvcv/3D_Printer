@@ -86,7 +86,7 @@ typedef struct SystemCommand_Tag{
  * ############################################################################################ */
 
 void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
-    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t** motor_data_addresses);
+    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t* motor_data_addresses);
 
 Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

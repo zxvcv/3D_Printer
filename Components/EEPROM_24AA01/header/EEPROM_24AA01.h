@@ -53,7 +53,7 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct EEPROMSettings{
+typedef struct EEPROMSettings_Tag{
     bool isReady;
     I2C_HandleTypeDef* i2c;
 } EEPROMSettings;

@@ -60,6 +60,7 @@ void EEPROM_init(EEPROMSettings *settings, I2C_HandleTypeDef* i2c)
 Std_Err EEPROM_clear(EEPROMSettings *settings)
 {
     Std_Err retVal = STD_ERROR;
+    HAL_StatusTypeDef halErr;
 
     if(settings->isReady)
     {
@@ -68,8 +69,14 @@ Std_Err EEPROM_clear(EEPROMSettings *settings)
 
         for(int i=0; i<_24AA01_MEM_SIZE/_24AA01_PAGE_SIZE; ++i)
         {
-            while(HAL_I2C_Mem_Write(settings->i2c, 0xa0, offset, 1, clsTab, _24AA01_PAGE_SIZE,
-                HAL_MAX_DELAY) != HAL_OK);
+            do
+            {
+                halErr = HAL_I2C_Mem_Write(settings->i2c, 0xa0, offset, 1, clsTab,
+                    _24AA01_PAGE_SIZE, HAL_MAX_DELAY);
+            }
+            while(halErr != HAL_OK);
+            retVal = translate_error_hal_to_project(halErr);
+            if(retVal != STD_OK) { return retVal; }
 
             offset += _24AA01_PAGE_SIZE;
         }
@@ -87,6 +94,7 @@ Std_Err EEPROM_clear(EEPROMSettings *settings)
 Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *data, int size)
 {
     Std_Err retVal = STD_ERROR;
+    HAL_StatusTypeDef halErr;
 
     if(!settings->isReady)
     {
@@ -98,20 +106,49 @@ Std_Err EEPROM_writeData(EEPROMSettings *settings, uint8_t address, uint8_t *dat
     }
     else
     {
-        if(address + size > _24AA01_MEM_SIZE) size = _24AA01_MEM_SIZE - address;
+        if(address + size > _24AA01_MEM_SIZE)
+        {
+            size = _24AA01_MEM_SIZE - address;
+        }
 
         uint8_t offset = 0;
         uint8_t sendSize = _24AA01_PAGE_SIZE - (address % _24AA01_PAGE_SIZE);
-        if(sendSize == 0) sendSize = _24AA01_PAGE_SIZE;
-        if(sendSize > size) sendSize = size;
 
-        while(HAL_I2C_Mem_Write(settings->i2c, _24AA01_ADDRESS, address, 1, data, sendSize, HAL_MAX_DELAY) != HAL_OK);
+        if(sendSize == 0)
+        {
+            sendSize = _24AA01_PAGE_SIZE;
+        }
+        if(sendSize > size)
+        {
+            sendSize = size;
+        }
+
+        do
+        {
+            halErr = HAL_I2C_Mem_Write(settings->i2c, _24AA01_ADDRESS, address, 1, data, sendSize,
+                HAL_MAX_DELAY);
+        }
+        while(halErr != HAL_OK);
+        retVal = translate_error_hal_to_project(halErr);
+        if(retVal != STD_OK) { return retVal; }
+
         offset += sendSize;
         size -= sendSize;
 
         while(size > 0){
-            while(HAL_I2C_Mem_Write(settings->i2c, _24AA01_ADDRESS, address + offset, 1, data + offset, size > _24AA01_PAGE_SIZE ? _24AA01_PAGE_SIZE : size, HAL_MAX_DELAY) != HAL_OK);
-            offset += _24AA01_PAGE_SIZE; size -= _24AA01_PAGE_SIZE;
+            do
+            {
+                halErr = HAL_I2C_Mem_Write(settings->i2c, _24AA01_ADDRESS, address + offset, 1,
+                    data + offset, size > _24AA01_PAGE_SIZE ? _24AA01_PAGE_SIZE : size,
+                    HAL_MAX_DELAY);
+            }
+            while(halErr != HAL_OK);
+
+            retVal = translate_error_hal_to_project(halErr);
+            if(retVal != STD_OK) { return retVal; }
+
+            offset += _24AA01_PAGE_SIZE;
+            size -= _24AA01_PAGE_SIZE;
         }
 
         retVal = STD_OK;
@@ -137,7 +174,12 @@ Std_Err EEPROM_readData(EEPROMSettings *settings, uint8_t address, uint8_t *data
     {
         if(address + size > _24AA01_MEM_SIZE) size = _24AA01_MEM_SIZE - address;
         HAL_StatusTypeDef halErr;
-        halErr = HAL_I2C_Mem_Read(settings->i2c, _24AA01_ADDRESS, address, 1, data, size, HAL_MAX_DELAY);
+        do
+        {
+            halErr = HAL_I2C_Mem_Read(settings->i2c, _24AA01_ADDRESS, address, 1, data, size,
+                HAL_MAX_DELAY);
+        }
+        while(halErr != HAL_OK);
         retVal = translate_error_hal_to_project(halErr);
     }
 

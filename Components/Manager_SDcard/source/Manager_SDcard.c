@@ -47,7 +47,8 @@ GCodeCommand executingCmd;
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors)
+Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
+    BuffCommunication_Settings* buff_comm)
 {
     Std_Err stdErr = STD_OK;
 
@@ -69,7 +70,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors)
     stdErr = fifo_create(&(settings->BuffIN_SDcmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    init_GCodeParser(motors);
+    init_GCodeParser(motors, buff_comm);
     return stdErr;
 }
 

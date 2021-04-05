@@ -60,7 +60,7 @@ Std_Err step_U01(SystemCommand* cmd)
                 global_systemCmd_settings.motors[i]->settings.position_end);
 
             stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
-                (char*)global_systemCmd_settings.msg_buff, msgSize);
+                global_systemCmd_settings.msg_buff, msgSize);
             if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }

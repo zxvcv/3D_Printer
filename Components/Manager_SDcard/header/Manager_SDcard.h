@@ -30,6 +30,7 @@
 #include "A4988_stepstick.h"
 #include "FIFO_void.h"
 #include "SD.h"
+#include "Buffered_Communication.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -85,7 +86,8 @@ typedef struct SDCard_Settings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors);
+Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
+    BuffCommunication_Settings* buff_comm);
 
 Std_Err parse_command_SDcard(SDCard_Settings* settings);
 

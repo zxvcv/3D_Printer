@@ -46,7 +46,7 @@ Std_Err init_U21(SystemCommand* cmd)
         if(cmd->used_fields & val)
         {
             stdErr = get_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
+                global_systemCmd_settings.motor_data_addresses[i], &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
             int data;
@@ -59,9 +59,10 @@ Std_Err init_U21(SystemCommand* cmd)
                 default: return STD_ERROR;
             }
             motor_data.position_zero = data;
+            global_systemCmd_settings.motors[i]->settings.position_zero = data;
 
             stdErr = set_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                *(global_systemCmd_settings.motor_data_addresses[i]), &motor_data);
+                global_systemCmd_settings.motor_data_addresses[i], &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
             global_systemCmd_settings.motors[i]->settings.position_zero = data;
