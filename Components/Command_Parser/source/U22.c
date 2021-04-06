@@ -34,7 +34,7 @@
 
 Std_Err init_U22(SystemCommand* cmd)
 {
-    Std_Err stdErr;
+    Std_Err stdErr = STD_OK;
     MotorData_EEPROM motor_data;
 
     cmd->remove = NULL;
@@ -68,7 +68,7 @@ Std_Err init_U22(SystemCommand* cmd)
         }
     }
 
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

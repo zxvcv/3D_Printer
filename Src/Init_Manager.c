@@ -97,7 +97,8 @@ Std_Err _init_motors(DeviceSettings* settings)
     /* eeprom data setup */
     for(int i=0; i<MOTORS_NUM; ++i)
     {
-        stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i], &eeprom_data);
+        stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+            &eeprom_data);
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -127,14 +128,14 @@ Std_Err init_manager(DeviceSettings* settings)
 
     HAL_TIM_Base_Start_IT(&htim6);
 
+    EEPROM_init(settings->eeprom, &hi2c1);
+
     for(int i=0; i<MOTORS_NUM; ++i)
     {
         settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM);
     }
 
     _init_motors(settings);
-
-    EEPROM_init(settings->eeprom, &hi2c1);
 
     stdErr = init_communication_manager(settings->buff_comm, &huart2);
     if(stdErr != STD_OK)
