@@ -83,8 +83,6 @@ Std_Err init_U10(SystemCommand* cmd)
     }
 
     strcat(global_systemCmd_settings.msg_buff, "\n");
-    add_message_to_send(global_systemCmd_settings.buff_comm, global_systemCmd_settings.msg_buff,
-        strlen(global_systemCmd_settings.msg_buff)); // DEBUG
     stdErr = parse_GCodeCommand(global_systemCmd_settings.msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 

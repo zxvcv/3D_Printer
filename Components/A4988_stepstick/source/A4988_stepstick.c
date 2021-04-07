@@ -112,10 +112,10 @@ void motor_init(Motor* motor, double timer_frequency,
 
 Std_Err motor_start(Motor* motor)
 {
-    if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
-    {
-        return STD_PARAMETER_ERROR;
-    }
+    // if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
+    // {
+    //     return STD_PARAMETER_ERROR;
+    // }
 
     if(motor->flags.reset)
     {
@@ -127,10 +127,13 @@ Std_Err motor_start(Motor* motor)
         return STD_ERROR;
     }
 
-    motor->flags.sleep = 0;
-    motor->flags.isOn = 1;
+    if(motor->counters.steps > 0)
+    {
+        motor->flags.sleep = 0;
+        motor->flags.isOn = 1;
 
-    motor_update_pins(motor);
+        motor_update_pins(motor);
+    }
 
     return STD_OK;
 }

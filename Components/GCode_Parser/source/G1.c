@@ -46,9 +46,9 @@ Std_Err step_G1(GCodeCommand* cmd)
     Motor** motors = global_gcode_settings.motors;
     vect3D_d move;
 
-    move.x = cmd->target_position.x - motors[MOTOR_X]->data.position;
-    move.y = cmd->target_position.y - motors[MOTOR_Y]->data.position;
-    move.z = cmd->target_position.z - motors[MOTOR_Z]->data.position;
+    move.x = cmd->target_position.x - ((double)motors[MOTOR_X]->data.position) / ACCURACY;
+    move.y = cmd->target_position.y - ((double)motors[MOTOR_Y]->data.position) / ACCURACY;
+    move.z = cmd->target_position.z - ((double)motors[MOTOR_Z]->data.position) / ACCURACY;
 
     if(cmd->used_fields & PARAM_F)
     {
@@ -60,8 +60,9 @@ Std_Err step_G1(GCodeCommand* cmd)
     MotorCounters counters_val;
     bool direction;
 
-    double move_tab[3] = { move.x, move.y, move.z };
-    double velocity_tab[3] = { velocity.x, velocity.y, velocity.z };
+    double move_tab[MOTORS_NUM] = { move.x, move.y, move.z , 0. };
+    double velocity_tab[MOTORS_NUM] = { fabs(velocity.x), fabs(velocity.y), fabs(velocity.z),
+        fabs(0.) };
     add_message_to_send(global_gcode_settings.buff_comm, "--->step_G1_1<---\n", 18); // DEBUG
     for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
@@ -82,7 +83,7 @@ Std_Err step_G1(GCodeCommand* cmd)
         motor_set_direction(motors[i], direction);
         add_message_to_send(global_gcode_settings.buff_comm, "--->step_G1_12<---\n", 19); // DEBUG
     }
-    add_message_to_send(global_gcode_settings.buff_comm, "--->step_G1_2<---\n", 18); // DEBUG
+
     for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
         stdErr = motor_start(motors[i]);
@@ -91,7 +92,7 @@ Std_Err step_G1(GCodeCommand* cmd)
             return stdErr;
         }
     }
-    add_message_to_send(global_gcode_settings.buff_comm, "--->step_G1_3<---\n", 18); // DEBUG
+
     cmd->step = NULL;
     return STD_OK;
 }
@@ -106,21 +107,21 @@ Std_Err init_G1(GCodeCommand* cmd)
 
     if(global_gcode_settings.positioning_mode == ABSOLUTE)
     {
-        cmd->target_position.x = (cmd->used_fields & PARAM_X ?
-            cmd->data.x : motors[MOTOR_X]->data.position + motors[MOTOR_X]->data.position_error);
-        cmd->target_position.y = (cmd->used_fields & PARAM_Y ?
-            cmd->data.y : motors[MOTOR_Y]->data.position + motors[MOTOR_Y]->data.position_error);
-        cmd->target_position.z = (cmd->used_fields & PARAM_Z ?
-            cmd->data.z : motors[MOTOR_Z]->data.position + motors[MOTOR_Z]->data.position_error);
+        cmd->target_position.x = (cmd->used_fields & PARAM_X) ? cmd->data.x :
+            (motors[MOTOR_X]->data.position + motors[MOTOR_X]->data.position_error) / ACCURACY;
+        cmd->target_position.y = (cmd->used_fields & PARAM_Y) ? cmd->data.y :
+            (motors[MOTOR_Y]->data.position + motors[MOTOR_Y]->data.position_error) / ACCURACY;
+        cmd->target_position.z = (cmd->used_fields & PARAM_Z) ? cmd->data.z :
+            (motors[MOTOR_Z]->data.position + motors[MOTOR_Z]->data.position_error) / ACCURACY;
     }
     else if(global_gcode_settings.positioning_mode == RELATIVE)
     {
-        cmd->target_position.x = motors[MOTOR_X]->data.position +
-            motors[MOTOR_X]->data.position_error + (cmd->used_fields & PARAM_X ? cmd->data.x : 0);
-        cmd->target_position.y = motors[MOTOR_Y]->data.position +
-            motors[MOTOR_Y]->data.position_error + (cmd->used_fields & PARAM_Y ? cmd->data.y : 0);
-        cmd->target_position.z = motors[MOTOR_Z]->data.position +
-            motors[MOTOR_Z]->data.position_error + (cmd->used_fields & PARAM_Z ? cmd->data.z : 0);
+        cmd->target_position.x = (cmd->used_fields & PARAM_X ? cmd->data.x : 0) +
+            (motors[MOTOR_X]->data.position + motors[MOTOR_X]->data.position_error) / ACCURACY;
+        cmd->target_position.y = (cmd->used_fields & PARAM_Y ? cmd->data.y : 0) +
+            (motors[MOTOR_Y]->data.position + motors[MOTOR_Y]->data.position_error) / ACCURACY;
+        cmd->target_position.z = (cmd->used_fields & PARAM_Z ? cmd->data.z : 0) +
+            (motors[MOTOR_Z]->data.position + motors[MOTOR_Z]->data.position_error) / ACCURACY;
     }
     add_message_to_send(global_gcode_settings.buff_comm, "--->init_G1<---\n", 16); // DEBUG
     return STD_OK;
