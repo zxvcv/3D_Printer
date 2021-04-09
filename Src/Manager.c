@@ -35,13 +35,13 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-bool _check_motors_are_on(Motor* motors)
+bool _check_motors_are_on(Motor** motors)
 {
     bool flag = false;
 
     for(int i=0; i<MOTORS_NUM; ++i)
     {
-        flag |= motors[i].flags.isOn;
+        flag |= motors[i]->flags.isOn;
     }
 
     return flag;
@@ -58,11 +58,11 @@ Std_Err execute_step(DeviceSettings* settings)
 {
     Std_Err stdErr;
 
-    settings->motors_are_on = _check_motors_are_on(*(settings->motors));
+    settings->motors_are_on = _check_motors_are_on(settings->motors);
 
     stdErr = parse_communication_command(settings->buff_comm);
     if(stdErr != STD_OK) { return stdErr; }
-    stdErr = execute_communication_command(settings->buff_comm, settings->motors_are_on);
+    stdErr = execute_communication_command(settings->buff_comm);
     if(stdErr != STD_OK) { return stdErr; }
     // stdErr = send_communication_command(settings->buff_comm);
     // if(stdErr != STD_OK) { return stdErr; }

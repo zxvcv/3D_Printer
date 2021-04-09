@@ -84,7 +84,7 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm);
+void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm, bool* motors_are_on);
 
 Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

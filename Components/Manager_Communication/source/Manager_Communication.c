@@ -104,7 +104,7 @@ Std_Err parse_communication_command(BuffCommunication_Settings* settings)
 }
 
 
-Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool motors_state)
+Std_Err execute_communication_command(BuffCommunication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
 
@@ -130,14 +130,14 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool
     }
 
     /* there is command ongoing, process next step */
-    if(communication_flags.executing_command && executingCmd.step != NULL)// && motors_state)
+    if(communication_flags.executing_command && executingCmd.step != NULL)
     {
         stdErr = executingCmd.step(&executingCmd);
         if(stdErr != STD_OK) { return stdErr; }
     }
 
     /* there is no next step to process, deinitialize command */
-    if(communication_flags.executing_command && executingCmd.step == NULL)// && motors_state)
+    if(communication_flags.executing_command && executingCmd.step == NULL)
     {
         if(executingCmd.remove != NULL)
         {

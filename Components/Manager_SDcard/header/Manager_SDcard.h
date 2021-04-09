@@ -87,11 +87,11 @@ typedef struct SDCard_Settings_Tag{
  * ############################################################################################ */
 
 Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
-    BuffCommunication_Settings* buff_comm);
+    BuffCommunication_Settings* buff_comm, bool* motors_are_on);
 
 Std_Err parse_command_SDcard(SDCard_Settings* settings);
 
-Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state);
+Std_Err execute_command_SDcard(SDCard_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

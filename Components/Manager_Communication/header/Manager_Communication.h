@@ -67,7 +67,7 @@ Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_Ha
 
 Std_Err parse_communication_command(BuffCommunication_Settings* settings);
 
-Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool motors_state);
+Std_Err execute_communication_command(BuffCommunication_Settings* settings);
 
 Std_Err send_communication_command(BuffCommunication_Settings* settings);
 

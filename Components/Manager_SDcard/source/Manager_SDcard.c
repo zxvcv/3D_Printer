@@ -48,7 +48,7 @@ GCodeCommand executingCmd;
  * ############################################################################################ */
 
 Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
-    BuffCommunication_Settings* buff_comm)
+    BuffCommunication_Settings* buff_comm, bool* motors_are_on)
 {
     Std_Err stdErr = STD_OK;
 
@@ -70,7 +70,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
     stdErr = fifo_create(&(settings->BuffIN_SDcmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    init_GCodeParser(motors, buff_comm);
+    init_GCodeParser(motors, buff_comm, motors_are_on);
     return stdErr;
 }
 
@@ -157,7 +157,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 }
 
 
-Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
+Std_Err execute_command_SDcard(SDCard_Settings* settings)
 {
     Std_Err stdErr;
 
@@ -186,14 +186,14 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings, bool motors_state)
         }
 
         /* there is command ongoing, process next step */
-        if(settings->flags.executing_command && executingCmd.step != NULL && motors_state)
+        if(settings->flags.executing_command && executingCmd.step != NULL)
         {
             stdErr = executingCmd.step(&executingCmd);
             if(stdErr != STD_OK) { return stdErr; }
         }
 
         /* there is no next step to process, deinitialize command */
-        if(settings->flags.executing_command && executingCmd.step == NULL && motors_state)
+        if(settings->flags.executing_command && executingCmd.step == NULL)
         {
             if(executingCmd.remove != NULL)
             {

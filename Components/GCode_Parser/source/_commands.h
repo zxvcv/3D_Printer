@@ -58,6 +58,7 @@
 typedef struct GCodeGlobal_Tag{
     BuffCommunication_Settings* buff_comm; // DEBUG
     Motor** motors;
+    bool* motors_are_on;
     enum{
         RELATIVE,
         ABSOLUTE

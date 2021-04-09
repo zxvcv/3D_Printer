@@ -144,7 +144,8 @@ Std_Err init_manager(DeviceSettings* settings)
     }
 
     HAL_GPIO_WritePin(SDSPI_CS_GPIO_Port, SDSPI_CS_Pin, GPIO_PIN_SET);
-    stdErr = init_manager_SDcard(settings->sd, settings->motors, settings->buff_comm);
+    stdErr = init_manager_SDcard(settings->sd, settings->motors, settings->buff_comm,
+        &(settings->motors_are_on));
     if(stdErr != STD_OK)
     {
         return stdErr;
