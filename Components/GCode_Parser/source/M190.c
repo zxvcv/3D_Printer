@@ -34,6 +34,7 @@
 
 Std_Err init_M190(GCodeCommand* cmd)
 {
+    add_message_to_send(global_gcode_settings.buff_comm, "$>init_M190\n", 12); // DEBUG
     cmd->remove = NULL;
     cmd->step = NULL;
 

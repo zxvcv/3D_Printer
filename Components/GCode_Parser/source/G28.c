@@ -34,6 +34,7 @@
 
 Std_Err step_G28(GCodeCommand* cmd)
 {
+    add_message_to_send(global_gcode_settings.buff_comm, "$>step_G28\n", 11); // DEBUG
     Std_Err stdErr;
     Motor** motors = global_gcode_settings.motors;
     vect3D_d move;
@@ -80,12 +81,15 @@ Std_Err step_G28(GCodeCommand* cmd)
     }
 
     cmd->step = NULL;
+
     return STD_OK;
 }
 
 
 Std_Err init_G28(GCodeCommand* cmd)
 {
+    add_message_to_send(global_gcode_settings.buff_comm, "$>init_G28\n", 11); // DEBUG
+
     cmd->remove = NULL;
     cmd->step = step_G28;
 

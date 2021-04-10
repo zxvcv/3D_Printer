@@ -148,7 +148,7 @@ Std_Err execute_communication_command(BuffCommunication_Settings* settings)
         communication_flags.executing_command = false;
     }
 
-    return STD_OK;
+    return stdErr;
 }
 
 

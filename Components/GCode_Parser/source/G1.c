@@ -42,7 +42,7 @@
 
 Std_Err step_G1(GCodeCommand* cmd)
 {
-    if(*(global_gcode_settings.motors_are_on))
+    if(!(*(global_gcode_settings.motors_are_on)))
     {
         cmd->step = NULL;
     }
@@ -51,11 +51,18 @@ Std_Err step_G1(GCodeCommand* cmd)
 }
 
 
+Std_Err remove_G1(GCodeCommand* cmd)
+{
+    add_message_to_send(global_gcode_settings.buff_comm, "$>remove_G1\n", 12); // DEBUG
+    return STD_OK;
+}
+
+
 Std_Err init_G1(GCodeCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 
-    cmd->remove = NULL;
+    cmd->remove = remove_G1;
     cmd->step = step_G1;
 
     Motor** motors = global_gcode_settings.motors;
@@ -102,13 +109,16 @@ Std_Err init_G1(GCodeCommand* cmd)
     for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
     {
         char temp_buff[100]; // DEBUG
-        uint8_t size_temp = sprintf(temp_buff, "$%f %f %d\n",
+        uint8_t size_temp = sprintf(temp_buff, "$D>%f %f %d\n",
             move_tab[i], velocity_tab[i], ACCURACY); // DEBUG
         add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
         stdErr = motor_get_linear_move_settings(motors[i],
                          move_tab[i],
                          velocity_tab[i],
                          ACCURACY, &counters_val, &direction);
+        size_temp = sprintf(temp_buff, "$C>%d %d %d\n",
+            counters_val.timer, counters_val.timer_start, counters_val.steps); // DEBUG
+        add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -127,6 +137,7 @@ Std_Err init_G1(GCodeCommand* cmd)
         }
     }
 
+    add_message_to_send(global_gcode_settings.buff_comm, "$>init_G1\n", 10); // DEBUG
     return stdErr;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
