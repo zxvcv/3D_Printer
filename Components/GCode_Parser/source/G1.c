@@ -53,7 +53,7 @@ Std_Err step_G1(GCodeCommand* cmd)
 
 Std_Err remove_G1(GCodeCommand* cmd)
 {
-    add_message_to_send(global_gcode_settings.buff_comm, "$>remove_G1\n", 12); // DEBUG
+    // add_message_to_send(global_gcode_settings.buff_comm, "$>remove_G1\n", 12); // DEBUG
     return STD_OK;
 }
 
@@ -106,19 +106,23 @@ Std_Err init_G1(GCodeCommand* cmd)
     double velocity_tab[MOTORS_NUM] =
         { fabs(velocity.x), fabs(velocity.y), fabs(velocity.z), fabs(0.) };
 
-    for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
+    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
     {
-        char temp_buff[100]; // DEBUG
-        uint8_t size_temp = sprintf(temp_buff, "$D>%f %f %d\n",
-            move_tab[i], velocity_tab[i], ACCURACY); // DEBUG
-        add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
+        memset(&counters_val, 0, sizeof(MotorCounters));
+        // char temp_buff[100]; // DEBUG
+        // uint8_t size_temp = sprintf(temp_buff, "$D>%f %f %d\n",
+        //     move_tab[i], velocity_tab[i], ACCURACY); // DEBUG
+        // add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
+        // size_temp = sprintf(temp_buff, "$C>%d %d %d\n",
+        //     (int)counters_val.timer, (int)counters_val.timer_start, (int)counters_val.steps); // DEBUG
+        // add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
         stdErr = motor_get_linear_move_settings(motors[i],
                          move_tab[i],
                          velocity_tab[i],
                          ACCURACY, &counters_val, &direction);
-        size_temp = sprintf(temp_buff, "$C>%d %d %d\n",
-            counters_val.timer, counters_val.timer_start, counters_val.steps); // DEBUG
-        add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
+        // size_temp = sprintf(temp_buff, "$C>%d %d %d\n",
+        //     (int)counters_val.timer, (int)counters_val.timer_start, (int)counters_val.steps); // DEBUG
+        // add_message_to_send(global_gcode_settings.buff_comm, temp_buff, size_temp); // DEBUG
         if(stdErr != STD_OK)
         {
             return stdErr;
@@ -128,7 +132,7 @@ Std_Err init_G1(GCodeCommand* cmd)
         motor_set_direction(motors[i], direction);
     }
 
-    for(int i=MOTOR_X; i<MOTORS_NUM ; ++i)
+    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
     {
         stdErr = motor_start(motors[i]);
         if(stdErr != STD_OK)
@@ -136,6 +140,7 @@ Std_Err init_G1(GCodeCommand* cmd)
             return stdErr;
         }
     }
+    *(global_gcode_settings.motors_are_on) = true;
 
     add_message_to_send(global_gcode_settings.buff_comm, "$>init_G1\n", 10); // DEBUG
     return stdErr;

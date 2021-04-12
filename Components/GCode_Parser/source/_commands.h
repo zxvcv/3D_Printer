@@ -27,6 +27,7 @@
 #include "GCode_Parser.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include "Vector_Math.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/

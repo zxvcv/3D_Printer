@@ -268,10 +268,19 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
     }
 
     double change_freq = speed / ((double)_step_size / accuracy);
-    double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
 
-    counters->timer = (uint16_t)change_timeD;
-    counters->timer_start = (uint16_t)change_timeD;
+    if((int)change_freq == 0)
+    {
+        counters->timer = 0;
+        counters->timer_start = 0;
+    }
+    else
+    {
+        double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
+
+        counters->timer = (uint16_t)change_timeD;
+        counters->timer_start = (uint16_t)change_timeD;
+    }
 
     /* move */
     int steps_num1 = _abs_move / _step_size;
