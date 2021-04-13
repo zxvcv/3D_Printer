@@ -57,7 +57,7 @@
 typedef struct MotorCounters_Tag{
     uint16_t timer;
     uint16_t timer_start;
-    uint8_t steps;
+    uint16_t steps;
 }MotorCounters;
 
 typedef struct Motor_Tag{

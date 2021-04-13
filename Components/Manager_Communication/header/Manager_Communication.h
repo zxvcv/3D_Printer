@@ -50,8 +50,8 @@
  * ############################################################################################ */
 
 typedef struct Communication_Flags_Tag{
-    bool eofRecieved;
-    bool end_program;
+    // bool eofRecieved;
+    // bool end_program;
     bool executing_program;
     bool executing_command;
 }Communication_Flags;
@@ -67,9 +67,11 @@ Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_Ha
 
 Std_Err parse_communication_command(BuffCommunication_Settings* settings);
 
-Std_Err execute_communication_command(BuffCommunication_Settings* settings, bool motors_state);
+Std_Err execute_communication_command(BuffCommunication_Settings* settings);
 
 Std_Err send_communication_command(BuffCommunication_Settings* settings);
+
+Std_Err send_message(BuffCommunication_Settings* settings, char* msg, uint8_t msgSize);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

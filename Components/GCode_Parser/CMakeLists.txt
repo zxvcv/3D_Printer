@@ -43,6 +43,7 @@ target_link_libraries(${LOCAL_TARGET}
     A4988_stepstick
     Vector_Math
     Project_Config
+    Buffered_Communication # DEBUG
 )
 
 

@@ -22,9 +22,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Error_Codes.h"
 #include "Project_Objects.h"
 #include "Init_Manager.h"
 #include "Manager.h"
+#include "Manager_Communication.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,7 +84,8 @@ static void MX_I2C1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  Std_Err stdErr = STD_OK;
+  uint8_t msgSize;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,18 +113,41 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  init_manager(&printerSettings);
+  stdErr = init_manager(&printerSettings);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); //DEBUG
   while (1)
   {
-    execute_step(&printerSettings);
+    stdErr = execute_step(&printerSettings);
+    if(stdErr != STD_OK)
+    {
+      break;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
+  msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
+      get_str_error_code(stdErr));
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.buff_comm, "ERR_DATA:\n", 10);
+  msgSize = sprintf(printerSettings.msg_buffer, "X: pos:%d pos_err:%d\n",
+      printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  msgSize = sprintf(printerSettings.msg_buffer, "Y: pos:%d pos_err:%d\n",
+      printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  msgSize = sprintf(printerSettings.msg_buffer, "Z: pos:%d pos_err:%d\n",
+      printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
+      printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
   /* USER CODE END 3 */
 }
 
@@ -492,6 +519,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // DEBUG
   while (1)
   {
   }

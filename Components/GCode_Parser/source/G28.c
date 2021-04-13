@@ -80,6 +80,7 @@ Std_Err step_G28(GCodeCommand* cmd)
     }
 
     cmd->step = NULL;
+
     return STD_OK;
 }
 

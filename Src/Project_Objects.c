@@ -81,10 +81,10 @@ void init_deviceSettings(DeviceSettings* settings)
 {
     settings->sd = &sd;
 
-    settings->motors[0] = &motor1;
-    settings->motors[1] = &motor2;
-    settings->motors[2] = &motor3;
-    settings->motors[3] = &motor4;
+    settings->motors[MOTOR_X] = &motor1;
+    settings->motors[MOTOR_Y] = &motor2;
+    settings->motors[MOTOR_Z] = &motor3;
+    settings->motors[MOTOR_E] = &motor4;
 
     /* eeprom addresses setup */
     for(int i=0; i<MOTORS_NUM; ++i)

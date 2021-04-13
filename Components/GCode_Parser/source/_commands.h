@@ -27,6 +27,7 @@
 #include "GCode_Parser.h"
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include "Vector_Math.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
@@ -36,6 +37,8 @@
 /* ############################################################################################ *
  *                                      DEFINES                                                 *
  * ############################################################################################ */
+
+#define MSG_BUFF_SIZE 100
 
 /* used_fields */
 #define PARAM_X     0x01
@@ -54,7 +57,9 @@
  * ############################################################################################ */
 
 typedef struct GCodeGlobal_Tag{
+    BuffCommunication_Settings* buff_comm; // DEBUG
     Motor** motors;
+    bool* motors_are_on;
     enum{
         RELATIVE,
         ABSOLUTE

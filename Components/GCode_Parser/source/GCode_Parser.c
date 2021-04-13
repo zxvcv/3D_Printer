@@ -61,9 +61,11 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor** motors)
+void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm, bool* motors_are_on)
 {
     global_gcode_settings.motors = motors;
+    global_gcode_settings.buff_comm = buff_comm; // DEBUG
+    global_gcode_settings.motors_are_on = motors_are_on;
     global_gcode_settings.positioning_mode = ABSOLUTE;
     global_gcode_settings.speed = 0.0;
 }

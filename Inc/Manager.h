@@ -58,7 +58,7 @@
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void execute_step(DeviceSettings* settings);
+Std_Err execute_step(DeviceSettings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

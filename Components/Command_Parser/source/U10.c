@@ -41,20 +41,20 @@ Std_Err init_U10(SystemCommand* cmd)
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    sprintf((char*)(global_systemCmd_settings.msg_buff), "G90\n");
-    stdErr = parse_GCodeCommand((char*)((char*)(&(global_systemCmd_settings.msg_buff))), &(cmd->gcode_cmd));
+    sprintf(global_systemCmd_settings.msg_buff, "G90");
+    stdErr = parse_GCodeCommand(global_systemCmd_settings.msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    while(cmd->gcode_cmd.step != NULL)
+    while(cmd->step != NULL)
     {
-        stdErr = cmd->gcode_cmd.step(&(cmd->gcode_cmd));
+        stdErr = cmd->step(cmd);
         if(stdErr != STD_OK) { return stdErr; }
     }
 
-    stdErr = cmd->gcode_cmd.remove(&(cmd->gcode_cmd));
+    stdErr = cmd->remove(cmd);
     if(stdErr != STD_OK) { return stdErr; }
 
 
@@ -62,7 +62,7 @@ Std_Err init_U10(SystemCommand* cmd)
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    sprintf((char*)(global_systemCmd_settings.msg_buff), "G1");
+    sprintf(global_systemCmd_settings.msg_buff, "G1");
 
     for(int i=0x01; i<=PARAM_LAST; i<<=1)
     {
@@ -78,13 +78,12 @@ Std_Err init_U10(SystemCommand* cmd)
                 default: break;
             }
 
-            strcat((char*)(global_systemCmd_settings.msg_buff), temp);
+            strcat(global_systemCmd_settings.msg_buff, temp);
         }
     }
 
-    strcat((char*)(global_systemCmd_settings.msg_buff), "\n");
-
-    stdErr = parse_GCodeCommand((char*)(&(global_systemCmd_settings.msg_buff)), &(cmd->gcode_cmd));
+    strcat(global_systemCmd_settings.msg_buff, "\n");
+    stdErr = parse_GCodeCommand(global_systemCmd_settings.msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
