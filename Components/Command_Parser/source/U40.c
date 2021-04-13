@@ -53,7 +53,6 @@ Std_Err step_U40(SystemCommand* cmd)
 
 Std_Err remove_U40(SystemCommand* cmd)
 {
-    add_message_to_send(global_systemCmd_settings.buff_comm, "$>remove_U40\n", 13); // DEBUG
     Err_Msg msgErr;
     msgErr = sdcard_close_file(global_systemCmd_settings.sd);
 
@@ -63,7 +62,6 @@ Std_Err remove_U40(SystemCommand* cmd)
 
 Std_Err init_U40(SystemCommand* cmd)
 {
-    add_message_to_send(global_systemCmd_settings.buff_comm, "$>init_U40\n", 11); // DEBUG
     Std_Err stdErr;
     Err_Msg msgErr;
 

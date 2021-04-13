@@ -85,6 +85,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   Std_Err stdErr = STD_OK;
+  uint8_t msgSize;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -117,40 +118,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t msgSize;
 
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); //DEBUG
-  // SD_Card TEST START
-  // f_open(printerSettings.sd->file, "fl.txt", FA_READ);
-  // do
-  // {
-  //   f_read(printerSettings.sd->file, printerSettings.sd->dataSDin[0], 20,
-  //       &(printerSettings.sd->bytesRead));
-  //   stdErr = send_message(printerSettings.buff_comm, (char*)(printerSettings.sd->dataSDin[0]),
-  //       printerSettings.sd->bytesRead);
-  // }while(printerSettings.sd->bytesRead == 20);
-  // SD_Card TEST END
-  typedef struct FlagsTest_Tag{
-        unsigned int isOn       :1;     /*(1-on         0-off               )*/
-        unsigned int reset      :1;     /*(1-yes        0-no                )*/
-        unsigned int sleep      :1;     /*(1-yes        0-no                )*/
-        unsigned int stepPhase  :1;     /*(1-high       0-low               )*/
-        unsigned int direction  :1;     /*(1-clockwise, 0-counter clockwise )*/
-        unsigned int reversed   :1;     /*(1-yes        0-no                )*/
-  }FlagsTest;
-  FlagsTest test[4];
-  test[0].isOn = 0;
-  test[1].isOn = 0;
-  test[2].isOn = 0;
-  test[3].isOn = 0;
-  bool flag = false;
-
-  for(int i=0; i<4; ++i)
-  {
-      flag |= test[i].isOn;
-  }
-  msgSize = sprintf(printerSettings.msg_buffer, "TEST>%d\n", flag);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
   while (1)
   {
     stdErr = execute_step(&printerSettings);
@@ -163,6 +132,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
   }
+  msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
+      get_str_error_code(stdErr));
+  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
   stdErr = send_message(printerSettings.buff_comm, "ERR_DATA:\n", 10);
   msgSize = sprintf(printerSettings.msg_buffer, "X: pos:%d pos_err:%d\n",
       printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
@@ -175,9 +147,6 @@ int main(void)
   stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
   msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
       printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
-      get_str_error_code(stdErr));
   stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
   /* USER CODE END 3 */
 }

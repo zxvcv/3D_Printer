@@ -34,7 +34,6 @@
 
 Std_Err init_G91(GCodeCommand* cmd)
 {
-    add_message_to_send(global_gcode_settings.buff_comm, "$>init_G91\n", 11); // DEBUG
     cmd->remove = NULL;
     cmd->step = NULL;
 

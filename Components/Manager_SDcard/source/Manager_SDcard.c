@@ -60,6 +60,27 @@
 FATFS fatfs;
 FIL file;
 GCodeCommand executingCmdSD;
+BuffCommunication_Settings* buff_comm_debug; // DEBUG
+
+
+Std_Err reset_parser_SDcard(SDCard_Settings* settings)
+{
+    Std_Err stdErr = STD_OK;
+
+    settings->flags.end_program = false;
+    settings->flags.eofRecieved = false;
+    settings->flags.executing_program = false;
+    settings->flags.executing_command = false;
+
+    settings->activeTab = 1;
+    settings->unactiveTab = 0;
+    settings->counterTab[0] = BYTES_TO_READ;
+    settings->counterTab[1] = BYTES_TO_READ;
+    settings->cnt = 0;
+    settings->bytesRead = 0;
+
+    return stdErr;
+}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -134,21 +155,11 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
     msgErr = translate_error_sdcard_to_project(sdErr);
     if(msgErr.err != STD_OK) { return msgErr.err; }
 
-    settings->flags.end_program = false;
-    settings->flags.eofRecieved = false;
-    settings->flags.executing_program = false;
-    settings->flags.executing_command = false;
-
-    settings->activeTab = 1;
-    settings->unactiveTab = 0;
-    settings->counterTab[0] = BYTES_TO_READ;
-    settings->counterTab[1] = BYTES_TO_READ;
-    settings->cnt = 0;
-    settings->bytesRead = 0;
+    reset_parser_SDcard(settings);
 
     stdErr = fifo_create(&(settings->BuffIN_SDcmd));
     if(stdErr != STD_OK) { return stdErr; }
-
+    buff_comm_debug = buff_comm; // DEBUG
     init_GCodeParser(motors, buff_comm, motors_are_on);
     return stdErr;
 }
@@ -167,7 +178,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
     while(!settings->flags.end_program && listSize < 5 &&
         settings->flags.executing_program)
     {
-        if(settings->cnt >= settings->bytesRead)
+        if((settings->cnt + 1) >= settings->bytesRead)
         {
             if(settings->flags.eofRecieved)
             {
@@ -194,7 +205,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
             settings->cnt = 0;
         }
 
-        while(settings->cnt < settings->bytesRead &&
+        while(settings->cnt < (settings->bytesRead - 1) &&
                 settings->dataSDin[settings->activeTab][settings->cnt] != '\n')
         {
             ++(settings->cnt);
@@ -224,8 +235,8 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
             cmdData[cmdLen - 1] = '\0';
 
             GCodeCommand cmd;
-            stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
 
+            stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
             if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
@@ -255,9 +266,7 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings)
 
         if(settings->flags.end_program && listSize == 0 && !settings->flags.executing_command)
         {
-            settings->flags.executing_program = false;
-            settings->flags.end_program = false;
-            settings->flags.eofRecieved = false;
+            reset_parser_SDcard(settings);
             return STD_OK;
         }
 
