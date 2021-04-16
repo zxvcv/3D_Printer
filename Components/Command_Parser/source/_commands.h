@@ -109,6 +109,8 @@ Std_Err init_U23(SystemCommand* cmd);
 
 Std_Err init_U24(SystemCommand* cmd);
 
+Std_Err init_U25(SystemCommand* cmd);
+
 Std_Err init_U40(SystemCommand* cmd);
 
 
