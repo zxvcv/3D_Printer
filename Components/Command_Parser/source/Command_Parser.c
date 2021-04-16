@@ -51,6 +51,7 @@ const struct {
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
         {   "U23",      init_U23    },// "SM",   systemCmd_MotorSpeedMax
         {   "U24",      init_U24    },// "SP",   systemCmd_MotorStepSizeSet
+        {   "U25",      init_U25    },
         {   "U40",      init_U40    } // "CR",   systemCmd_SDCardProgramRun
 };
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/

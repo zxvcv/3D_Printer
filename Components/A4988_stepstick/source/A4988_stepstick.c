@@ -231,6 +231,12 @@ void motor_set_direction(Motor* motor, unsigned int direction)
 }
 
 
+void motor_set_reversed_state(Motor* motor, bool is_reversed)
+{
+    motor->flags.reversed = is_reversed;
+}
+
+
 Std_Err motor_set_position(Motor* motor, double position)
 {
     int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
