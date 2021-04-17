@@ -24,7 +24,9 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include "Error_Codes.h"
 #include "Buffered_Communication.h"
+#include "Command_Parser.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -49,12 +51,15 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct Communication_Flags_Tag{
-    // bool eofRecieved;
-    // bool end_program;
-    bool executing_program;
-    bool executing_command;
-}Communication_Flags;
+typedef struct Communication_Settings_Tag{
+    BuffCommunication_Settings buff_comm;
+
+    SystemCommand executingCmd;
+
+    struct{
+        bool executing_command;
+    }flags;
+}Communication_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -63,15 +68,15 @@ typedef struct Communication_Flags_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart);
+Std_Err init_communication_manager(Communication_Settings* settings, UART_HandleTypeDef* huart);
 
-Std_Err parse_communication_command(BuffCommunication_Settings* settings);
+Std_Err parse_communication_command(Communication_Settings* settings);
 
-Std_Err execute_communication_command(BuffCommunication_Settings* settings);
+Std_Err execute_communication_command(Communication_Settings* settings);
 
-Std_Err send_communication_command(BuffCommunication_Settings* settings);
+Std_Err send_communication_command(Communication_Settings* settings);
 
-Std_Err send_message(BuffCommunication_Settings* settings, char* msg, uint8_t msgSize);
+Std_Err send_message(Communication_Settings* settings, char* msg, uint8_t msgSize);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
