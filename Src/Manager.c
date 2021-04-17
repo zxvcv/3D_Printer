@@ -60,9 +60,9 @@ Std_Err execute_step(DeviceSettings* settings)
 
     settings->motors_are_on = _check_motors_are_on(settings->motors);
 
-    stdErr = parse_communication_command(settings->buff_comm);
+    stdErr = parse_communication_command(settings->communication);
     if(stdErr != STD_OK) { return stdErr; }
-    stdErr = execute_communication_command(settings->buff_comm);
+    stdErr = execute_communication_command(settings->communication);
     if(stdErr != STD_OK) { return stdErr; }
     // stdErr = send_communication_command(settings->buff_comm);
     // if(stdErr != STD_OK) { return stdErr; }

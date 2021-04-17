@@ -30,6 +30,7 @@
 #include "A4988_stepstick.h"
 #include "FIFO_void.h"
 #include "SD.h"
+#include "GCode_Parser.h"
 #include "Buffered_Communication.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -66,8 +67,10 @@ typedef struct SDCard_Flags_Tag{
 typedef struct SDCard_Settings_Tag{
     FATFS* fatfs;
     FIL* file;
+    BuffCommunication_Settings* buff_comm;
 
     Fifo_C* BuffIN_SDcmd;
+    GCodeCommand executingCmd;
 
     uint8_t activeTab;
     uint8_t unactiveTab;
