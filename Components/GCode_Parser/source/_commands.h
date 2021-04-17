@@ -96,6 +96,24 @@ extern GCodeGlobal global_gcode_settings;
 Std_Err init_G1(GCodeCommand* cmd);
 
 /*
+ * COMMAND G2
+ * TODO
+ *
+ *  Arguments:
+ *   TODO
+ */
+Std_Err init_G2(GCodeCommand* cmd);
+
+/*
+ * COMMAND G3
+ * TODO
+ *
+ *  Arguments:
+ *   TODO
+ */
+Std_Err init_G3(GCodeCommand* cmd);
+
+/*
  * COMMAND G28
  * Return to home position (machine zero, aka machine reference point)
  *

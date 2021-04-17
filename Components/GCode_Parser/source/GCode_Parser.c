@@ -27,7 +27,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define GCODE_COMMANDS_NUM 10
+#define GCODE_COMMANDS_NUM 12
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -43,6 +43,8 @@ const struct {
     Std_Err (*execute)(GCodeCommand*);
 } _gcode_commands[GCODE_COMMANDS_NUM] = {
         {   "G1",   init_G1         },
+        {   "G2",   init_G2         },
+        {   "G3",   init_G3         },
         {   "G28",  init_G28        },
         {   "G90",  init_G90        },
         {   "G91",  init_G91        },

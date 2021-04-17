@@ -23,6 +23,8 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/GCode_Parser.c
 
     ${SOURCE_DIR}/G1.c
+    ${SOURCE_DIR}/G2.c
+    ${SOURCE_DIR}/G3.c
     ${SOURCE_DIR}/G28.c
     ${SOURCE_DIR}/G90.c
     ${SOURCE_DIR}/G91.c
