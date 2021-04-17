@@ -57,13 +57,6 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct SDCard_Flags_Tag{
-    bool eofRecieved;
-    bool end_program;
-    bool executing_program;
-    bool executing_command;
-}SDCard_Flags;
-
 typedef struct SDCard_Settings_Tag{
     FATFS* fatfs;
     FIL* file;
@@ -79,7 +72,12 @@ typedef struct SDCard_Settings_Tag{
     UINT bytesRead;
     uint8_t cnt;
 
-    SDCard_Flags flags;
+    struct{
+        bool eofRecieved;
+        bool end_program;
+        bool executing_program;
+        bool executing_command;
+    }flags;
 }SDCard_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
