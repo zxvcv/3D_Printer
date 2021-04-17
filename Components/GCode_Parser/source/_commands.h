@@ -114,6 +114,33 @@ Std_Err init_G2(GCodeCommand* cmd);
 Std_Err init_G3(GCodeCommand* cmd);
 
 /*
+ * COMMAND G17
+ * TODO
+ *
+ *  Arguments:
+ *   TODO
+ */
+Std_Err init_G17(GCodeCommand* cmd);
+
+/*
+ * COMMAND G18
+ * TODO
+ *
+ *  Arguments:
+ *   TODO
+ */
+Std_Err init_G18(GCodeCommand* cmd);
+
+/*
+ * COMMAND G19
+ * TODO
+ *
+ *  Arguments:
+ *   TODO
+ */
+Std_Err init_G19(GCodeCommand* cmd);
+
+/*
  * COMMAND G28
  * Return to home position (machine zero, aka machine reference point)
  *

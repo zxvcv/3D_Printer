@@ -27,7 +27,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define GCODE_COMMANDS_NUM 12
+#define GCODE_COMMANDS_NUM 15
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -45,6 +45,9 @@ const struct {
         {   "G1",   init_G1         },
         {   "G2",   init_G2         },
         {   "G3",   init_G3         },
+        {   "G17",  init_G17        },
+        {   "G18",  init_G18        },
+        {   "G19",  init_G19        },
         {   "G28",  init_G28        },
         {   "G90",  init_G90        },
         {   "G91",  init_G91        },
