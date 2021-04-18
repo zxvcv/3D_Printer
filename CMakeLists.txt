@@ -35,6 +35,7 @@ list(APPEND LIBRARIES
     Error_Codes
     FIFO_void
     GCode_Parser
+    Geometry_Math
     IOpin
     Manager_Communication
     Manager_EEPROM

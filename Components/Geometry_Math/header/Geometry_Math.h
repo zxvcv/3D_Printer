@@ -6,17 +6,25 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: GCode_Parser
+ * NAME: Geometry_Math
  *      [[COMPONENT_DESCRIPTION]]
+ * ============================================================================================
+ * COMMENTS:
+ *      [[COMPONENT_COMMENTS]]
+ * ============================================================================================
+ * EXAMPLE:
+ *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
+
+#ifndef GEOMETRY_MATH_H_
+#define GEOMETRY_MATH_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "_commands.h"
-/*[[COMPONENT_INCLUDES_C]]*/
+/*[[COMPONENT_INCLUDES_H]]*/
 
 
 
@@ -24,58 +32,48 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_DEFINES_C]]*/
+/*[[COMPONENT_DEFINES_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DEFINITIONS                                     *
+ *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+/*[[COMPONENT_EXTERNS_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
+ *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    if(!(*(settings->motors_are_on)))
-    {
-        if(compare_points(/*current_point*/, /*end_point*/, ((double)1)/ACCURACY))
-        {
-            cmd->step = NULL;
-            return STD_OK;
-        }
+typedef struct point3D_i_Tag{
+    int a;
+    int b;
+}point3D_i;
 
-        if(/*fifo_size*/ > 0)
-        {
-            // get data to ste the move
-            // begin move
-        }
-    }
-
-    if(/*fifo_size*/ < /*MAX_FIFO_SIZE*/ && /*move data not ends yet*/)
-    {
-        // get next circle line
-        // calculate move values
-        // add calculated move values to fifo
-    }
-}
+typedef struct point3D_d_Tag{
+    double a;
+    double b;
+}point3D_d;
+/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
-Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    Std_Err stdErr = STD_OK;
 
-    cmd->remove = NULL;
-    cmd->step = step_G2;
+/* ############################################################################################ *
+ *                                      PUBLIC DECLARATIONS                                     *
+ * ############################################################################################ */
 
-    // check length of radius
-    // init fifo
+bool compare_points(point3D_d p1, point3D_d p2, double accuracy);
 
-    return stdErr;
-}
-/*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
+double get_distance_between_points(point3D_d p1, point3D_d p2);
+
+int get_relative_point_direction(double point, double reference);
+
+point3D_i get_circle_step_direction(point3D_d position, point3D_d circle_center, bool is_clockwise);
+/*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
+
+
+
+#endif /* GEOMETRY_MATH_H_ */

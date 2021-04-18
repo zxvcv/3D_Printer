@@ -81,6 +81,7 @@ typedef struct GCodeCommand_Tag{
         double f;       //speed of the movement
         double s;       //temperature
     }data;
+    void* specific_data;
 
     struct{
         double x;

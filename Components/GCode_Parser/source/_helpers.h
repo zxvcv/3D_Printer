@@ -8,15 +8,23 @@
 /************************************************************************************************
  * NAME: GCode_Parser
  *      [[COMPONENT_DESCRIPTION]]
+ * ============================================================================================
+ * COMMENTS:
+ *      [[COMPONENT_COMMENTS]]
+ * ============================================================================================
+ * EXAMPLE:
+ *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
+
+#ifndef _COMMANDS_H_
+#define _COMMANDS_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "_commands.h"
-/*[[COMPONENT_INCLUDES_C]]*/
+/*[[COMPONENT_INCLUDES_H]]*/
 
 
 
@@ -24,58 +32,49 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_DEFINES_C]]*/
+/*[[COMPONENT_DEFINES_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PRIVATE DEFINITIONS                                     *
+ *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
+typedef enum PixelDirection_Tag{
+    FIRST_AXIS,
+    SECOND_AXIS,
+    BOTH_AXIS
+}PixelDirection;
+/*[[COMPONENT_DATA_TYPES_H]]*/
 
 
 
 /* ############################################################################################ *
- *                                      PUBLIC DEFINITIONS                                      *
+ *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    if(!(*(settings->motors_are_on)))
-    {
-        if(compare_points(/*current_point*/, /*end_point*/, ((double)1)/ACCURACY))
-        {
-            cmd->step = NULL;
-            return STD_OK;
-        }
-
-        if(/*fifo_size*/ > 0)
-        {
-            // get data to ste the move
-            // begin move
-        }
-    }
-
-    if(/*fifo_size*/ < /*MAX_FIFO_SIZE*/ && /*move data not ends yet*/)
-    {
-        // get next circle line
-        // calculate move values
-        // add calculated move values to fifo
-    }
-}
+/*[[COMPONENT_EXTERNS_H]]*/
 
 
-Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    Std_Err stdErr = STD_OK;
 
-    cmd->remove = NULL;
-    cmd->step = step_G2;
+/* ############################################################################################ *
+ *                                      PRIVATE DECLARATIONS                                    *
+ * ############################################################################################ */
 
-    // check length of radius
-    // init fifo
+PixelDirection get_next_circle_pixel_direction(point3D_d position, point3D_d circle_center,
+    point3D_i direction, double radius, point3D_i step_size, bool is_clockwise);
 
-    return stdErr;
-}
-/*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
+point3D_d get_next_circle_line(point3D_d start, point3D_d end, point3D_d circle_center,
+    double radius, point3D_i step_size, bool is_clockwise);
+
+
+
+/* ############################################################################################ *
+ *                                      PUBLIC DECLARATIONS                                     *
+ * ############################################################################################ */
+
+/*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
+
+
+
+#endif /* _COMMANDS_H_ */
