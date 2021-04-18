@@ -32,7 +32,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U23(SystemCommand* cmd)
+Std_Err init_U23(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
     MotorData_EEPROM motor_data;
@@ -45,8 +45,8 @@ Std_Err init_U23(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            stdErr = get_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                global_systemCmd_settings.motor_data_addresses[i], &motor_data);
+            stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
             int data;
@@ -60,11 +60,11 @@ Std_Err init_U23(SystemCommand* cmd)
             }
             motor_data.max_speed = data;
 
-            stdErr = set_motor_data_EEPROM(global_systemCmd_settings.eeprom,
-                global_systemCmd_settings.motor_data_addresses[i], &motor_data);
+            stdErr = set_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
             if(stdErr != STD_OK) { return stdErr; }
 
-            global_systemCmd_settings.motors[i]->settings.max_speed = data;
+            settings->motors[i]->settings.max_speed = data;
         }
     }
 

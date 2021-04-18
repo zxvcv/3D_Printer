@@ -56,16 +56,6 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct GCodeGlobal_Tag{
-    BuffCommunication_Settings* buff_comm; // DEBUG
-    Motor** motors;
-    bool* motors_are_on;
-    enum{
-        RELATIVE,
-        ABSOLUTE
-    }positioning_mode;
-    double speed;
-}GCodeGlobal;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -74,7 +64,6 @@ typedef struct GCodeGlobal_Tag{
  *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-extern GCodeGlobal global_gcode_settings;
 /*[[COMPONENT_EXTERNS_H]]*/
 
 
@@ -93,7 +82,7 @@ extern GCodeGlobal global_gcode_settings;
  *   Include an E value if you want to move the extruder as well.
  *   Finally, you can use an F value to tell the printer what speed (mm/min) to use for the movement.
  */
-Std_Err init_G1(GCodeCommand* cmd);
+Std_Err init_G1(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G2
@@ -102,7 +91,7 @@ Std_Err init_G1(GCodeCommand* cmd);
  *  Arguments:
  *   TODO
  */
-Std_Err init_G2(GCodeCommand* cmd);
+Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G3
@@ -111,7 +100,7 @@ Std_Err init_G2(GCodeCommand* cmd);
  *  Arguments:
  *   TODO
  */
-Std_Err init_G3(GCodeCommand* cmd);
+Std_Err init_G3(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G17
@@ -120,7 +109,7 @@ Std_Err init_G3(GCodeCommand* cmd);
  *  Arguments:
  *   TODO
  */
-Std_Err init_G17(GCodeCommand* cmd);
+Std_Err init_G17(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G18
@@ -129,7 +118,7 @@ Std_Err init_G17(GCodeCommand* cmd);
  *  Arguments:
  *   TODO
  */
-Std_Err init_G18(GCodeCommand* cmd);
+Std_Err init_G18(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G19
@@ -138,7 +127,7 @@ Std_Err init_G18(GCodeCommand* cmd);
  *  Arguments:
  *   TODO
  */
-Std_Err init_G19(GCodeCommand* cmd);
+Std_Err init_G19(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G28
@@ -148,7 +137,7 @@ Std_Err init_G19(GCodeCommand* cmd);
  *  If no arguments are provided, the machine will home all 3 axes.
  *  You can also specify which exact axes you want to home by adding an X, Y, or Z to the command.
  */
-Std_Err init_G28(GCodeCommand* cmd);
+Std_Err init_G28(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G90
@@ -158,7 +147,7 @@ Std_Err init_G28(GCodeCommand* cmd);
  *  Arguments:
  *   None
  */
-Std_Err init_G90(GCodeCommand* cmd);
+Std_Err init_G90(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G91
@@ -168,7 +157,7 @@ Std_Err init_G90(GCodeCommand* cmd);
  *  Arguments:
  *   None
  */
-Std_Err init_G91(GCodeCommand* cmd);
+Std_Err init_G91(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND G92
@@ -179,7 +168,7 @@ Std_Err init_G91(GCodeCommand* cmd);
  *   You can include the X, Y, Z, and E axes.
  *   If you do not include one of these axes in the command, the position will remain unchanged.
  */
-Std_Err init_G92(GCodeCommand* cmd);
+Std_Err init_G92(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND M104
@@ -190,7 +179,7 @@ Std_Err init_G92(GCodeCommand* cmd);
  *  Arguments:
  *   The S value specifies the extruder temperature in degrees Celsius.
  */
-Std_Err init_M104(GCodeCommand* cmd);
+Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND M106
@@ -200,7 +189,7 @@ Std_Err init_M104(GCodeCommand* cmd);
  *  Arguments:
  *   The S value sets the speed of the cooling fan in a range between 0 (off) and 255 (full power).
  */
-Std_Err init_M106(GCodeCommand* cmd);
+Std_Err init_M106(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND M109
@@ -211,7 +200,7 @@ Std_Err init_M106(GCodeCommand* cmd);
  *  Arguments:
  *   The S value specifies the extruder temperature in degrees Celsius.
  */
-Std_Err init_M109(GCodeCommand* cmd);
+Std_Err init_M109(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND M140
@@ -222,7 +211,7 @@ Std_Err init_M109(GCodeCommand* cmd);
  *  Arguments:
  *   The S value specifies the bed temperature in degrees Celsius.
  */
-Std_Err init_M140(GCodeCommand* cmd);
+Std_Err init_M140(GCode_Settings* settings, GCodeCommand* cmd);
 
 /*
  * COMMAND M190
@@ -233,7 +222,7 @@ Std_Err init_M140(GCodeCommand* cmd);
  *  Arguments:
  *   The S value specifies the bed temperature in degrees Celsius.
  */
-Std_Err init_M190(GCodeCommand* cmd);
+Std_Err init_M190(GCode_Settings* settings, GCodeCommand* cmd);
 
 
 

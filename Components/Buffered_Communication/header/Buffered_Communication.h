@@ -70,7 +70,8 @@ typedef struct BuffCommunication_Settings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_buffered_communication(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart);
+Std_Err init_buffered_communication(BuffCommunication_Settings* settings,
+    UART_HandleTypeDef* huart);
 
 Std_Err send_buffered_message(BuffCommunication_Settings* settings);
 

@@ -36,8 +36,6 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define MSG_BUFF_SIZE 100
-
 #define _OFFSET_MAXSPEED        (0)
 #define _OFFSET_STEPSIZE        (_OFFSET_MAXSPEED+sizeof(double))
 #define _OFFSET_POSITIONZERO    (_OFFSET_STEPSIZE+sizeof(int))
@@ -58,16 +56,6 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct SystemCmdGlobal_Tag{
-    BuffCommunication_Settings* buff_comm;
-    Motor** motors;
-    EEPROMSettings* eeprom;
-    SDCard_Settings* sd;
-
-    uint8_t* motor_data_addresses;
-
-    char msg_buff[MSG_BUFF_SIZE];
-}SystemCmdGlobal;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -76,7 +64,6 @@ typedef struct SystemCmdGlobal_Tag{
  *                                      EXTERNS                                                 *
  * ############################################################################################ */
 
-extern SystemCmdGlobal global_systemCmd_settings;
 /*[[COMPONENT_EXTERNS_H]]*/
 
 
@@ -85,33 +72,33 @@ extern SystemCmdGlobal global_systemCmd_settings;
  *                                      PRIVATE DECLARATIONS                                    *
  * ############################################################################################ */
 
-Std_Err step_forward_GCode(SystemCommand* cmd);
+Std_Err step_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err remove_forward_GCode(SystemCommand* cmd);
+Std_Err remove_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U00(SystemCommand* cmd);
+Std_Err init_U00(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U01(SystemCommand* cmd);
+Std_Err init_U01(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U02(SystemCommand* cmd);
+Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U10(SystemCommand* cmd);
+Std_Err init_U10(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U11(SystemCommand* cmd);
+Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U20(SystemCommand* cmd);
+Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U21(SystemCommand* cmd);
+Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U22(SystemCommand* cmd);
+Std_Err init_U22(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U23(SystemCommand* cmd);
+Std_Err init_U23(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U24(SystemCommand* cmd);
+Std_Err init_U24(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U25(SystemCommand* cmd);
+Std_Err init_U25(SystemCommand_Settings* settings, SystemCommand* cmd);
 
-Std_Err init_U40(SystemCommand* cmd);
+Std_Err init_U40(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 
 

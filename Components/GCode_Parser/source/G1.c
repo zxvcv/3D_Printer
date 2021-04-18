@@ -40,9 +40,9 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_G1(GCodeCommand* cmd)
+Std_Err step_G1(GCode_Settings* settings, GCodeCommand* cmd)
 {
-    if(!(*(global_gcode_settings.motors_are_on)))
+    if(!(*(settings->motors_are_on)))
     {
         cmd->step = NULL;
     }
@@ -51,16 +51,16 @@ Std_Err step_G1(GCodeCommand* cmd)
 }
 
 
-Std_Err init_G1(GCodeCommand* cmd)
+Std_Err init_G1(GCode_Settings* settings, GCodeCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 
     cmd->remove = NULL;
     cmd->step = step_G1;
 
-    Motor** motors = global_gcode_settings.motors;
+    Motor** motors = settings->motors;
 
-    if(global_gcode_settings.positioning_mode == ABSOLUTE)
+    if(settings->positioning_mode == ABSOLUTE)
     {
         cmd->target_position.x = (cmd->used_fields & PARAM_X) ? cmd->data.x :
             (motors[MOTOR_X]->data.position + motors[MOTOR_X]->data.position_error) / ACCURACY;
@@ -69,7 +69,7 @@ Std_Err init_G1(GCodeCommand* cmd)
         cmd->target_position.z = (cmd->used_fields & PARAM_Z) ? cmd->data.z :
             (motors[MOTOR_Z]->data.position + motors[MOTOR_Z]->data.position_error) / ACCURACY;
     }
-    else if(global_gcode_settings.positioning_mode == RELATIVE)
+    else if(settings->positioning_mode == RELATIVE)
     {
         cmd->target_position.x = (cmd->used_fields & PARAM_X ? cmd->data.x : 0) +
             (motors[MOTOR_X]->data.position + motors[MOTOR_X]->data.position_error) / ACCURACY;
@@ -87,10 +87,10 @@ Std_Err init_G1(GCodeCommand* cmd)
 
     if(cmd->used_fields & PARAM_F)
     {
-        global_gcode_settings.speed = cmd->data.f;
+        settings->speed = cmd->data.f;
     }
 
-    vect3D_d velocity = getVelocity3D(move, global_gcode_settings.speed);
+    vect3D_d velocity = getVelocity3D(move, settings->speed);
 
     MotorCounters counters_val;
     bool direction;
@@ -118,7 +118,7 @@ Std_Err init_G1(GCodeCommand* cmd)
         stdErr = motor_start(motors[i]);
         if(stdErr != STD_OK) { return stdErr; }
     }
-    *(global_gcode_settings.motors_are_on) = true;
+    *(settings->motors_are_on) = true;
 
     return stdErr;
 }

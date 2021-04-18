@@ -32,7 +32,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U20(SystemCommand* cmd)
+Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 
@@ -54,7 +54,7 @@ Std_Err init_U20(SystemCommand* cmd)
                 default: return STD_ERROR;
             }
 
-            global_systemCmd_settings.motors[i]->data.position = data;
+            settings->motors[i]->data.position = data;
         }
     }
 

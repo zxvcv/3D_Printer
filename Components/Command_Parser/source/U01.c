@@ -40,7 +40,7 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_U01(SystemCommand* cmd)
+Std_Err step_U01(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_ERROR;
 
@@ -49,18 +49,18 @@ Std_Err step_U01(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
+            uint8_t msgSize = sprintf(settings->msg_buff,
                 "%cU01 %c %f %d %f %d %d\n",
                 '3',
                 motor_indentyficator[i],
-                global_systemCmd_settings.motors[i]->settings.timer_frequency,
-                global_systemCmd_settings.motors[i]->settings.step_size,
-                global_systemCmd_settings.motors[i]->settings.max_speed,
-                global_systemCmd_settings.motors[i]->settings.position_zero,
-                global_systemCmd_settings.motors[i]->settings.position_end);
+                settings->motors[i]->settings.timer_frequency,
+                settings->motors[i]->settings.step_size,
+                settings->motors[i]->settings.max_speed,
+                settings->motors[i]->settings.position_zero,
+                settings->motors[i]->settings.position_end);
 
-            stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
-                global_systemCmd_settings.msg_buff, msgSize);
+            stdErr = add_message_to_send(settings->buff_comm,
+                settings->msg_buff, msgSize);
             if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }
@@ -71,7 +71,7 @@ Std_Err step_U01(SystemCommand* cmd)
 }
 
 
-Std_Err init_U01(SystemCommand* cmd)
+Std_Err init_U01(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = step_U01;

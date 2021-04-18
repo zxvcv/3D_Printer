@@ -61,6 +61,7 @@ Motor motor4;
 
 EEPROMSettings eeprom;
 
+BuffCommunication_Settings buff_comm;
 Communication_Settings communication;
 
 
@@ -94,6 +95,7 @@ void init_deviceSettings(DeviceSettings* settings)
 
     settings->eeprom = &eeprom;
 
+    settings->buff_comm = &buff_comm;
     settings->communication = &communication;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

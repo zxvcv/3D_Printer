@@ -40,7 +40,7 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_U00(SystemCommand* cmd)
+Std_Err step_U00(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_ERROR;
 
@@ -49,15 +49,15 @@ Std_Err step_U00(SystemCommand* cmd)
     {
         if(cmd->used_fields & val)
         {
-            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
+            uint8_t msgSize = sprintf(settings->msg_buff,
                 "%cU00 %c %d %d\n",
                 '3',
                 motor_indentyficator[i],
-                global_systemCmd_settings.motors[i]->data.position,
-                global_systemCmd_settings.motors[i]->data.position_error);
+                settings->motors[i]->data.position,
+                settings->motors[i]->data.position_error);
 
-            stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
-                global_systemCmd_settings.msg_buff, msgSize);
+            stdErr = add_message_to_send(settings->buff_comm,
+                settings->msg_buff, msgSize);
             if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }
@@ -68,7 +68,7 @@ Std_Err step_U00(SystemCommand* cmd)
 }
 
 
-Std_Err init_U00(SystemCommand* cmd)
+Std_Err init_U00(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = step_U00;

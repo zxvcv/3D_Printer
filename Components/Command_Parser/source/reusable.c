@@ -40,13 +40,13 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_forward_GCode(SystemCommand* cmd)
+Std_Err step_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 
     if(cmd->gcode_cmd.step != NULL)
     {
-        stdErr = cmd->gcode_cmd.step(&(cmd->gcode_cmd));
+        stdErr = cmd->gcode_cmd.step(&(settings->sd->gcode), &(cmd->gcode_cmd));
     }
     else
     {
@@ -57,13 +57,13 @@ Std_Err step_forward_GCode(SystemCommand* cmd)
 }
 
 
-Std_Err remove_forward_GCode(SystemCommand* cmd)
+Std_Err remove_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr;
 
     if(cmd->gcode_cmd.step != NULL)
     {
-        stdErr = cmd->gcode_cmd.remove(&(cmd->gcode_cmd));
+        stdErr = cmd->gcode_cmd.remove(&(settings->sd->gcode), &(cmd->gcode_cmd));
     }
 
     return stdErr;

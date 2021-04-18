@@ -32,12 +32,12 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_G90(GCodeCommand* cmd)
+Std_Err init_G90(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    global_gcode_settings.positioning_mode = ABSOLUTE;
+    settings->positioning_mode = ABSOLUTE;
 
     return STD_OK;
 }

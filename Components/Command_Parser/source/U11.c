@@ -32,7 +32,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U11(SystemCommand* cmd)
+Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr;
     char temp[15];
@@ -41,20 +41,21 @@ Std_Err init_U11(SystemCommand* cmd)
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    sprintf(global_systemCmd_settings.msg_buff, "G91");
-    stdErr = parse_GCodeCommand(global_systemCmd_settings.msg_buff, &(cmd->gcode_cmd));
+    sprintf(settings->msg_buff, "G91");
+    stdErr = parse_GCodeCommand(&(settings->sd->gcode),
+        settings->msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
+    stdErr = cmd->gcode_cmd.init(&(settings->sd->gcode), &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     while(cmd->step != NULL)
     {
-        stdErr = cmd->step(cmd);
+        stdErr = cmd->step(settings, cmd);
         if(stdErr != STD_OK) { return stdErr; }
     }
 
-    stdErr = cmd->remove(cmd);
+    stdErr = cmd->remove(settings, cmd);
     if(stdErr != STD_OK) { return stdErr; }
 
 
@@ -62,7 +63,7 @@ Std_Err init_U11(SystemCommand* cmd)
     cmd->remove = remove_forward_GCode;
     cmd->step = step_forward_GCode;
 
-    sprintf(global_systemCmd_settings.msg_buff, "G1");
+    sprintf(settings->msg_buff, "G1");
 
     for(int i=0x01; i<=PARAM_LAST; i<<=1)
     {
@@ -78,15 +79,16 @@ Std_Err init_U11(SystemCommand* cmd)
                 default: break;
             }
 
-            strcat(global_systemCmd_settings.msg_buff, temp);
+            strcat(settings->msg_buff, temp);
         }
     }
 
-    strcat(global_systemCmd_settings.msg_buff, "\n");
-    stdErr = parse_GCodeCommand(global_systemCmd_settings.msg_buff, &(cmd->gcode_cmd));
+    strcat(settings->msg_buff, "\n");
+    stdErr = parse_GCodeCommand(&(settings->sd->gcode),
+        settings->msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = cmd->gcode_cmd.init(&(cmd->gcode_cmd));
+    stdErr = cmd->gcode_cmd.init(&(settings->sd->gcode), &(cmd->gcode_cmd));
 
     return stdErr;
 }

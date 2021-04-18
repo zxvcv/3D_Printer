@@ -52,11 +52,24 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct GCodeCommand_Tag{
-    Std_Err (*init)(struct GCodeCommand_Tag*);
-    Std_Err (*remove)(struct GCodeCommand_Tag*);
+typedef struct GCode_Settings_Tag{
+    Motor** motors;
+    BuffCommunication_Settings* buff_comm;
 
-    Std_Err (*step)(struct GCodeCommand_Tag*);
+    bool* motors_are_on;
+    double speed;
+
+    enum{
+        RELATIVE,
+        ABSOLUTE
+    }positioning_mode;
+}GCode_Settings;
+
+typedef struct GCodeCommand_Tag{
+    Std_Err (*init)(GCode_Settings*, struct GCodeCommand_Tag*);
+    Std_Err (*remove)(GCode_Settings*, struct GCodeCommand_Tag*);
+
+    Std_Err (*step)(GCode_Settings*, struct GCodeCommand_Tag*);
 
 
     uint8_t used_fields;
@@ -84,9 +97,10 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm, bool* motors_are_on);
+void init_GCodeParser(GCode_Settings* settings, Motor** motors,
+    BuffCommunication_Settings* buff_comm, bool* motors_are_on);
 
-Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
+Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

@@ -40,7 +40,7 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err init_G19(GCodeCommand* cmd)
+Std_Err init_G19(GCode_Settings* settings, GCodeCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 

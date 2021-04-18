@@ -61,6 +61,7 @@ typedef struct SDCard_Settings_Tag{
     FATFS* fatfs;
     FIL* file;
     BuffCommunication_Settings* buff_comm;
+    GCode_Settings gcode;
 
     Fifo_C* BuffIN_SDcmd;
     GCodeCommand executingCmd;

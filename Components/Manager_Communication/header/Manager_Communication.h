@@ -52,7 +52,8 @@
  * ############################################################################################ */
 
 typedef struct Communication_Settings_Tag{
-    BuffCommunication_Settings buff_comm;
+    BuffCommunication_Settings* buff_comm;
+    SystemCommand_Settings sys_comm;
 
     SystemCommand executingCmd;
 
@@ -68,7 +69,9 @@ typedef struct Communication_Settings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_communication_manager(Communication_Settings* settings, UART_HandleTypeDef* huart);
+void init_communication_manager(Communication_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses);
 
 Std_Err parse_communication_command(Communication_Settings* settings);
 

@@ -32,10 +32,10 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err step_G28(GCodeCommand* cmd)
+Std_Err step_G28(GCode_Settings* settings, GCodeCommand* cmd)
 {
     Std_Err stdErr;
-    Motor** motors = global_gcode_settings.motors;
+    Motor** motors = settings->motors;
     vect3D_d move;
 
     move.x = cmd->target_position.x - motors[MOTOR_X]->data.position;
@@ -45,10 +45,10 @@ Std_Err step_G28(GCodeCommand* cmd)
     // ??? is this command supports F parameter?
     if(cmd->used_fields & PARAM_F)
     {
-        global_gcode_settings.speed = cmd->data.f;
+        settings->speed = cmd->data.f;
     }
 
-    vect3D_d velocity = getVelocity3D(move, global_gcode_settings.speed);
+    vect3D_d velocity = getVelocity3D(move, settings->speed);
 
     MotorCounters counters_val;
     bool direction;
@@ -85,12 +85,12 @@ Std_Err step_G28(GCodeCommand* cmd)
 }
 
 
-Std_Err init_G28(GCodeCommand* cmd)
+Std_Err init_G28(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = step_G28;
 
-    Motor** motors = global_gcode_settings.motors;
+    Motor** motors = settings->motors;
 
     if(cmd->used_fields & PARAM_X)
     {

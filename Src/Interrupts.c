@@ -59,18 +59,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if(huart == printerSettings.communication->buff_comm.huart)
+    if(huart == printerSettings.buff_comm->huart)
     {
-        send_buffered_message_IT(&(printerSettings.communication->buff_comm));
+        send_buffered_message_IT(printerSettings.buff_comm);
     }
 }
 
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if(huart == printerSettings.communication->buff_comm.huart)
+    if(huart == printerSettings.buff_comm->huart)
     {
-        receive_buffered_message_IT(&(printerSettings.communication->buff_comm));
+        receive_buffered_message_IT(printerSettings.buff_comm);
     }
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
