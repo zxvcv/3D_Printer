@@ -63,6 +63,12 @@ typedef struct GCode_Settings_Tag{
         RELATIVE,
         ABSOLUTE
     }positioning_mode;
+
+    struct{
+        unsigned int plane_x    :1;
+        unsigned int plane_y    :1;
+        unsigned int plane_z    :1;
+    }plane_selection;
 }GCode_Settings;
 
 typedef struct GCodeCommand_Tag{
@@ -72,7 +78,7 @@ typedef struct GCodeCommand_Tag{
     Std_Err (*step)(GCode_Settings*, struct GCodeCommand_Tag*);
 
 
-    uint8_t used_fields;
+    uint16_t used_fields;
     struct{
         double x;       //X-axis move
         double y;       //Y-axis move
@@ -80,6 +86,9 @@ typedef struct GCodeCommand_Tag{
         double e;       //extruder-axis move
         double f;       //speed of the movement
         double s;       //temperature
+        double i;       //X-axis relative circle center position form start point
+        double j;       //Y-axis relative circle center position form start point
+        double k;       //Z-axis relative circle center position form start point
     }data;
     void* specific_data;
 

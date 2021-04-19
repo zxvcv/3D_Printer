@@ -41,13 +41,16 @@
 #define MSG_BUFF_SIZE 100
 
 /* used_fields */
-#define PARAM_X     0x01
-#define PARAM_Y     0x02
-#define PARAM_Z     0x04
-#define PARAM_E     0x08
-#define PARAM_F     0x10
-#define PARAM_S     0x20
-#define PARAM_LAST  PARAM_S
+#define PARAM_X     0x0001
+#define PARAM_Y     0x0002
+#define PARAM_Z     0x0004
+#define PARAM_E     0x0008
+#define PARAM_F     0x0010
+#define PARAM_S     0x0020
+#define PARAM_I     0x0040
+#define PARAM_J     0x0080
+#define PARAM_K     0x0100
+#define PARAM_LAST  PARAM_K
 /*[[COMPONENT_DEFINES_H]]*/
 
 
