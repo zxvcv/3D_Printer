@@ -42,10 +42,22 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+bool compare_doubles(double d1, double d2, double accuracy)
+{
+    if(d1 + accuracy > d2 && d1 - accuracy < d2)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool compare_points(point3D_d p1, point3D_d p2, double accuracy)
 {
-    if(p1.a + accuracy > p2.a && p1.a - accuracy < p2.a &&
-       p1.b + accuracy > p2.b && p1.b - accuracy < p2.b)
+    if(compare_doubles(p1.a, p2.a, accuracy) &&
+       compare_doubles(p1.b, p2.b, accuracy))
     {
         return true;
     }
@@ -89,12 +101,12 @@ point3D_i get_circle_step_direction(point3D_d position, point3D_d circle_center,
     if(direction_x < 0) { dir.b = 1; }
     else if(direction_x > 0) { dir.b = -1; }
     else if(direction_y < 0) { dir.b = 1; }
-    else(direction_y > 0) { dir.b = -1; }
+    else { dir.b = -1; }
 
     if(direction_y < 0) { dir.a = -1; }
     else if(direction_y > 0) { dir.a = 1; }
     else if(direction_x < 0) { dir.a = 1; }
-    else(direction_x > 0) { dir.a = -1; }
+    else { dir.a = -1; }
 
     if(!is_clockwise)
     {

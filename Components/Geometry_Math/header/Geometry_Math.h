@@ -24,6 +24,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include <stdbool.h>
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -64,6 +65,8 @@ typedef struct point3D_d_Tag{
 /* ############################################################################################ *
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
+
+bool compare_doubles(double d1, double d2, double accuracy);
 
 bool compare_points(point3D_d p1, point3D_d p2, double accuracy);
 

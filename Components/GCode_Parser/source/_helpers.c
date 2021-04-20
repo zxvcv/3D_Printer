@@ -16,6 +16,7 @@
  * ############################################################################################ */
 
 #include "_helpers.h"
+#include <stdlib.h>
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
@@ -76,6 +77,7 @@ point3D_d get_next_circle_line(point3D_d start, point3D_d end, point3D_d circle_
     double radius, point3D_i step_size, bool is_clockwise)
 {
     point3D_d current_point = start;
+    point3D_d previous_point;
     point3D_i direction;
     PixelDirection next_step, previous_step;
 
@@ -86,6 +88,8 @@ point3D_d get_next_circle_line(point3D_d start, point3D_d end, point3D_d circle_
     while(true)
     {
         previous_step = next_step;
+        previous_point.a = current_point.a;
+        previous_point.b = current_point.b;
         switch(next_step)
         {
             case FIRST_AXIS:
@@ -111,7 +115,7 @@ point3D_d get_next_circle_line(point3D_d start, point3D_d end, point3D_d circle_
 
         if(previous_step != next_step)
         {
-            return previous_step;
+            return previous_point;
         }
     }
 }

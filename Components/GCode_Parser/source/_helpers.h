@@ -16,14 +16,15 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#ifndef _HELPERS_H_
+#define _HELPERS_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include "Geometry_Math.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -77,4 +78,4 @@ point3D_d get_next_circle_line(point3D_d start, point3D_d end, point3D_d circle_
 
 
 
-#endif /* _COMMANDS_H_ */
+#endif /* _HELPERS_H_ */
