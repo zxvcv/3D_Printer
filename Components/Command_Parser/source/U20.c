@@ -39,7 +39,7 @@ Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd)
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    uint8_t val = 0x01;
+    uint8_t val = PARAM_X;
     for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
     {
         if(cmd->used_fields & val)

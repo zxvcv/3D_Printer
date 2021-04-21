@@ -65,7 +65,7 @@ Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd)
 
     sprintf(settings->msg_buff, "G1");
 
-    for(int i=0x01; i<=PARAM_LAST; i<<=1)
+    for(int i=PARAM_X; i<=PARAM_F; i<<=1)
     {
         if(cmd->used_fields & i)
         {

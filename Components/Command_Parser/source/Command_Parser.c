@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 12
+#define SYSTEM_COMMANDS_NUM 13
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -44,6 +44,7 @@ const struct {
         {   "U02",      init_U02    },// ----,   systemCmd_MotorFlagsRequest
         {   "U10",      init_U10    },// "PM",   systemCmd_MotorLinearAbsoluteMove
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
+        {   "U12",      init_U12    },
         {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
         {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
@@ -114,6 +115,9 @@ Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemC
             case 'Z': cmdOUT->data.z = val; cmdOUT->used_fields |= PARAM_Z; break;
             case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
             case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
+            case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
+            case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
+            case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
             default: break;
         }
         token = strtok(NULL, " ");

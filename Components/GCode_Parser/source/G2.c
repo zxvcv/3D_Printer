@@ -238,7 +238,7 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
         #ifdef USE_INTERRUPTS
         IRQ_ENABLE;
         #endif /* USE_INTERRUPTS */
-
+        add_message_to_send(settings->buff_comm, "==>1\n",5);
         return STD_PARAMETER_ERROR;
     }
 
@@ -298,7 +298,7 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
         #ifdef USE_INTERRUPTS
         IRQ_ENABLE;
         #endif /* USE_INTERRUPTS */
-
+        add_message_to_send(settings->buff_comm, "==>2\n",5);
         return STD_PARAMETER_ERROR;
     }
 

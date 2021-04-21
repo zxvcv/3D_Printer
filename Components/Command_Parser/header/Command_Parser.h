@@ -85,6 +85,9 @@ typedef struct SystemCommand_Tag{
         double z;       //Z-axis
         double e;       //extruder-axis
         double f;       //speed of the movement
+        double i;       //X-axis relative circle center position form start point
+        double j;       //Y-axis relative circle center position form start point
+        double k;       //Z-axis relative circle center position form start point
     }data;
 
     GCodeCommand gcode_cmd;

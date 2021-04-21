@@ -47,7 +47,10 @@
 #define PARAM_Z     0x04
 #define PARAM_E     0x08
 #define PARAM_F     0x10
-#define PARAM_LAST  PARAM_F
+#define PARAM_I     0x20
+#define PARAM_J     0x40
+#define PARAM_K     0x80
+#define PARAM_LAST  PARAM_Z
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -85,6 +88,8 @@ Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd);
 Std_Err init_U10(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd);
+
+Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd);
 

@@ -59,9 +59,9 @@ Std_Err step_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd)
 
 Std_Err remove_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
-    Std_Err stdErr;
+    Std_Err stdErr = STD_OK;
 
-    if(cmd->gcode_cmd.step != NULL)
+    if(cmd->gcode_cmd.remove != NULL)
     {
         stdErr = cmd->gcode_cmd.remove(&(settings->sd->gcode), &(cmd->gcode_cmd));
     }

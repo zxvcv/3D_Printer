@@ -42,11 +42,13 @@
 
 Std_Err init_G17(GCode_Settings* settings, GCodeCommand* cmd)
 {
-    Std_Err stdErr = STD_OK;
-
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    return stdErr;
+    settings->plane_selection.plane_x = 1;
+    settings->plane_selection.plane_y = 1;
+    settings->plane_selection.plane_z = 0;
+
+    return STD_OK;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
