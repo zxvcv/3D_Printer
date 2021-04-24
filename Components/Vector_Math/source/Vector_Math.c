@@ -42,6 +42,34 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+vect2D_d getVector2D(double p1X, double p1Y, double p2X, double p2Y)
+{
+    vect2D_d vect;
+    vect.x = p2X - p1X;
+    vect.y = p2Y - p1Y;
+    return vect;
+}
+
+
+double getVectorLength2D(vect2D_d vect)
+{
+    return sqrt(pow(vect.x, 2) + pow(vect.y, 2));
+}
+
+
+double getVectorScalarProduct2D(vect2D_d vect1, vect2D_d vect2)
+{
+    return vect1.x * vect2.x + vect1.y * vect2.y;
+}
+
+
+double getAngleBetweenVectors2D(vect2D_d vect1, vect2D_d vect2)
+{
+    return acos(getVectorScalarProduct2D(vect1, vect2) /
+        (getVectorLength2D(vect1) * getVectorLength2D(vect2)));
+}
+
+
 vect2D_d getVelocity2D(vect2D_d move, double v)
 {
     double alfa;

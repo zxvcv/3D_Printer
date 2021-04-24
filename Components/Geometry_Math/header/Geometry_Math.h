@@ -49,15 +49,16 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct point3D_i_Tag{
-    int a;
-    int b;
-}point3D_i;
+typedef struct Point2D_d_Tag{
+    double x;
+    double y;
+}Point2D_d;
 
-typedef struct point3D_d_Tag{
-    double a;
-    double b;
-}point3D_d;
+typedef struct Point3D_d_Tag{
+    double x;
+    double y;
+    double z;
+}Point3D_d;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -68,13 +69,16 @@ typedef struct point3D_d_Tag{
 
 bool compare_doubles(double d1, double d2, double accuracy);
 
-bool compare_points(point3D_d p1, point3D_d p2, double accuracy);
+double get_angle_in_degrees(double rad_angle);
 
-double get_distance_between_points(point3D_d p1, point3D_d p2);
+double get_angle_in_radians(double degree_angle);
 
-int get_relative_point_direction(double point, double reference);
+double get_distance_between_points(Point2D_d p1, Point2D_d p2);
 
-point3D_i get_circle_step_direction(point3D_d position, point3D_d circle_center, bool is_clockwise);
+Point2D_d get_line_equation_from_points(Point2D_d v1, Point2D_d v2);
+
+Point2D_d get_next_circle_point(Point2D_d start_point, Point2D_d circle_center, double radius,
+    double angle_step, bool is_clockwise);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

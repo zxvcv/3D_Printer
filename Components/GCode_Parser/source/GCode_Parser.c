@@ -108,6 +108,9 @@ Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cm
             case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
             case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
             case 'S': cmdOUT->data.s = val; cmdOUT->used_fields |= PARAM_S; break;
+            case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
+            case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
+            case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
             default: break;
         }
         token = strtok(NULL, " ");

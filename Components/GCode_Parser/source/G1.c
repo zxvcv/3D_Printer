@@ -32,6 +32,51 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
+Std_Err setup_linear_movement(GCode_Settings* settings, vect3D_d move, double speed)
+{
+    Std_Err stdErr = STD_OK;
+    Motor** motors = settings->motors;
+    vect3D_d velocity = getVelocity3D(move, speed);
+
+    MotorCounters counters_val;
+    bool direction;
+
+    double move_tab[MOTORS_NUM] = { move.x, move.y, move.z , 0. };
+    double velocity_tab[MOTORS_NUM] =
+        { fabs(velocity.x), fabs(velocity.y), fabs(velocity.z), fabs(0.) };
+
+    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
+    {
+        memset(&counters_val, 0, sizeof(MotorCounters));
+
+        stdErr = motor_get_linear_move_settings(motors[i],
+                         move_tab[i],
+                         velocity_tab[i],
+                         ACCURACY, &counters_val, &direction);
+        if(stdErr != STD_OK) { return stdErr; }
+
+        motor_set_counters(motors[i], &counters_val);
+        motor_set_direction(motors[i], direction);
+    }
+
+    return stdErr;
+}
+
+
+Std_Err start_motors_move(GCode_Settings* settings)
+{
+    Std_Err stdErr = STD_OK;
+    Motor** motors = settings->motors;
+
+    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
+    {
+        stdErr = motor_start(motors[i]);
+        if(stdErr != STD_OK) { return stdErr; }
+    }
+    *(settings->motors_are_on) = true;
+
+    return stdErr;
+}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -90,35 +135,10 @@ Std_Err init_G1(GCode_Settings* settings, GCodeCommand* cmd)
         settings->speed = cmd->data.f;
     }
 
-    vect3D_d velocity = getVelocity3D(move, settings->speed);
+    stdErr = setup_linear_movement(settings, move, settings->speed);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    MotorCounters counters_val;
-    bool direction;
-
-    double move_tab[MOTORS_NUM] = { move.x, move.y, move.z , 0. };
-    double velocity_tab[MOTORS_NUM] =
-        { fabs(velocity.x), fabs(velocity.y), fabs(velocity.z), fabs(0.) };
-
-    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
-    {
-        memset(&counters_val, 0, sizeof(MotorCounters));
-
-        stdErr = motor_get_linear_move_settings(motors[i],
-                         move_tab[i],
-                         velocity_tab[i],
-                         ACCURACY, &counters_val, &direction);
-        if(stdErr != STD_OK) { return stdErr; }
-
-        motor_set_counters(motors[i], &counters_val);
-        motor_set_direction(motors[i], direction);
-    }
-
-    for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
-    {
-        stdErr = motor_start(motors[i]);
-        if(stdErr != STD_OK) { return stdErr; }
-    }
-    *(settings->motors_are_on) = true;
+    stdErr = start_motors_move(settings);
 
     return stdErr;
 }

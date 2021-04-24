@@ -17,7 +17,6 @@
 
 #include "_commands.h"
 #include "Geometry_Math.h"
-#include "_helpers.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -36,15 +35,12 @@
  * ############################################################################################ */
 
 typedef struct DataG2_Tag{
-    Fifo_C* step_queue;
-
-    point3D_d start_point;
-    point3D_d center_point;
-    point3D_d end_point;
-    point3D_i step_size;
+    Point2D_d start_point;
+    Point2D_d center_point;
+    Point2D_d end_point;
 
     double radius;
-    bool full_circle;
+    int steps;
 }DataG2;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
@@ -60,18 +56,16 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
     Motor** motors = settings->motors;
     DataG2* specific_data = (DataG2*)cmd->specific_data;
 
-    uint8_t fifo_size = fifo_getSize(specific_data->step_queue);
-
     if(!(*(settings->motors_are_on)))
     {
         // update current position
         if(settings->plane_selection.plane_x)
         {
-            specific_data->start_point.a = motors[MOTOR_X]->data.position / ACCURACY;
+            specific_data->start_point.x = motors[MOTOR_X]->data.position / ACCURACY;
 
             if(settings->plane_selection.plane_y)
             {
-                specific_data->start_point.b = motors[MOTOR_Y]->data.position / ACCURACY;
+                specific_data->start_point.y = motors[MOTOR_Y]->data.position / ACCURACY;
             }
         }
 
@@ -79,96 +73,51 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
         {
             if(settings->plane_selection.plane_y)
             {
-                specific_data->start_point.a =  motors[MOTOR_Y]->data.position / ACCURACY;
+                specific_data->start_point.x =  motors[MOTOR_Y]->data.position / ACCURACY;
             }
 
-            specific_data->start_point.b = motors[MOTOR_Z]->data.position / ACCURACY;
+            specific_data->start_point.y = motors[MOTOR_Z]->data.position / ACCURACY;
         }
 
-        if(compare_points(specific_data->start_point, specific_data->end_point, 1./ACCURACY))
+        if(specific_data->steps == 0)
         {
             cmd->step = NULL;
             return STD_OK;
         }
 
-        if(fifo_size > 0)
+        // TODO: parametrize angle step and is_clockwise
+        // get next circle point
+        Point2D_d destination = get_next_circle_point(specific_data->start_point,
+            specific_data->center_point, specific_data->radius, 1., true);
+
+        specific_data->steps -= 1;
+
+        // calculate move values
+        vect3D_d move;
+        move.x = (cmd->used_fields & PARAM_X) ?
+            (destination.x - specific_data->start_point.x) : 0.;
+        if(cmd->used_fields & PARAM_Y)
         {
-            // get data to set the move
-            point3D_d* destination;
-
-            stdErr = fifo_front(specific_data->step_queue, (void**)(&destination));
-            if(stdErr != STD_OK) { return stdErr; }
-
-            // calculate move values
-            if(cmd->used_fields & PARAM_F)
-            {
-                settings->speed = cmd->data.f;
-            }
-
-            vect3D_d move;
-            move.x = (cmd->used_fields & PARAM_X) ?
-                (destination->a - specific_data->start_point.a) : 0.;
-            if(cmd->used_fields & PARAM_Y)
-            {
-                move.y = (cmd->used_fields & PARAM_X) ?
-                    destination->b - specific_data->start_point.b :
-                    destination->a - specific_data->start_point.a;
-            }
-            else
-            {
-                move.y = 0.;
-            }
-            move.z = cmd->used_fields & PARAM_Z ?
-                destination->b - specific_data->start_point.b : 0.;
-
-            vect3D_d velocity = getVelocity3D(move, settings->speed);
-
-            MotorCounters counters_val;
-            bool direction;
-
-            double move_tab[MOTORS_NUM] = { move.x, move.y, move.z , 0. };
-            double velocity_tab[MOTORS_NUM] =
-                { fabs(velocity.x), fabs(velocity.y), fabs(velocity.z), fabs(0.) };
-
-            for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
-            {
-                memset(&counters_val, 0, sizeof(MotorCounters));
-
-                stdErr = motor_get_linear_move_settings(motors[i],
-                                move_tab[i],
-                                velocity_tab[i],
-                                ACCURACY, &counters_val, &direction);
-                if(stdErr != STD_OK) { return stdErr; }
-
-                motor_set_counters(motors[i], &counters_val);
-                motor_set_direction(motors[i], direction);
-            }
-
-            stdErr = fifo_pop_C(specific_data->step_queue);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            for(int i=MOTOR_X; i<MOTORS_NUM; ++i)
-            {
-                stdErr = motor_start(motors[i]);
-                if(stdErr != STD_OK) { return stdErr; }
-            }
-            *(settings->motors_are_on) = true;
+            move.y = (cmd->used_fields & PARAM_X) ?
+                destination.y - specific_data->start_point.y :
+                destination.x - specific_data->start_point.x;
         }
-    }
+        else
+        {
+            move.y = 0.;
+        }
+        move.z = cmd->used_fields & PARAM_Z ?
+            destination.y - specific_data->start_point.y : 0.;
 
-    if(fifo_size < STEP_QUEUE_MAX_SIZE &&
-      (specific_data->full_circle ||
-       !compare_points(specific_data->start_point, specific_data->end_point, 1./ACCURACY)))
-    {
+        if(cmd->used_fields & PARAM_F)
+        {
+            settings->speed = cmd->data.f;
+        }
 
-        // get next circle line
-        point3D_d destination = get_next_circle_line(specific_data->start_point,
-            specific_data->end_point, specific_data->center_point, specific_data->radius,
-            specific_data->step_size, true);
-
-        // add next step point to queue
-        stdErr = fifo_push_C(specific_data->step_queue, (void*)&destination, sizeof(point3D_d));
+        stdErr = setup_linear_movement(settings, move, settings->speed);
         if(stdErr != STD_OK) { return stdErr; }
+
+        stdErr = start_motors_move(settings);
     }
 
     return stdErr;
@@ -178,10 +127,6 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
 Std_Err remove_G2(GCode_Settings* settings, GCodeCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
-    DataG2* specific_data = (DataG2*)cmd->specific_data;
-
-    stdErr = fifo_delete_C(&(specific_data->step_queue));
-    if(stdErr != STD_OK) { return stdErr; }
 
     #ifdef USE_INTERRUPTS
     IRQ_DISABLE;
@@ -193,7 +138,7 @@ Std_Err remove_G2(GCode_Settings* settings, GCodeCommand* cmd)
     IRQ_ENABLE;
     #endif /* USE_INTERRUPTS */
 
-    return STD_OK;
+    return stdErr;
 }
 
 
@@ -204,14 +149,6 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
     cmd->remove = NULL;
     cmd->step = step_G2;
 
-    uint8_t cnt = 0;
-    for(int i=PARAM_I; i<=PARAM_K; i<<=1)
-    {
-        if(cmd->used_fields & i)
-        {
-            cnt += 1;
-        }
-    }
 
     #ifdef USE_INTERRUPTS
     IRQ_DISABLE;
@@ -226,39 +163,21 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
     DataG2* specific_data = (DataG2*)cmd->specific_data;
 
     // set helper values
-    specific_data->full_circle = cnt == 0 ? true : false;
-    if(cnt != 0 || cnt != 2)
-    {
-        #ifdef USE_INTERRUPTS
-        IRQ_DISABLE;
-        #endif /* USE_INTERRUPTS */
-
-        free(cmd->specific_data);
-
-        #ifdef USE_INTERRUPTS
-        IRQ_ENABLE;
-        #endif /* USE_INTERRUPTS */
-        add_message_to_send(settings->buff_comm, "==>1\n",5);
-        return STD_PARAMETER_ERROR;
-    }
-
     if(settings->plane_selection.plane_x)
     {
-        specific_data->start_point.a = motors[MOTOR_X]->data.position / ACCURACY;
-        specific_data->center_point.a = specific_data->start_point.a +
-            (cmd->used_fields & PARAM_I) ? cmd->data.i : 0.;
-        specific_data->end_point.a =
-            (cmd->used_fields & PARAM_X) ? cmd->data.x : specific_data->start_point.a;
-        specific_data->step_size.a = motors[MOTOR_X]->settings.step_size;
+        specific_data->start_point.x = motors[MOTOR_X]->data.position / ACCURACY;
+        specific_data->center_point.x = specific_data->start_point.x +
+            ((cmd->used_fields & PARAM_I) ? cmd->data.i : 0.);
+        specific_data->end_point.x =
+            (cmd->used_fields & PARAM_X) ? cmd->data.x : specific_data->start_point.x;
 
         if(settings->plane_selection.plane_y)
         {
-            specific_data->start_point.b = motors[MOTOR_Y]->data.position / ACCURACY;
-            specific_data->center_point.b = specific_data->start_point.b +
-                (cmd->used_fields & PARAM_J) ? cmd->data.j : 0.;
-            specific_data->end_point.b =
-                (cmd->used_fields & PARAM_Y) ? cmd->data.y : specific_data->start_point.b;
-            specific_data->step_size.b = motors[MOTOR_Y]->settings.step_size;
+            specific_data->start_point.y = motors[MOTOR_Y]->data.position / ACCURACY;
+            specific_data->center_point.y = specific_data->start_point.y +
+                ((cmd->used_fields & PARAM_J) ? cmd->data.j : 0.);
+            specific_data->end_point.y =
+                (cmd->used_fields & PARAM_Y) ? cmd->data.y : specific_data->start_point.y;
         }
     }
 
@@ -266,20 +185,18 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
     {
         if(settings->plane_selection.plane_y)
         {
-            specific_data->start_point.a =  motors[MOTOR_Y]->data.position / ACCURACY;
-            specific_data->center_point.a = specific_data->start_point.a +
-                (cmd->used_fields & PARAM_J) ? cmd->data.j : 0.;
-            specific_data->end_point.a =
-                (cmd->used_fields & PARAM_Y) ? cmd->data.y : specific_data->start_point.a;
-            specific_data->step_size.a = motors[MOTOR_Y]->settings.step_size;
+            specific_data->start_point.x =  motors[MOTOR_Y]->data.position / ACCURACY;
+            specific_data->center_point.x = specific_data->start_point.x +
+                ((cmd->used_fields & PARAM_J) ? cmd->data.j : 0.);
+            specific_data->end_point.x =
+                (cmd->used_fields & PARAM_Y) ? cmd->data.y : specific_data->start_point.x;
         }
 
-        specific_data->start_point.b = motors[MOTOR_Z]->data.position / ACCURACY;
-        specific_data->center_point.b = specific_data->start_point.b +
-            (cmd->used_fields & PARAM_K) ? cmd->data.k : 0.;
-        specific_data->end_point.b =
-            (cmd->used_fields & PARAM_Z) ? cmd->data.z : specific_data->start_point.b;
-        specific_data->step_size.b = motors[MOTOR_Z]->settings.step_size;
+        specific_data->start_point.y = motors[MOTOR_Z]->data.position / ACCURACY;
+        specific_data->center_point.y = specific_data->start_point.y +
+            ((cmd->used_fields & PARAM_K) ? cmd->data.k : 0.);
+        specific_data->end_point.y =
+            (cmd->used_fields & PARAM_Z) ? cmd->data.z : specific_data->start_point.y;
     }
 
     // check length of radius
@@ -298,12 +215,20 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
         #ifdef USE_INTERRUPTS
         IRQ_ENABLE;
         #endif /* USE_INTERRUPTS */
-        add_message_to_send(settings->buff_comm, "==>2\n",5);
+
         return STD_PARAMETER_ERROR;
     }
 
-    // fifo init
-    stdErr = fifo_create(&(specific_data->step_queue));
+    // calculate number of moves
+    vect2D_d start_vect = getVector2D(specific_data->center_point.x, specific_data->center_point.y,
+                                      specific_data->start_point.x,  specific_data->start_point.y);
+    vect2D_d end_vect   = getVector2D(specific_data->center_point.x, specific_data->center_point.y,
+                                      specific_data->end_point.x,    specific_data->end_point.y);
+    double angle = getAngleBetweenVectors2D(start_vect, end_vect);
+    angle = (angle == 0) ? 360 : angle;
+
+    // TODO: parametrize angle step
+    specific_data->steps = round(angle / 1.);
 
     return stdErr;
 }

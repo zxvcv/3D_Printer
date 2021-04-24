@@ -22,7 +22,6 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/GCode_Parser.c
 
-    ${SOURCE_DIR}/_helpers.c
     ${SOURCE_DIR}/G1.c
     ${SOURCE_DIR}/G2.c
     ${SOURCE_DIR}/G3.c
