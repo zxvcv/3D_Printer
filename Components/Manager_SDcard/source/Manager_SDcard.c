@@ -158,7 +158,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
     if(stdErr != STD_OK) { return stdErr; }
 
     settings->buff_comm = buff_comm;
-    init_GCodeParser(motors, buff_comm, motors_are_on);
+    init_GCodeParser(&(settings->gcode), motors, buff_comm, motors_are_on);
     return stdErr;
 }
 
@@ -234,7 +234,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 
             GCodeCommand cmd;
 
-            stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
+            stdErr = parse_GCodeCommand(&(settings->gcode), (char*)cmdData, &cmd);
             if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
@@ -278,7 +278,7 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings)
             stdErr = fifo_pop_C(settings->BuffIN_SDcmd);
             if(stdErr != STD_OK) { return stdErr; }
 
-            stdErr = settings->executingCmd.init(&(settings->executingCmd));
+            stdErr = settings->executingCmd.init(&(settings->gcode), &(settings->executingCmd));
             if(stdErr != STD_OK) { return stdErr; }
 
             settings->flags.executing_command = true;
@@ -287,7 +287,7 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings)
         /* there is command ongoing, process next step */
         if(settings->flags.executing_command && settings->executingCmd.step != NULL)
         {
-            stdErr = settings->executingCmd.step(&(settings->executingCmd));
+            stdErr = settings->executingCmd.step(&(settings->gcode), &(settings->executingCmd));
             if(stdErr != STD_OK) { return stdErr; }
         }
 
@@ -296,7 +296,7 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings)
         {
             if(settings->executingCmd.remove != NULL)
             {
-                stdErr = settings->executingCmd.remove(&(settings->executingCmd));
+                stdErr = settings->executingCmd.remove(&(settings->gcode), &(settings->executingCmd));
                 if(stdErr != STD_OK) { return stdErr; }
             }
 

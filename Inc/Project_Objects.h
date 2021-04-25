@@ -63,6 +63,7 @@ typedef struct DeviceSettings_Tag{
 
     EEPROMSettings* eeprom;
 
+    BuffCommunication_Settings* buff_comm;
     Communication_Settings* communication;
 
     char msg_buffer[50];

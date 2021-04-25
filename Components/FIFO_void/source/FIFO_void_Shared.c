@@ -50,15 +50,15 @@ Std_Err fifo_create(Fifo** list)
 
     if ((*list) == NULL)
     {
-#ifdef USE_INTERRUPTS
+        #ifdef USE_INTERRUPTS
         IRQ_DISABLE;
-#endif /* USE_INTERRUPTS */
+        #endif /* USE_INTERRUPTS */
 
         *list = (Fifo*)malloc(sizeof(Fifo));
 
-#ifdef USE_INTERRUPTS
+        #ifdef USE_INTERRUPTS
         IRQ_ENABLE;
-#endif /* USE_INTERRUPTS */
+        #endif /* USE_INTERRUPTS */
 
         if(*list == NULL)
         {

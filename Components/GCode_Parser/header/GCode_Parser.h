@@ -52,14 +52,39 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
+typedef struct GCode_Settings_Tag{
+    Motor** motors;
+    BuffCommunication_Settings* buff_comm;
+
+    bool* motors_are_on;
+    double speed;
+    double angle_step;
+
+    enum{
+        RELATIVE,
+        ABSOLUTE
+    }positioning_mode;
+
+    enum{
+        CLOCKWISE_CIRCLE,
+        COUNTER_CLOCKWISE_CIRCLE
+    }circle_move_mode;
+
+    struct{
+        unsigned int plane_x    :1;
+        unsigned int plane_y    :1;
+        unsigned int plane_z    :1;
+    }plane_selection;
+}GCode_Settings;
+
 typedef struct GCodeCommand_Tag{
-    Std_Err (*init)(struct GCodeCommand_Tag*);
-    Std_Err (*remove)(struct GCodeCommand_Tag*);
+    Std_Err (*init)(GCode_Settings*, struct GCodeCommand_Tag*);
+    Std_Err (*remove)(GCode_Settings*, struct GCodeCommand_Tag*);
 
-    Std_Err (*step)(struct GCodeCommand_Tag*);
+    Std_Err (*step)(GCode_Settings*, struct GCodeCommand_Tag*);
 
 
-    uint8_t used_fields;
+    uint16_t used_fields;
     struct{
         double x;       //X-axis move
         double y;       //Y-axis move
@@ -67,7 +92,11 @@ typedef struct GCodeCommand_Tag{
         double e;       //extruder-axis move
         double f;       //speed of the movement
         double s;       //temperature
+        double i;       //X-axis relative circle center position form start point
+        double j;       //Y-axis relative circle center position form start point
+        double k;       //Z-axis relative circle center position form start point
     }data;
+    void* specific_data;
 
     struct{
         double x;
@@ -84,9 +113,10 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor** motors, BuffCommunication_Settings* buff_comm, bool* motors_are_on);
+void init_GCodeParser(GCode_Settings* settings, Motor** motors,
+    BuffCommunication_Settings* buff_comm, bool* motors_are_on);
 
-Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT);
+Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

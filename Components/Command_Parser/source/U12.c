@@ -32,41 +32,14 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd)
+Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
-    Std_Err stdErr = STD_OK;
-    MotorData_EEPROM motor_data;
+    Std_Err stdErr;
 
-    cmd->remove = NULL;
-    cmd->step = NULL;
+    stdErr = forward_command_immediately(settings, cmd, "G17", false);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    uint8_t val = PARAM_X;
-    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
-    {
-        if(cmd->used_fields & val)
-        {
-            stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
-                &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            int data;
-            switch(i)
-            {
-                case MOTOR_X: data = (int)cmd->data.x; break;
-                case MOTOR_Y: data = (int)cmd->data.y; break;
-                case MOTOR_Z: data = (int)cmd->data.z; break;
-                case MOTOR_E: data = (int)cmd->data.e; break;
-                default: return STD_ERROR;
-            }
-            motor_data.position_zero = data;
-
-            stdErr = set_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
-                &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            settings->motors[i]->settings.position_zero = data;
-        }
-    }
+    stdErr = forward_command_concurrently(settings, cmd, "G2", true);
 
     return stdErr;
 }

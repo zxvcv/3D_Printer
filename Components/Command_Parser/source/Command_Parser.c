@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 12
+#define SYSTEM_COMMANDS_NUM 13
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -35,17 +35,16 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-SystemCmdGlobal global_systemCmd_settings;
-
 const struct {
     char* name;
-    Std_Err (*execute)(SystemCommand*);
+    Std_Err (*execute)(SystemCommand_Settings*, SystemCommand*);
 } _system_commands[SYSTEM_COMMANDS_NUM] = {
         {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
         {   "U01",      init_U01    },// ----,   systemCmd_MotorSettingsRequest
         {   "U02",      init_U02    },// ----,   systemCmd_MotorFlagsRequest
         {   "U10",      init_U10    },// "PM",   systemCmd_MotorLinearAbsoluteMove
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
+        {   "U12",      init_U12    },
         {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
         {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
@@ -62,18 +61,19 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
-    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t* motor_data_addresses)
+void init_SystemCommandsParser(SystemCommand_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses)
 {
-    global_systemCmd_settings.buff_comm = buff_comm;
-    global_systemCmd_settings.motors = motors;
-    global_systemCmd_settings.eeprom = eeprom;
-    global_systemCmd_settings.sd = sd;
-    global_systemCmd_settings.motor_data_addresses = motor_data_addresses;
+    settings->buff_comm = buff_comm;
+    settings->motors = motors;
+    settings->eeprom = eeprom;
+    settings->sd = sd;
+    settings->motor_data_addresses = motor_data_addresses;
 }
 
 
-Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
+Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemCommand* cmdOUT)
 {
     Std_Err stdErr = STD_ERROR;
     char* token = NULL, * cmdName = NULL;
@@ -115,6 +115,9 @@ Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
             case 'Z': cmdOUT->data.z = val; cmdOUT->used_fields |= PARAM_Z; break;
             case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
             case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
+            case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
+            case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
+            case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
             default: break;
         }
         token = strtok(NULL, " ");

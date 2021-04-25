@@ -40,28 +40,28 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_U02(SystemCommand* cmd)
+Std_Err step_U02(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_ERROR;
 
-    uint8_t val = 0x01;
+    uint8_t val = PARAM_X;
     for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
     {
         if(cmd->used_fields & val)
         {
-            uint8_t msgSize = sprintf(global_systemCmd_settings.msg_buff,
+            uint8_t msgSize = sprintf(settings->msg_buff,
                 "%cU02 %c %u %u %u %u %u %u\n",
                 '3',
                 motor_indentyficator[i],
-                global_systemCmd_settings.motors[i]->flags.isOn,
-                global_systemCmd_settings.motors[i]->flags.reset,
-                global_systemCmd_settings.motors[i]->flags.sleep,
-                global_systemCmd_settings.motors[i]->flags.stepPhase,
-                global_systemCmd_settings.motors[i]->flags.direction,
-                global_systemCmd_settings.motors[i]->flags.reversed);
+                settings->motors[i]->flags.isOn,
+                settings->motors[i]->flags.reset,
+                settings->motors[i]->flags.sleep,
+                settings->motors[i]->flags.stepPhase,
+                settings->motors[i]->flags.direction,
+                settings->motors[i]->flags.reversed);
 
-            stdErr = add_message_to_send(global_systemCmd_settings.buff_comm,
-                global_systemCmd_settings.msg_buff, msgSize);
+            stdErr = add_message_to_send(settings->buff_comm,
+                settings->msg_buff, msgSize);
             if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
         }
@@ -72,7 +72,7 @@ Std_Err step_U02(SystemCommand* cmd)
 }
 
 
-Std_Err init_U02(SystemCommand* cmd)
+Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = step_U02;

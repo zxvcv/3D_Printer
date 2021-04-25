@@ -37,6 +37,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define COMM_MSG_BUFF_SIZE 100
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -58,11 +59,22 @@ typedef enum ExecutionPolicy_Tag{
     NORMAL      = 1
 }ExecutionPolicy;
 
-typedef struct SystemCommand_Tag{
-    Std_Err (*init)(struct SystemCommand_Tag*);
-    Std_Err (*remove)(struct SystemCommand_Tag*);
+typedef struct SystemCommand_Settings_Tag{
+    BuffCommunication_Settings* buff_comm;
+    Motor** motors;
+    EEPROMSettings* eeprom;
+    SDCard_Settings* sd;
 
-    Std_Err (*step)(struct SystemCommand_Tag*);
+    uint8_t* motor_data_addresses;
+
+    char msg_buff[COMM_MSG_BUFF_SIZE];
+}SystemCommand_Settings;
+
+typedef struct SystemCommand_Tag{
+    Std_Err (*init)(SystemCommand_Settings*, struct SystemCommand_Tag*);
+    Std_Err (*remove)(SystemCommand_Settings*, struct SystemCommand_Tag*);
+
+    Std_Err (*step)(SystemCommand_Settings*, struct SystemCommand_Tag*);
 
 
     ExecutionPolicy execution_policy;
@@ -73,6 +85,9 @@ typedef struct SystemCommand_Tag{
         double z;       //Z-axis
         double e;       //extruder-axis
         double f;       //speed of the movement
+        double i;       //X-axis relative circle center position form start point
+        double j;       //Y-axis relative circle center position form start point
+        double k;       //Z-axis relative circle center position form start point
     }data;
 
     GCodeCommand gcode_cmd;
@@ -85,10 +100,11 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser(BuffCommunication_Settings* buff_comm, Motor** motors,
-    EEPROMSettings* eeprom, SDCard_Settings* sd, uint8_t* motor_data_addresses);
+void init_SystemCommandsParser(SystemCommand_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses);
 
-Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
+Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

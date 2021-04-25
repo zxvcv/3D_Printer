@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Command_Parser
+ * NAME: GCode_Parser
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -32,44 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd)
-{
-    Std_Err stdErr = STD_OK;
-    MotorData_EEPROM motor_data;
-
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    uint8_t val = PARAM_X;
-    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
-    {
-        if(cmd->used_fields & val)
-        {
-            stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
-                &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            int data;
-            switch(i)
-            {
-                case MOTOR_X: data = (int)cmd->data.x; break;
-                case MOTOR_Y: data = (int)cmd->data.y; break;
-                case MOTOR_Z: data = (int)cmd->data.z; break;
-                case MOTOR_E: data = (int)cmd->data.e; break;
-                default: return STD_ERROR;
-            }
-            motor_data.position_zero = data;
-
-            stdErr = set_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
-                &motor_data);
-            if(stdErr != STD_OK) { return stdErr; }
-
-            settings->motors[i]->settings.position_zero = data;
-        }
-    }
-
-    return stdErr;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -78,4 +40,24 @@ Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+extern Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd);
+extern Std_Err remove_G2(GCode_Settings* settings, GCodeCommand* cmd);
+extern Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd);
+
+
+Std_Err init_G3(GCode_Settings* settings, GCodeCommand* cmd)
+{
+    Std_Err stdErr = STD_OK;
+
+    cmd->remove = remove_G2;
+    cmd->step = step_G2;
+
+    // TODO: parametrize angle step
+    settings->angle_step = 10.;
+    settings->circle_move_mode = COUNTER_CLOCKWISE_CIRCLE;
+
+    stdErr = init_circle_movement(settings, cmd);
+
+    return stdErr;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

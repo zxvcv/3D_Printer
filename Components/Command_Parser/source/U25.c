@@ -32,14 +32,14 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U25(SystemCommand* cmd)
+Std_Err init_U25(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
 
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    uint8_t val = 0x01;
+    uint8_t val = PARAM_X;
     for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
     {
         if(cmd->used_fields & val)
@@ -54,7 +54,7 @@ Std_Err init_U25(SystemCommand* cmd)
                 default: return STD_ERROR;
             }
 
-            motor_set_reversed_state(global_systemCmd_settings.motors[i], data);
+            motor_set_reversed_state(settings->motors[i], data);
         }
     }
 
