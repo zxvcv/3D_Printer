@@ -55,10 +55,6 @@ Std_Err setup_linear_movement(GCode_Settings* settings, vect3D_d move, double sp
                          ACCURACY, &counters_val, &direction);
         if(stdErr != STD_OK) { return stdErr; }
 
-        // char temp_buff[100]; //DEBUG
-        // uint8_t msg_size = sprintf(temp_buff, "COUNTERS[%d %d %d]\n", counters_val.timer, counters_val.timer_start, counters_val.steps); //DEBUG
-        // add_message_to_send(settings->buff_comm, temp_buff, msg_size); //DEBUG
-
         motor_set_counters(motors[i], &counters_val);
         motor_set_direction(motors[i], direction);
     }

@@ -72,6 +72,8 @@ void init_GCodeParser(GCode_Settings* settings, Motor** motors,
     settings->motors_are_on = motors_are_on;
     settings->positioning_mode = ABSOLUTE;
     settings->speed = 0.0;
+    settings->angle_step = 1.;
+    settings->circle_move_mode = CLOCKWISE;
 }
 
 

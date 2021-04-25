@@ -75,9 +75,11 @@
  *                                      PRIVATE DECLARATIONS                                    *
  * ############################################################################################ */
 
-Std_Err step_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd);
+Std_Err forward_command_concurrently(SystemCommand_Settings* settings, SystemCommand* cmd,
+    char* cmd_name, bool forward_parameters);
 
-Std_Err remove_forward_GCode(SystemCommand_Settings* settings, SystemCommand* cmd);
+Std_Err forward_command_immediately(SystemCommand_Settings* settings, SystemCommand* cmd,
+    char* cmd_name, bool forward_parameters);
 
 Std_Err init_U00(SystemCommand_Settings* settings, SystemCommand* cmd);
 

@@ -65,6 +65,11 @@ typedef struct GCode_Settings_Tag{
         ABSOLUTE
     }positioning_mode;
 
+    enum{
+        CLOCKWISE_CIRCLE,
+        COUNTER_CLOCKWISE_CIRCLE
+    }circle_move_mode;
+
     struct{
         unsigned int plane_x    :1;
         unsigned int plane_y    :1;
