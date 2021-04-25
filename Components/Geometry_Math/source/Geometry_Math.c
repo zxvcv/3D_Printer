@@ -45,6 +45,44 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+Point2D_d get_point2D_form_point3D(Point3D_d point3D, bool withX, bool withY, bool withZ)
+{
+    Point2D_d point2D;
+
+    point2D.x = withX ? point3D.x : 0.;
+    point2D.y = withZ ? point3D.z : 0.;
+
+    if(withY)
+    {
+        point2D.x = withX ? point2D.x : point3D.y;
+        point2D.y = withZ ? point2D.y : point3D.y;
+    }
+
+    return point2D;
+}
+
+
+Point3D_d get_point3D_form_point2D(Point2D_d point2D, bool withX, bool withY, bool withZ)
+{
+    Point3D_d point3D;
+
+
+    point3D.x = withX ? point2D.x : 0.;
+    point3D.z = withZ ? point2D.y : 0.;
+
+    if(withY)
+    {
+        point3D.y = withX ? point2D.y : point2D.x;
+    }
+    else
+    {
+        point3D.y = 0.;
+    }
+
+    return point3D;
+}
+
+
 bool compare_doubles(double d1, double d2, double accuracy)
 {
     if(d1 + accuracy > d2 && d1 - accuracy < d2)

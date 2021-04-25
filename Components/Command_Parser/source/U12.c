@@ -42,8 +42,7 @@ Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd)
     cmd->step = step_forward_GCode;
 
     sprintf(settings->msg_buff, "G17");
-    stdErr = parse_GCodeCommand(&(settings->sd->gcode),
-        settings->msg_buff, &(cmd->gcode_cmd));
+    stdErr = parse_GCodeCommand(&(settings->sd->gcode), settings->msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     stdErr = cmd->gcode_cmd.init(&(settings->sd->gcode), &(cmd->gcode_cmd));
@@ -86,8 +85,7 @@ Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd)
     }
 
     strcat(settings->msg_buff, "\n");
-    stdErr = parse_GCodeCommand(&(settings->sd->gcode),
-        settings->msg_buff, &(cmd->gcode_cmd));
+    stdErr = parse_GCodeCommand(&(settings->sd->gcode), settings->msg_buff, &(cmd->gcode_cmd));
     if(stdErr != STD_OK) { return stdErr; }
 
     stdErr = cmd->gcode_cmd.init(&(settings->sd->gcode), &(cmd->gcode_cmd));

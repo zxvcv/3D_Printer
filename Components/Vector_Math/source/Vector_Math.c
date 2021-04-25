@@ -45,8 +45,8 @@
 vect2D_d getVector2D(double p1X, double p1Y, double p2X, double p2Y)
 {
     vect2D_d vect;
-    vect.x = p2X - p1X;
-    vect.y = p2Y - p1Y;
+    vect.x = p1X - p2X;
+    vect.y = p1Y - p2Y;
     return vect;
 }
 

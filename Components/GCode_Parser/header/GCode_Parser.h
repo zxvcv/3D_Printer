@@ -58,6 +58,7 @@ typedef struct GCode_Settings_Tag{
 
     bool* motors_are_on;
     double speed;
+    double angle_step;
 
     enum{
         RELATIVE,

@@ -67,6 +67,10 @@ typedef struct Point3D_d_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+Point2D_d get_point2D_form_point3D(Point3D_d point3D, bool withX, bool withY, bool withZ);
+
+Point3D_d get_point3D_form_point2D(Point2D_d point2D, bool withX, bool withY, bool withZ);
+
 bool compare_doubles(double d1, double d2, double accuracy);
 
 double get_angle_in_degrees(double rad_angle);
