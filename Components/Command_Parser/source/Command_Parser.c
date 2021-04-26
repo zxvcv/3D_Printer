@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 13
+#define SYSTEM_COMMANDS_NUM 17
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -42,15 +42,19 @@ const struct {
         {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
         {   "U01",      init_U01    },// ----,   systemCmd_MotorSettingsRequest
         {   "U02",      init_U02    },// ----,   systemCmd_MotorFlagsRequest
+        {   "U03",      init_U03    },
         {   "U10",      init_U10    },// "PM",   systemCmd_MotorLinearAbsoluteMove
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
         {   "U12",      init_U12    },
+        {   "U13",      init_U13    },
         {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
         {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
         {   "U23",      init_U23    },// "SM",   systemCmd_MotorSpeedMax
         {   "U24",      init_U24    },// "SP",   systemCmd_MotorStepSizeSet
         {   "U25",      init_U25    },
+        {   "U26",      init_U26    },
+        {   "U27",      init_U27    },
         {   "U40",      init_U40    } // "CR",   systemCmd_SDCardProgramRun
 };
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
@@ -118,6 +122,7 @@ Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemC
             case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
             case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
             case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
+            case 'V': cmdOUT->data.v = val; cmdOUT->used_fields |= PARAM_V; break;
             default: break;
         }
         token = strtok(NULL, " ");

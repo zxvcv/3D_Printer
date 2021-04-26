@@ -61,12 +61,12 @@ typedef struct GCode_Settings_Tag{
     double angle_step;
 
     enum{
-        RELATIVE,
+        RELATIVE = 0,
         ABSOLUTE
     }positioning_mode;
 
     enum{
-        CLOCKWISE_CIRCLE,
+        CLOCKWISE_CIRCLE = 0,
         COUNTER_CLOCKWISE_CIRCLE
     }circle_move_mode;
 
@@ -80,7 +80,6 @@ typedef struct GCode_Settings_Tag{
 typedef struct GCodeCommand_Tag{
     Std_Err (*init)(GCode_Settings*, struct GCodeCommand_Tag*);
     Std_Err (*remove)(GCode_Settings*, struct GCodeCommand_Tag*);
-
     Std_Err (*step)(GCode_Settings*, struct GCodeCommand_Tag*);
 
 

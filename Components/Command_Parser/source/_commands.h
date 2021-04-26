@@ -41,16 +41,20 @@
 #define _OFFSET_POSITIONZERO    (_OFFSET_STEPSIZE+sizeof(int))
 #define _OFFSET_POSITIONEND     (_OFFSET_POSITIONZERO+sizeof(int))
 
+#define _ANGLE_MIN_VAL  (0.01)
+#define _ANGLE_MAX_VAL  (45.)
+
 /* used_fields */
-#define PARAM_X     0x01
-#define PARAM_Y     0x02
-#define PARAM_Z     0x04
-#define PARAM_E     0x08
-#define PARAM_F     0x10
-#define PARAM_I     0x20
-#define PARAM_J     0x40
-#define PARAM_K     0x80
-#define PARAM_LAST  PARAM_Z
+#define PARAM_X     0x0001
+#define PARAM_Y     0x0002
+#define PARAM_Z     0x0004
+#define PARAM_E     0x0008
+#define PARAM_F     0x0010
+#define PARAM_I     0x0020
+#define PARAM_J     0x0040
+#define PARAM_K     0x0080
+#define PARAM_V     0x0100
+#define PARAM_LAST  PARAM_V
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -87,11 +91,15 @@ Std_Err init_U01(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd);
 
+Std_Err init_U03(SystemCommand_Settings* settings, SystemCommand* cmd);
+
 Std_Err init_U10(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd);
+
+Std_Err init_U13(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd);
 
@@ -104,6 +112,10 @@ Std_Err init_U23(SystemCommand_Settings* settings, SystemCommand* cmd);
 Std_Err init_U24(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U25(SystemCommand_Settings* settings, SystemCommand* cmd);
+
+Std_Err init_U26(SystemCommand_Settings* settings, SystemCommand* cmd);
+
+Std_Err init_U27(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U40(SystemCommand_Settings* settings, SystemCommand* cmd);
 

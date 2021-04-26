@@ -44,7 +44,7 @@ Std_Err step_U01(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_ERROR;
 
-    uint8_t val = PARAM_X;
+    uint16_t val = PARAM_X;
     for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
     {
         if(cmd->used_fields & val)

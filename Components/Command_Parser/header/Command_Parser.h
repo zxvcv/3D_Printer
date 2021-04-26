@@ -78,7 +78,7 @@ typedef struct SystemCommand_Tag{
 
 
     ExecutionPolicy execution_policy;
-    uint8_t used_fields;
+    uint16_t used_fields;
     struct{
         double x;       //X-axis
         double y;       //Y-axis
@@ -88,6 +88,7 @@ typedef struct SystemCommand_Tag{
         double i;       //X-axis relative circle center position form start point
         double j;       //Y-axis relative circle center position form start point
         double k;       //Z-axis relative circle center position form start point
+        double v;       //custom value
     }data;
 
     GCodeCommand gcode_cmd;
