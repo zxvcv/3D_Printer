@@ -258,8 +258,6 @@ Std_Err init_G2(GCode_Settings* settings, GCodeCommand* cmd)
     cmd->remove = remove_G2;
     cmd->step = step_G2;
 
-    // TODO: parametrize angle step
-    settings->angle_step = 10.;
     settings->circle_move_mode = CLOCKWISE_CIRCLE;
 
     stdErr = init_circle_movement(settings, cmd);

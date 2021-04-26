@@ -91,6 +91,8 @@ Std_Err init_U01(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd);
 
+Std_Err init_U03(SystemCommand_Settings* settings, SystemCommand* cmd);
+
 Std_Err init_U10(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U11(SystemCommand_Settings* settings, SystemCommand* cmd);

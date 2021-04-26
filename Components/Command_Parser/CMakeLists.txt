@@ -26,6 +26,7 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/U00.c
     ${SOURCE_DIR}/U01.c
     ${SOURCE_DIR}/U02.c
+    ${SOURCE_DIR}/U03.c
     ${SOURCE_DIR}/U10.c
     ${SOURCE_DIR}/U11.c
     ${SOURCE_DIR}/U12.c

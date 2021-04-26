@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: GCode_Parser
+ * NAME: Command_Parser
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -40,21 +40,27 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-extern Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd);
-extern Std_Err remove_G2(GCode_Settings* settings, GCodeCommand* cmd);
-extern Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd);
-
-
-Std_Err init_G3(GCode_Settings* settings, GCodeCommand* cmd)
+Std_Err init_U03(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
+    cmd->remove = NULL;
+    cmd->step = NULL;
 
-    cmd->remove = remove_G2;
-    cmd->step = step_G2;
+    uint8_t msgSize = sprintf(settings->msg_buff,
+        "%cU03 %f %f %u %u %u%u%u\n",
+        '3',
+        settings->sd->gcode.speed,
+        settings->sd->gcode.angle_step,
+        settings->sd->gcode.positioning_mode,
+        settings->sd->gcode.circle_move_mode,
+        settings->sd->gcode.plane_selection.plane_x,
+        settings->sd->gcode.plane_selection.plane_y,
+        settings->sd->gcode.plane_selection.plane_z);
 
-    settings->circle_move_mode = COUNTER_CLOCKWISE_CIRCLE;
-
-    stdErr = init_circle_movement(settings, cmd);
+    stdErr = add_message_to_send(settings->buff_comm,
+        settings->msg_buff, msgSize);
+    if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
+    if(stdErr != STD_OK) { return stdErr; }
 
     return stdErr;
 }
