@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 16
+#define SYSTEM_COMMANDS_NUM 17
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -42,6 +42,7 @@ const struct {
         {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
         {   "U01",      init_U01    },// ----,   systemCmd_MotorSettingsRequest
         {   "U02",      init_U02    },// ----,   systemCmd_MotorFlagsRequest
+        {   "U03",      init_U03    },
         {   "U10",      init_U10    },// "PM",   systemCmd_MotorLinearAbsoluteMove
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
         {   "U12",      init_U12    },
