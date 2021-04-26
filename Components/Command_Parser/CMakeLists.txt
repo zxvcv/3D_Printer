@@ -36,6 +36,8 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/U23.c
     ${SOURCE_DIR}/U24.c
     ${SOURCE_DIR}/U25.c
+    ${SOURCE_DIR}/U26.c
+    ${SOURCE_DIR}/U27.c
     ${SOURCE_DIR}/U40.c
 )
 

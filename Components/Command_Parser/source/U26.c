@@ -32,6 +32,41 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
+Std_Err init_U26(SystemCommand_Settings* settings, SystemCommand* cmd)
+{
+    Std_Err stdErr = STD_OK;
+
+    cmd->remove = NULL;
+    cmd->step = NULL;
+
+    if((cmd->used_fields & PARAM_X) && (cmd->used_fields & PARAM_Y))
+    {
+        settings->sd->gcode.plane_selection.plane_x = 1;
+        settings->sd->gcode.plane_selection.plane_y = 1;
+        settings->sd->gcode.plane_selection.plane_z = 0;
+    }
+    else if((cmd->used_fields & PARAM_X) && (cmd->used_fields & PARAM_Z))
+    {
+        settings->sd->gcode.plane_selection.plane_x = 1;
+        settings->sd->gcode.plane_selection.plane_y = 0;
+        settings->sd->gcode.plane_selection.plane_z = 1;
+    }
+    else if((cmd->used_fields & PARAM_Y) && (cmd->used_fields & PARAM_Z))
+    {
+        settings->sd->gcode.plane_selection.plane_x = 0;
+        settings->sd->gcode.plane_selection.plane_y = 1;
+        settings->sd->gcode.plane_selection.plane_z = 1;
+    }
+    else
+    {
+        settings->sd->gcode.plane_selection.plane_x = 0;
+        settings->sd->gcode.plane_selection.plane_y = 0;
+        settings->sd->gcode.plane_selection.plane_z = 0;
+        stdErr = STD_PARAMETER_ERROR;
+    }
+
+    return stdErr;
+}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -40,43 +75,4 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err step_U02(SystemCommand_Settings* settings, SystemCommand* cmd)
-{
-    Std_Err stdErr = STD_ERROR;
-
-    uint16_t val = PARAM_X;
-    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
-    {
-        if(cmd->used_fields & val)
-        {
-            uint8_t msgSize = sprintf(settings->msg_buff,
-                "%cU02 %c %u %u %u %u %u %u\n",
-                '3',
-                motor_indentyficator[i],
-                settings->motors[i]->flags.isOn,
-                settings->motors[i]->flags.reset,
-                settings->motors[i]->flags.sleep,
-                settings->motors[i]->flags.stepPhase,
-                settings->motors[i]->flags.direction,
-                settings->motors[i]->flags.reversed);
-
-            stdErr = add_message_to_send(settings->buff_comm,
-                settings->msg_buff, msgSize);
-            if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
-            if(stdErr != STD_OK) { return stdErr; }
-        }
-    }
-
-    cmd->step = NULL;
-    return stdErr;
-}
-
-
-Std_Err init_U02(SystemCommand_Settings* settings, SystemCommand* cmd)
-{
-    cmd->remove = NULL;
-    cmd->step = step_U02;
-
-    return STD_OK;
-}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

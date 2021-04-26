@@ -84,7 +84,7 @@ Std_Err forward_command_concurrently(SystemCommand_Settings* settings, SystemCom
     {
         char temp[15];
 
-        for(int i=PARAM_X; i<=PARAM_K; i<<=1)
+        for(uint16_t i=PARAM_X; i<=PARAM_K; i<<=1)
         {
             if(cmd->used_fields & i)
             {
