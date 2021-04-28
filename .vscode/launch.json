@@ -1,12 +1,29 @@
 {
     "configurations": [
         {
-            "name": "Debug 3D_Printer",
+            "name": "cortex-debug",
             "type": "cortex-debug",
             "request": "launch",
             "cwd": "${workspaceRoot}/bld",
-            "executable": "3D_Printer",
-            "servertype": "openocd"
-        }
+            "executable": "${workspaceRoot}/bld/3D_Printer",
+            "servertype": "openocd",
+            "interface": "swd",
+            "device": "STM32F303RE",
+            "runToMain": true,
+            "preRestartCommands": [
+                "target remote localhost:3333",
+                "add-symbol-file ${workspaceFolderBasename}",
+                "enable breakpoint",
+                "monitor reset"
+            ],
+            "armToolchainPath": "/usr/share/gcc-arm-none-eabi-10-2020-q4-major/bin",
+            "configFiles": [
+                "/usr/share/openocd/scripts/target/stm32f3x.cfg"
+            ],
+            "searchDir": [
+                "/usr/share/openocd/scripts/board/"
+            ],
+            "preLaunchTask": "build"
+        },
     ]
 }
