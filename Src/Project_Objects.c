@@ -52,11 +52,7 @@ extern SPI_HandleTypeDef hspi2;
  *                                      PRIVATE OBJECTS                                         *
  * ############################################################################################ */
 
-
-FATFS fatfs;
-
 SDCard_Settings sd;
-FIL file;
 
 Motor motor1;
 Motor motor2;
@@ -66,6 +62,7 @@ Motor motor4;
 EEPROMSettings eeprom;
 
 BuffCommunication_Settings buff_comm;
+Communication_Settings communication;
 
 
 
@@ -83,14 +80,12 @@ DeviceSettings printerSettings;
 
 void init_deviceSettings(DeviceSettings* settings)
 {
-    settings->fatfs = &fatfs;
     settings->sd = &sd;
-    settings->file = &file;
 
-    settings->motors[0] = &motor1;
-    settings->motors[1] = &motor2;
-    settings->motors[2] = &motor3;
-    settings->motors[3] = &motor4;
+    settings->motors[MOTOR_X] = &motor1;
+    settings->motors[MOTOR_Y] = &motor2;
+    settings->motors[MOTOR_Z] = &motor3;
+    settings->motors[MOTOR_E] = &motor4;
 
     /* eeprom addresses setup */
     for(int i=0; i<MOTORS_NUM; ++i)
@@ -101,5 +96,6 @@ void init_deviceSettings(DeviceSettings* settings)
     settings->eeprom = &eeprom;
 
     settings->buff_comm = &buff_comm;
+    settings->communication = &communication;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

@@ -25,6 +25,10 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Buffered_Communication.h"
+#include "GCode_Parser.h"
+#include "Manager_EEPROM.h"
+#include "Manager_SDcard.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -33,6 +37,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
+#define COMM_MSG_BUFF_SIZE 100
 /*[[COMPONENT_DEFINES_H]]*/
 
 
@@ -54,25 +59,39 @@ typedef enum ExecutionPolicy_Tag{
     NORMAL      = 1
 }ExecutionPolicy;
 
-typedef struct SystemCmdGlobal_Tag{
-    uint8_t none;
-}SystemCmdGlobal;
+typedef struct SystemCommand_Settings_Tag{
+    BuffCommunication_Settings* buff_comm;
+    Motor** motors;
+    EEPROMSettings* eeprom;
+    SDCard_Settings* sd;
+
+    uint8_t* motor_data_addresses;
+
+    char msg_buff[COMM_MSG_BUFF_SIZE];
+}SystemCommand_Settings;
 
 typedef struct SystemCommand_Tag{
-    Std_Err (*init)(struct SystemCommand_Tag*);
-    Std_Err (*remove)(struct SystemCommand_Tag*);
+    Std_Err (*init)(SystemCommand_Settings*, struct SystemCommand_Tag*);
+    Std_Err (*remove)(SystemCommand_Settings*, struct SystemCommand_Tag*);
 
-    Std_Err (*step)(struct SystemCommand_Tag*);
+    Std_Err (*step)(SystemCommand_Settings*, struct SystemCommand_Tag*);
 
 
     ExecutionPolicy execution_policy;
-    uint8_t used_fields;
+    uint16_t used_fields;
     struct{
         double x;       //X-axis
         double y;       //Y-axis
         double z;       //Z-axis
         double e;       //extruder-axis
+        double f;       //speed of the movement
+        double i;       //X-axis relative circle center position form start point
+        double j;       //Y-axis relative circle center position form start point
+        double k;       //Z-axis relative circle center position form start point
+        double v;       //custom value
     }data;
+
+    GCodeCommand gcode_cmd;
 }SystemCommand;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -82,9 +101,11 @@ typedef struct SystemCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_SystemCommandsParser();
+void init_SystemCommandsParser(SystemCommand_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses);
 
-Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT);
+Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

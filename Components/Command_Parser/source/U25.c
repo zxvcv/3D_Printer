@@ -32,29 +32,33 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U25(SystemCommand* cmd)
+Std_Err init_U25(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
+    Std_Err stdErr = STD_OK;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint16_t val = PARAM_X;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            bool data;
+            switch(i)
+            {
+                case MOTOR_X: data = (bool)cmd->data.x; break;
+                case MOTOR_Y: data = (bool)cmd->data.y; break;
+                case MOTOR_Z: data = (bool)cmd->data.z; break;
+                case MOTOR_E: data = (bool)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
 
-    // int argInt = (int)(cmd->arg[0] * ACCURACY);
-    // cmd->motor[0]->device.stepSize = argInt;
-    // stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_STEPSIZE,
-    //         (uint8_t*)(&argInt),
-    //         sizeof(argInt));
-    // if(stdErr != STD_OK)
-    // {
-    //     return stdErr;
-    // }
+            motor_set_reversed_state(settings->motors[i], data);
+        }
+    }
 
-    // stdErr = systemCmd_MotorStepSizeRequest(cmd, settings);
-    // return stdErr;
-
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

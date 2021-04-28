@@ -34,6 +34,7 @@ target_link_libraries(${LOCAL_TARGET}
     FATFS_Driver
     GCode_Parser
     Project_Config
+    Buffered_Communication # DEBUG
 )
 
 

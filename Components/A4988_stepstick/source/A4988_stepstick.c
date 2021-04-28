@@ -112,11 +112,6 @@ void motor_init(Motor* motor, double timer_frequency,
 
 Std_Err motor_start(Motor* motor)
 {
-    if(motor->counters.timer <= 0 || motor->counters.timer_start <= 0 || motor->counters.steps <= 0)
-    {
-        return STD_PARAMETER_ERROR;
-    }
-
     if(motor->flags.reset)
     {
         return STD_ERROR;
@@ -127,10 +122,13 @@ Std_Err motor_start(Motor* motor)
         return STD_ERROR;
     }
 
-    motor->flags.sleep = 0;
-    motor->flags.isOn = 1;
+    if(motor->counters.steps > 0)
+    {
+        motor->flags.sleep = 0;
+        motor->flags.isOn = 1;
 
-    motor_update_pins(motor);
+        motor_update_pins(motor);
+    }
 
     return STD_OK;
 }
@@ -233,6 +231,12 @@ void motor_set_direction(Motor* motor, unsigned int direction)
 }
 
 
+void motor_set_reversed_state(Motor* motor, bool is_reversed)
+{
+    motor->flags.reversed = is_reversed;
+}
+
+
 Std_Err motor_set_position(Motor* motor, double position)
 {
     int new_position = ((int)(position * ACCURACY)) / motor->settings.step_size;
@@ -270,10 +274,19 @@ Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, 
     }
 
     double change_freq = speed / ((double)_step_size / accuracy);
-    double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
 
-    counters->timer = (uint16_t)change_timeD;
-    counters->timer_start = (uint16_t)change_timeD;
+    if((int)change_freq == 0)
+    {
+        counters->timer = 0;
+        counters->timer_start = 0;
+    }
+    else
+    {
+        double change_timeD = motor->settings.timer_frequency / (change_freq * 2);
+
+        counters->timer = (uint16_t)change_timeD;
+        counters->timer_start = (uint16_t)change_timeD;
+    }
 
     /* move */
     int steps_num1 = _abs_move / _step_size;

@@ -23,6 +23,11 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/GCode_Parser.c
 
     ${SOURCE_DIR}/G1.c
+    ${SOURCE_DIR}/G2.c
+    ${SOURCE_DIR}/G3.c
+    ${SOURCE_DIR}/G17.c
+    ${SOURCE_DIR}/G18.c
+    ${SOURCE_DIR}/G19.c
     ${SOURCE_DIR}/G28.c
     ${SOURCE_DIR}/G90.c
     ${SOURCE_DIR}/G91.c
@@ -43,6 +48,8 @@ target_link_libraries(${LOCAL_TARGET}
     A4988_stepstick
     Vector_Math
     Project_Config
+    Geometry_Math
+    Buffered_Communication # DEBUG
 )
 
 

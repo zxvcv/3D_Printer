@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 10
+#define SYSTEM_COMMANDS_NUM 17
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -37,18 +37,25 @@
 
 const struct {
     char* name;
-    Std_Err (*execute)(SystemCommand*);
+    Std_Err (*execute)(SystemCommand_Settings*, SystemCommand*);
 } _system_commands[SYSTEM_COMMANDS_NUM] = {
         {   "U00",      init_U00    },// "DR",   systemCmd_MotorDataRequest
-        {   "U10",      init_U10    },// "PM",   systemCmd_MotorPositionMove
-        {   "U11",      init_U11    },// "DM",   systemCmd_MotorDistanceMove
+        {   "U01",      init_U01    },// ----,   systemCmd_MotorSettingsRequest
+        {   "U02",      init_U02    },// ----,   systemCmd_MotorFlagsRequest
+        {   "U03",      init_U03    },
+        {   "U10",      init_U10    },// "PM",   systemCmd_MotorLinearAbsoluteMove
+        {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
+        {   "U12",      init_U12    },
+        {   "U13",      init_U13    },
         {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
         {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
-        {   "U23",      init_U23    },// "SS",   systemCmd_MotorSpeedSet
-        {   "U24",      init_U24    },// "SM",   systemCmd_MotorSpeedMax
-        {   "U25",      init_U25    },// "SP",   systemCmd_MotorStepSizeSet
-        {   "U40",      init_U40    }// "CR",   systemCmd_SDCardProgramRun
+        {   "U23",      init_U23    },// "SM",   systemCmd_MotorSpeedMax
+        {   "U24",      init_U24    },// "SP",   systemCmd_MotorStepSizeSet
+        {   "U25",      init_U25    },
+        {   "U26",      init_U26    },
+        {   "U27",      init_U27    },
+        {   "U40",      init_U40    } // "CR",   systemCmd_SDCardProgramRun
 };
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
@@ -58,13 +65,19 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_SystemCommandsParser()
+void init_SystemCommandsParser(SystemCommand_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses)
 {
-
+    settings->buff_comm = buff_comm;
+    settings->motors = motors;
+    settings->eeprom = eeprom;
+    settings->sd = sd;
+    settings->motor_data_addresses = motor_data_addresses;
 }
 
 
-Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
+Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemCommand* cmdOUT)
 {
     Std_Err stdErr = STD_ERROR;
     char* token = NULL, * cmdName = NULL;
@@ -81,20 +94,23 @@ Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
         default: return STD_PARAMETER_ERROR;
     }
 
-    for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i) {
-        if (strcmp(cmdName + 1, _system_commands[i].name) == 0) {
+    for (int i = 0; i < SYSTEM_COMMANDS_NUM; ++i)
+    {
+        if (strcmp(cmdName + 1, _system_commands[i].name) == 0)
+        {
             cmdOUT->init = _system_commands[i].execute;
             stdErr = STD_OK;
             break;
         }
     }
 
-    if(stdErr == STD_ERROR)
+    if(stdErr != STD_OK)
     {
         return stdErr;
     }
 
-    while (token != NULL) {
+    while (token != NULL)
+    {
         val = atoi(token + 1);
         switch (token[0])
         {
@@ -102,6 +118,11 @@ Std_Err parse_SystemCommand(char* cmd, SystemCommand* cmdOUT)
             case 'Y': cmdOUT->data.y = val; cmdOUT->used_fields |= PARAM_Y; break;
             case 'Z': cmdOUT->data.z = val; cmdOUT->used_fields |= PARAM_Z; break;
             case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
+            case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
+            case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
+            case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
+            case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
+            case 'V': cmdOUT->data.v = val; cmdOUT->used_fields |= PARAM_V; break;
             default: break;
         }
         token = strtok(NULL, " ");

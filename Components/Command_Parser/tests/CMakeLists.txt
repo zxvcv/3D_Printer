@@ -25,7 +25,10 @@ include_directories(
 add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/Command_Parser.c
 
+    ${SOURCE_DIR}/reusable.c
     ${SOURCE_DIR}/U00.c
+    ${SOURCE_DIR}/U01.c
+    ${SOURCE_DIR}/U02.c
     ${SOURCE_DIR}/U10.c
     ${SOURCE_DIR}/U11.c
     ${SOURCE_DIR}/U20.c
@@ -33,13 +36,16 @@ add_library(${TEST_COMPONENT_LIB}
     ${SOURCE_DIR}/U22.c
     ${SOURCE_DIR}/U23.c
     ${SOURCE_DIR}/U24.c
-    ${SOURCE_DIR}/U25.c
     ${SOURCE_DIR}/U40.c
 )
 
 target_link_libraries(${TEST_COMPONENT_LIB} PRIVATE
     Mock_Project_Config
     Mock_Error_Codes
+    Mock_Buffered_Communication
+    Mock_GCode_Parser
+    Mock_Manager_EEPROM
+    Mock_Manager_SDcard
 )
 
 
@@ -56,6 +62,10 @@ target_link_libraries(${LOCAL_TARGET} PRIVATE
 
     Mock_Project_Config
     Mock_Error_Codes
+    Mock_Buffered_Communication
+    Mock_GCode_Parser
+    Mock_Manager_EEPROM
+    Mock_Manager_SDcard
 )
 
 add_test(NAME ${LOCAL_TARGET}

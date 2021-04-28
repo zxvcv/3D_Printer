@@ -76,6 +76,8 @@ typedef struct Err_Msg_Tag{
 Err_Msg get_std_error_message(Std_Err err, const char *msg);
 
 Std_Err translate_error_hal_to_project(HAL_StatusTypeDef halStatus);
+
+char* get_str_error_code(Std_Err err);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

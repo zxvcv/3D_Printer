@@ -32,30 +32,43 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U21(SystemCommand* cmd)
+Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
+    Std_Err stdErr = STD_OK;
+    MotorData_EEPROM motor_data;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint16_t val = PARAM_X;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    // int argInt = (int)(cmd->arg[0] * ACCURACY);
-    // cmd->motor[0]->device.positionZero = argInt;
-    // stdErr = EEPROM_writeData(settings->eeprom,
-    //         cmd->motor[0]->device.eepromDataAddress + _OFFSET_POSITIONZERO,
-    //         (uint8_t*)(&argInt),
-    //         sizeof(argInt));
-    // /*TODO: read data form EEPROM again*/
-    // if(stdErr != STD_OK)
-    // {
-    //     return stdErr;
-    // }
+            int data;
+            switch(i)
+            {
+                case MOTOR_X: data = (int)cmd->data.x; break;
+                case MOTOR_Y: data = (int)cmd->data.y; break;
+                case MOTOR_Z: data = (int)cmd->data.z; break;
+                case MOTOR_E: data = (int)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
+            motor_data.position_zero = data;
 
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+            stdErr = set_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    return STD_OK;
+            settings->motors[i]->settings.position_zero = data;
+        }
+    }
+
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

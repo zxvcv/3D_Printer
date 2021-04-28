@@ -32,32 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U00(SystemCommand* cmd)
-{
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    // Std_Err stdErr = STD_ERROR;
-
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    // {
-    //     msgSize = sprintf(buffMsg, "DT M%d %f %f %f %f %f\n",
-    //             cmd->motor[i]->device.motorNum,
-    //             (double)cmd->motor[i]->data.position / ACCURACY,
-    //             (double)cmd->motor[i]->device.positionZero / ACCURACY,
-    //             (double)cmd->motor[i]->device.positionEnd / ACCURACY,
-    //             cmd->motor[i]->data.speed,
-    //             cmd->motor[i]->device.maxSpeed);
-
-    //     stdErr = fifo_push_C(settings->outComm->Buff_OUT, (char*)buffMsg, msgSize);
-    //     if(stdErr != STD_OK)
-    //     {
-    //         return stdErr;
-    //     }
-    // }
-
-    return STD_OK;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -66,4 +40,39 @@ Std_Err init_U00(SystemCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+Std_Err step_U00(SystemCommand_Settings* settings, SystemCommand* cmd)
+{
+    Std_Err stdErr = STD_ERROR;
+
+    uint16_t val = PARAM_X;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            uint8_t msgSize = sprintf(settings->msg_buff,
+                "%cU00 %c %d %d\n",
+                '3',
+                motor_indentyficator[i],
+                settings->motors[i]->data.position,
+                settings->motors[i]->data.position_error);
+
+            stdErr = add_message_to_send(settings->buff_comm,
+                settings->msg_buff, msgSize);
+            if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
+            if(stdErr != STD_OK) { return stdErr; }
+        }
+    }
+
+    cmd->step = NULL;
+    return stdErr;
+}
+
+
+Std_Err init_U00(SystemCommand_Settings* settings, SystemCommand* cmd)
+{
+    cmd->remove = NULL;
+    cmd->step = step_U00;
+
+    return STD_OK;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

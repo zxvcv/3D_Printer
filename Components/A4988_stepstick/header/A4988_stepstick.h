@@ -57,7 +57,7 @@
 typedef struct MotorCounters_Tag{
     uint16_t timer;
     uint16_t timer_start;
-    uint8_t steps;
+    uint16_t steps;
 }MotorCounters;
 
 typedef struct Motor_Tag{
@@ -112,6 +112,8 @@ Std_Err motor_update(Motor* motor);
 void motor_set_counters(Motor* motor, MotorCounters* counters);
 
 void motor_set_direction(Motor* motor, unsigned int direction);
+
+void motor_set_reversed_state(Motor* motor, bool is_reversed);
 
 Std_Err motor_set_position(Motor* motor, double position);
 

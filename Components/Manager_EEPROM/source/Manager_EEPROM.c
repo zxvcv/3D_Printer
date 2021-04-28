@@ -41,14 +41,16 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settigns, uint8_t address, MotorData_EEPROM* dataOUT)
+Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settings, uint8_t address,
+    MotorData_EEPROM* dataOUT)
 {
-    return EEPROM_readData(eeprom_settigns, address, (uint8_t*)dataOUT, sizeof(MotorData_EEPROM));
+    return EEPROM_readData(eeprom_settings, address, (uint8_t*)dataOUT, sizeof(MotorData_EEPROM));
 }
 
 
-Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settigns, uint8_t address, MotorData_EEPROM *data)
+Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settings, uint8_t address,
+    MotorData_EEPROM *data)
 {
-    return EEPROM_writeData(eeprom_settigns, address, (uint8_t*)data, sizeof(MotorData_EEPROM));
+    return EEPROM_writeData(eeprom_settings, address, (uint8_t*)data, sizeof(MotorData_EEPROM));
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

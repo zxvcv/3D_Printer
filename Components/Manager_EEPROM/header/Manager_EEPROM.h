@@ -25,6 +25,7 @@
  * ############################################################################################ */
 
 #include "Error_Codes.h"
+#include "Project_Config.h"
 #include "EEPROM_24AA01.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -50,7 +51,7 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct MotorData_EEPROM{
+typedef struct MotorData_EEPROM_Tag{
     double max_speed;
 
     int step_size;
@@ -65,9 +66,11 @@ typedef struct MotorData_EEPROM{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settigns, uint8_t address, MotorData_EEPROM* dataOUT);
+Std_Err get_motor_data_EEPROM(EEPROMSettings* eeprom_settings, uint8_t address,
+    MotorData_EEPROM* dataOUT);
 
-Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settigns, uint8_t address, MotorData_EEPROM *data);
+Std_Err set_motor_data_EEPROM(EEPROMSettings *eeprom_settings, uint8_t address,
+    MotorData_EEPROM *data);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

@@ -32,26 +32,43 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U23(SystemCommand* cmd)
+Std_Err init_U23(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
+    Std_Err stdErr = STD_OK;
+    MotorData_EEPROM motor_data;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    // Std_Err stdErr;
-    // /*TODO: distinguishing between errors*/
+    uint16_t val = PARAM_X;
+    for(int i=0; i<MOTORS_NUM; ++i, val<<=1)
+    {
+        if(cmd->used_fields & val)
+        {
+            stdErr = get_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    // for(int i=0; i < cmd->motorsNum && i < SYSTEM_COMMANDS_MOTORS_MAX_NUM; ++i)
-    // {
-    //     if(cmd->arg[0] <= cmd->motor[i]->device.maxSpeed && cmd->arg[0] >= 0)
-    //     {
-    //         cmd->motor[i]->data.speed = cmd->arg[0];
-    //     }
-    // }
+            int data;
+            switch(i)
+            {
+                case MOTOR_X: data = (int)cmd->data.x; break;
+                case MOTOR_Y: data = (int)cmd->data.y; break;
+                case MOTOR_Z: data = (int)cmd->data.z; break;
+                case MOTOR_E: data = (int)cmd->data.e; break;
+                default: return STD_ERROR;
+            }
+            motor_data.max_speed = data;
 
-    // stdErr = systemCmd_MotorDataRequest(cmd, settings);
-    // return stdErr;
+            stdErr = set_motor_data_EEPROM(settings->eeprom, settings->motor_data_addresses[i],
+                &motor_data);
+            if(stdErr != STD_OK) { return stdErr; }
 
-    return STD_OK;
+            settings->motors[i]->settings.max_speed = data;
+        }
+    }
+
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

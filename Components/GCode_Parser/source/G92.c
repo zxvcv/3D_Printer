@@ -32,48 +32,24 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_G92(GCodeCommand* cmd)
+Std_Err init_G92(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    Motor* motors = global_gcode_settings.motors;
+    Motor** motors = settings->motors;
 
     Std_Err stdErr;
 
-    if(cmd->used_fields & PARAM_X)
+    for(uint8_t i=PARAM_X; i<=PARAM_E; i<<=1)
     {
-        stdErr = motor_set_position(&motors[MOTOR_X], cmd->data.x);
-        if(stdErr != STD_OK)
+        if(cmd->used_fields & i)
         {
-            return stdErr;
-        }
-    }
-
-    if(cmd->used_fields & PARAM_Y)
-    {
-        stdErr = motor_set_position(&motors[MOTOR_Y], cmd->data.y);
-        if(stdErr != STD_OK)
-        {
-            return stdErr;
-        }
-    }
-
-    if(cmd->used_fields & PARAM_Z)
-    {
-        stdErr = motor_set_position(&motors[MOTOR_Z], cmd->data.z);
-        if(stdErr != STD_OK)
-        {
-            return stdErr;
-        }
-    }
-
-    if(cmd->used_fields & PARAM_E)
-    {
-        stdErr = motor_set_position(&motors[MOTOR_E], cmd->data.e);
-        if(stdErr != STD_OK)
-        {
-            return stdErr;
+            stdErr = motor_set_position(motors[MOTOR_X], cmd->data.x);
+            if(stdErr != STD_OK)
+            {
+                return stdErr;
+            }
         }
     }
 

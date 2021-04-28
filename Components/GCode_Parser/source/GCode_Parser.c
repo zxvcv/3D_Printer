@@ -27,7 +27,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define GCODE_COMMANDS_NUM 10
+#define GCODE_COMMANDS_NUM 15
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -36,13 +36,16 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-GCodeGlobal global_gcode_settings;
-
 const struct {
     char* name;
-    Std_Err (*execute)(GCodeCommand*);
+    Std_Err (*execute)(GCode_Settings*, GCodeCommand*);
 } _gcode_commands[GCODE_COMMANDS_NUM] = {
         {   "G1",   init_G1         },
+        {   "G2",   init_G2         },
+        {   "G3",   init_G3         },
+        {   "G17",  init_G17        },
+        {   "G18",  init_G18        },
+        {   "G19",  init_G19        },
         {   "G28",  init_G28        },
         {   "G90",  init_G90        },
         {   "G91",  init_G91        },
@@ -61,15 +64,23 @@ const struct {
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_GCodeParser(Motor* motors)
+void init_GCodeParser(GCode_Settings* settings, Motor** motors,
+    BuffCommunication_Settings* buff_comm, bool* motors_are_on)
 {
-    global_gcode_settings.motors = motors;
-    global_gcode_settings.positioning_mode = ABSOLUTE;
-    global_gcode_settings.speed = 0.0;
+    settings->motors = motors;
+    settings->buff_comm = buff_comm;
+    settings->motors_are_on = motors_are_on;
+    settings->positioning_mode = RELATIVE;
+    settings->speed = 1.;
+    settings->angle_step = 1.;
+    settings->circle_move_mode = CLOCKWISE_CIRCLE;
+    settings->plane_selection.plane_x = 1;
+    settings->plane_selection.plane_y = 1;
+    settings->plane_selection.plane_z = 0;
 }
 
 
-Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT)
+Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cmdOUT)
 {
     Std_Err stdErr = STD_ERROR;
     char* token = NULL, * cmdName = NULL;
@@ -102,6 +113,9 @@ Std_Err parse_GCodeCommand(char* cmd, GCodeCommand* cmdOUT)
             case 'E': cmdOUT->data.e = val; cmdOUT->used_fields |= PARAM_E; break;
             case 'F': cmdOUT->data.f = val; cmdOUT->used_fields |= PARAM_F; break;
             case 'S': cmdOUT->data.s = val; cmdOUT->used_fields |= PARAM_S; break;
+            case 'I': cmdOUT->data.i = val; cmdOUT->used_fields |= PARAM_I; break;
+            case 'J': cmdOUT->data.j = val; cmdOUT->used_fields |= PARAM_J; break;
+            case 'K': cmdOUT->data.k = val; cmdOUT->used_fields |= PARAM_K; break;
             default: break;
         }
         token = strtok(NULL, " ");

@@ -32,30 +32,51 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_U40(SystemCommand* cmd)
+Std_Err step_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
-    cmd->remove = NULL;
-    cmd->step = NULL;
+    Std_Err stdErr;
 
-    // Std_Err stdErr = STD_OK;
-    // /*TODO: distinguishing between errors*/
-    // /*TODO: add forwarding SDcard error*/
-    // f_mount(settings->fatfs, "", 0);
-    // f_open(settings->sd->file, "fl.txt", FA_READ);
+    stdErr = parse_command_SDcard(settings->sd);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    // #ifdef LOG_ENABLE
-    // #include "manager.h"
-    // extern FIL logFile;
-    // f_open(&logFile, "logs.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    // UINT writeSize;
-    // f_write(&logFile, "[START]\r\n", 9, &writeSize);
-    // f_sync(&logFile);
-    // #endif
+    stdErr = execute_command_SDcard(settings->sd);
+    if(stdErr != STD_OK) { return stdErr; }
 
-    // settings->sd->executing_SDprogram = true;
-    // return stdErr;
+    if(!settings->sd->flags.executing_program)
+    {
+        cmd->step = NULL;
+    }
 
-    return STD_OK;
+    return stdErr;
+}
+
+
+Std_Err remove_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
+{
+    Err_Msg msgErr;
+    msgErr = sdcard_close_file(settings->sd);
+
+    return msgErr.err;
+}
+
+
+Std_Err init_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
+{
+    Std_Err stdErr;
+    Err_Msg msgErr;
+
+    stdErr = STD_OK;
+    cmd->remove = remove_U40;
+    cmd->step = step_U40;
+
+    msgErr = sdcard_open_file(settings->sd, "fl.txt", FA_READ);
+    if(msgErr.err != STD_OK) { return msgErr.err; }
+
+    settings->sd->flags.executing_program = true;
+
+    stdErr = parse_command_SDcard(settings->sd);
+
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

@@ -32,7 +32,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_M190(GCodeCommand* cmd)
+Std_Err init_M190(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;

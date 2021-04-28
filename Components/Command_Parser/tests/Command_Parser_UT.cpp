@@ -34,7 +34,7 @@ TEST_F(Command_Parser_UT, parser_test)
 {
     Std_Err stdErr;
 
-    #define TEST_VALUES_LEN 10
+    #define TEST_VALUES_LEN 9
     char cmdStr0[] = "1U00";
     char cmdStr1[] = "1U10";
     char cmdStr2[] = "1U11";
@@ -43,8 +43,7 @@ TEST_F(Command_Parser_UT, parser_test)
     char cmdStr5[] = "1U22";
     char cmdStr6[] = "1U23";
     char cmdStr7[] = "1U24";
-    char cmdStr8[] = "1U25";
-    char cmdStr9[] = "1U40";
+    char cmdStr8[] = "1U40";
     struct{
         char* cmd;
 
@@ -61,15 +60,14 @@ TEST_F(Command_Parser_UT, parser_test)
         uint8_t expected_used_fields;
     }test_values[TEST_VALUES_LEN] = {
         { cmdStr0, STD_OK, init_U00, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
-        { cmdStr1, STD_OK, init_U10, NULL, step_U10, { 0., 0., 0., 0. }, 0x00 },
-        { cmdStr2, STD_OK, init_U11, NULL, step_U11, { 0., 0., 0., 0. }, 0x00 },
+        { cmdStr1, STD_OK, init_U10, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
+        { cmdStr2, STD_OK, init_U11, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
         { cmdStr3, STD_OK, init_U20, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
         { cmdStr4, STD_OK, init_U21, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
         { cmdStr5, STD_OK, init_U22, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
         { cmdStr6, STD_OK, init_U23, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
         { cmdStr7, STD_OK, init_U24, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
-        { cmdStr8, STD_OK, init_U25, NULL, NULL, { 0., 0., 0., 0. }, 0x00 },
-        { cmdStr9, STD_OK, init_U40, NULL, NULL, { 0., 0., 0., 0. }, 0x00 }
+        { cmdStr8, STD_OK, init_U40, NULL, NULL, { 0., 0., 0., 0. }, 0x00 }
     };
 
     SystemCommand cmdOUT;
@@ -102,15 +100,15 @@ TEST_F(Command_Parser_UT, U00_test)
     stdErr = cmdOUT.init(&cmdOUT);
     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.step == step_U00);
     EXPECT_TRUE(cmdOUT.remove == NULL);
 }
 
-TEST_F(Command_Parser_UT, U10_test)
+TEST_F(Command_Parser_UT, U01_test)
 {
     Std_Err stdErr;
 
-    char cmdStr[] = "1U10";
+    char cmdStr[] = "1U01";
 
     SystemCommand cmdOUT;
 
@@ -119,18 +117,15 @@ TEST_F(Command_Parser_UT, U10_test)
     stdErr = cmdOUT.init(&cmdOUT);
     EXPECT_EQ(stdErr, STD_OK);
 
-    stdErr = cmdOUT.step(&cmdOUT);
-    EXPECT_EQ(stdErr, STD_OK);
-
-    // EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.step == step_U01);
     EXPECT_TRUE(cmdOUT.remove == NULL);
 }
 
-TEST_F(Command_Parser_UT, U11_test)
+TEST_F(Command_Parser_UT, U02_test)
 {
     Std_Err stdErr;
 
-    char cmdStr[] = "1U11";
+    char cmdStr[] = "1U02";
 
     SystemCommand cmdOUT;
 
@@ -139,12 +134,49 @@ TEST_F(Command_Parser_UT, U11_test)
     stdErr = cmdOUT.init(&cmdOUT);
     EXPECT_EQ(stdErr, STD_OK);
 
-    stdErr = cmdOUT.step(&cmdOUT);
-    EXPECT_EQ(stdErr, STD_OK);
-
-    // EXPECT_TRUE(cmdOUT.step == NULL);
+    EXPECT_TRUE(cmdOUT.step == step_U02);
     EXPECT_TRUE(cmdOUT.remove == NULL);
 }
+
+// TEST_F(Command_Parser_UT, U10_test)
+// {
+//     Std_Err stdErr;
+
+//     char cmdStr[] = "1U10";
+
+//     SystemCommand cmdOUT;
+
+//     stdErr = parse_SystemCommand(cmdStr, &cmdOUT);
+
+//     stdErr = cmdOUT.init(&cmdOUT);
+//     EXPECT_EQ(stdErr, STD_OK);
+
+//     stdErr = cmdOUT.step(&cmdOUT);
+//     EXPECT_EQ(stdErr, STD_OK);
+
+//     EXPECT_TRUE(cmdOUT.step == step_forward_GCode);
+//     EXPECT_TRUE(cmdOUT.remove == remove_forward_GCode);
+// }
+
+// TEST_F(Command_Parser_UT, U11_test)
+// {
+//     Std_Err stdErr;
+
+//     char cmdStr[] = "1U11";
+
+//     SystemCommand cmdOUT;
+
+//     stdErr = parse_SystemCommand(cmdStr, &cmdOUT);
+
+//     stdErr = cmdOUT.init(&cmdOUT);
+//     EXPECT_EQ(stdErr, STD_OK);
+
+//     stdErr = cmdOUT.step(&cmdOUT);
+//     EXPECT_EQ(stdErr, STD_OK);
+
+//     EXPECT_TRUE(cmdOUT.step == step_forward_GCode);
+//     EXPECT_TRUE(cmdOUT.remove == remove_forward_GCode);
+// }
 
 TEST_F(Command_Parser_UT, U20_test)
 {
@@ -231,36 +263,19 @@ TEST_F(Command_Parser_UT, U24_test)
     EXPECT_TRUE(cmdOUT.remove == NULL);
 }
 
-TEST_F(Command_Parser_UT, U25_test)
-{
-    Std_Err stdErr;
+// TEST_F(Command_Parser_UT, U40_test)
+// {
+//     Std_Err stdErr;
 
-    char cmdStr[] = "1U25";
+//     char cmdStr[] = "1U40";
 
-    SystemCommand cmdOUT;
+//     SystemCommand cmdOUT;
 
-    stdErr = parse_SystemCommand(cmdStr, &cmdOUT);
+//     stdErr = parse_SystemCommand(cmdStr, &cmdOUT);
 
-    stdErr = cmdOUT.init(&cmdOUT);
-    EXPECT_EQ(stdErr, STD_OK);
+//     stdErr = cmdOUT.init(&cmdOUT);
+//     EXPECT_EQ(stdErr, STD_OK);
 
-    EXPECT_TRUE(cmdOUT.step == NULL);
-    EXPECT_TRUE(cmdOUT.remove == NULL);
-}
-
-TEST_F(Command_Parser_UT, U40_test)
-{
-    Std_Err stdErr;
-
-    char cmdStr[] = "1U40";
-
-    SystemCommand cmdOUT;
-
-    stdErr = parse_SystemCommand(cmdStr, &cmdOUT);
-
-    stdErr = cmdOUT.init(&cmdOUT);
-    EXPECT_EQ(stdErr, STD_OK);
-
-    EXPECT_TRUE(cmdOUT.step == NULL);
-    EXPECT_TRUE(cmdOUT.remove == NULL);
-}
+//     EXPECT_TRUE(cmdOUT.step == NULL);
+//     EXPECT_TRUE(cmdOUT.remove == NULL);
+// }

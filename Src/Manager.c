@@ -35,13 +35,13 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-bool _check_motors_are_on(Motor* motors)
+bool _check_motors_are_on(Motor** motors)
 {
     bool flag = false;
 
     for(int i=0; i<MOTORS_NUM; ++i)
     {
-        flag |= motors[i].flags.isOn;
+        flag |= motors[i]->flags.isOn;
     }
 
     return flag;
@@ -54,16 +54,24 @@ bool _check_motors_are_on(Motor* motors)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void execute_step(DeviceSettings* settings)
+Std_Err execute_step(DeviceSettings* settings)
 {
-    settings->motors_are_on = _check_motors_are_on(*(settings->motors));
+    Std_Err stdErr;
 
-    parse_communication_command(settings->buff_comm);
-    execute_communication_command(settings->buff_comm, settings->motors_are_on);
-    send_communication_command(settings->buff_comm);
+    settings->motors_are_on = _check_motors_are_on(settings->motors);
 
-    parse_command_SDcard(settings->sd);
-    execute_command_SDcard(settings->sd, settings->motors_are_on);
+    stdErr = parse_communication_command(settings->communication);
+    if(stdErr != STD_OK) { return stdErr; }
+    stdErr = execute_communication_command(settings->communication);
+    if(stdErr != STD_OK) { return stdErr; }
+    // stdErr = send_communication_command(settings->buff_comm);
+    // if(stdErr != STD_OK) { return stdErr; }
+
+    // stdErr = parse_command_SDcard(settings->sd);
+    // if(stdErr != STD_OK) { return stdErr; }
+    // stdErr = execute_command_SDcard(settings->sd, settings->motors_are_on);
+
+    return stdErr;
 }
 
 
