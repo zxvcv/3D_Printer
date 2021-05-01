@@ -75,7 +75,7 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
 
     end_point3D.x = (cmd->used_fields & PARAM_X) ? cmd->data.x : start_point3D.x;
     end_point3D.y = (cmd->used_fields & PARAM_Y) ? cmd->data.y : start_point3D.y;
-    end_point3D.z = (cmd->used_fields & PARAM_K) ? cmd->data.z : start_point3D.z;
+    end_point3D.z = (cmd->used_fields & PARAM_Z) ? cmd->data.z : start_point3D.z;
 
     Point2D_d temp;
     temp = get_point2D_form_point3D(start_point3D, settings->plane_selection.plane_x,
@@ -105,7 +105,16 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
     double end_radius = get_distance_between_points(specific_data->end_point,
         specific_data->center_point);
 
-    if(!compare_doubles(specific_data->radius, end_radius, 1./ACCURACY))
+    Point3D_d step_point3D;
+    step_point3D.x = (double)motors[MOTOR_X]->settings.step_size / ACCURACY;
+    step_point3D.y = (double)motors[MOTOR_Y]->settings.step_size / ACCURACY;
+    step_point3D.z = (double)motors[MOTOR_Z]->settings.step_size / ACCURACY;
+    Point2D_d step_point2D = get_point2D_form_point3D(step_point3D,
+                                                      settings->plane_selection.plane_x,
+                                                      settings->plane_selection.plane_y,
+                                                      settings->plane_selection.plane_z);
+    double step_accuracy = sqrt(pow(step_point2D.x, 2) + pow(step_point2D.y, 2));
+    if(!compare_doubles(specific_data->radius, end_radius, step_accuracy))
     {
         #ifdef USE_INTERRUPTS
         IRQ_DISABLE;
@@ -127,7 +136,13 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
                                       specific_data->end_point.x,    specific_data->end_point.y);
     double angle = get_angle_in_degrees(getAngleBetweenVectors2D(start_vect, end_vect));
 
-    angle = (angle == 0) ? 360 : angle;
+    if(angle == 0)
+    {
+        end_point3D.x += (double)motors[MOTOR_X]->data.position_error / ACCURACY;
+        end_point3D.y += (double)motors[MOTOR_Y]->data.position_error / ACCURACY;
+        end_point3D.z += (double)motors[MOTOR_Z]->data.position_error / ACCURACY;
+        angle = 360;
+    }angle = (angle == 0) ? 360 : angle;
 
     specific_data->steps = round(angle / settings->angle_step);
 
