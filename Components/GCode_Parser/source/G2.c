@@ -39,6 +39,8 @@ typedef struct DataG2_Tag{
     Point2D_d center_point;
     Point2D_d end_point;
 
+    Point2D_d destination_point;
+
     double radius;
     int steps;
 }DataG2;
@@ -94,6 +96,8 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
     specific_data->end_point.x = temp.x;
     specific_data->end_point.y = temp.y;
 
+    specific_data->destination_point.x = specific_data->start_point.x;
+    specific_data->destination_point.y = specific_data->start_point.y;
 
     // check length of radius
     specific_data->radius = get_distance_between_points(specific_data->start_point,
@@ -145,6 +149,19 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
 
     if(!(*(settings->motors_are_on)))
     {
+        // set current error (after last step)
+        // in first run of step_G2 position_error will be corrupted (!)
+        Point3D_d destination3D = get_point3D_form_point2D(specific_data->destination_point,
+                                                           settings->plane_selection.plane_x,
+                                                           settings->plane_selection.plane_y,
+                                                           settings->plane_selection.plane_z);
+        motors[MOTOR_X]->data.position_error = (int)(destination3D.x * ACCURACY) -
+            motors[MOTOR_X]->data.position;
+        motors[MOTOR_Y]->data.position_error = (int)(destination3D.y * ACCURACY) -
+            motors[MOTOR_Y]->data.position;
+        motors[MOTOR_Z]->data.position_error = (int)(destination3D.z * ACCURACY) -
+            motors[MOTOR_Z]->data.position;
+
         Point3D_d current_point3D;
         current_point3D.x = (double)motors[MOTOR_X]->data.position / ACCURACY;
         current_point3D.y = (double)motors[MOTOR_Y]->data.position / ACCURACY;
@@ -163,24 +180,14 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
             return STD_OK;
         }
 
-        Point2D_d destination = get_next_circle_point(specific_data->start_point,
+        specific_data->destination_point = get_next_circle_point(specific_data->destination_point,
             specific_data->center_point, specific_data->radius, settings->angle_step,
-            (settings->circle_move_mode == CLOCKWISE ? true : false));
+            (settings->circle_move_mode == CLOCKWISE_CIRCLE ? true : false));
 
-        Point3D_d destination3D = get_point3D_form_point2D(destination,
-                                                           settings->plane_selection.plane_x,
-                                                           settings->plane_selection.plane_y,
-                                                           settings->plane_selection.plane_z);
-
-        Point3D_d destination_err3D = {
-            motors[MOTOR_X]->data.position_error / ACCURACY,
-            motors[MOTOR_Y]->data.position_error / ACCURACY,
-            motors[MOTOR_Z]->data.position_error / ACCURACY
-        };
-
-        destination3D.x += destination_err3D.x;
-        destination3D.y += destination_err3D.y;
-        destination3D.z += destination_err3D.z;
+        destination3D = get_point3D_form_point2D(specific_data->destination_point,
+                                                 settings->plane_selection.plane_x,
+                                                 settings->plane_selection.plane_y,
+                                                 settings->plane_selection.plane_z);
 
         specific_data->steps -= 1;
 
