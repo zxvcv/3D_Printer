@@ -102,32 +102,32 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
     // check length of radius
     specific_data->radius = get_distance_between_points(specific_data->start_point,
         specific_data->center_point);
-    double end_radius = get_distance_between_points(specific_data->end_point,
-        specific_data->center_point);
+    // double end_radius = get_distance_between_points(specific_data->end_point,
+    //     specific_data->center_point);
 
-    Point3D_d step_point3D;
-    step_point3D.x = (double)motors[MOTOR_X]->settings.step_size / ACCURACY;
-    step_point3D.y = (double)motors[MOTOR_Y]->settings.step_size / ACCURACY;
-    step_point3D.z = (double)motors[MOTOR_Z]->settings.step_size / ACCURACY;
-    Point2D_d step_point2D = get_point2D_form_point3D(step_point3D,
-                                                      settings->plane_selection.plane_x,
-                                                      settings->plane_selection.plane_y,
-                                                      settings->plane_selection.plane_z);
-    double step_accuracy = sqrt(pow(step_point2D.x, 2) + pow(step_point2D.y, 2));
-    if(!compare_doubles(specific_data->radius, end_radius, step_accuracy))
-    {
-        #ifdef USE_INTERRUPTS
-        IRQ_DISABLE;
-        #endif /* USE_INTERRUPTS */
+    // Point3D_d step_point3D;
+    // step_point3D.x = (double)motors[MOTOR_X]->settings.step_size / ACCURACY;
+    // step_point3D.y = (double)motors[MOTOR_Y]->settings.step_size / ACCURACY;
+    // step_point3D.z = (double)motors[MOTOR_Z]->settings.step_size / ACCURACY;
+    // Point2D_d step_point2D = get_point2D_form_point3D(step_point3D,
+    //                                                   settings->plane_selection.plane_x,
+    //                                                   settings->plane_selection.plane_y,
+    //                                                   settings->plane_selection.plane_z);
+    // double step_accuracy = sqrt(pow(step_point2D.x, 2) + pow(step_point2D.y, 2));
+    // if(!compare_doubles(specific_data->radius, end_radius, step_accuracy))
+    // {
+    //     #ifdef USE_INTERRUPTS
+    //     IRQ_DISABLE;
+    //     #endif /* USE_INTERRUPTS */
 
-        free(cmd->specific_data);
+    //     free(cmd->specific_data);
 
-        #ifdef USE_INTERRUPTS
-        IRQ_ENABLE;
-        #endif /* USE_INTERRUPTS */
+    //     #ifdef USE_INTERRUPTS
+    //     IRQ_ENABLE;
+    //     #endif /* USE_INTERRUPTS */
 
-        return STD_PARAMETER_ERROR;
-    }
+    //     return STD_PARAMETER_ERROR;
+    // }
 
     // calculate number of moves
     vect2D_d start_vect = getVector2D(specific_data->center_point.x, specific_data->center_point.y,
@@ -142,7 +142,7 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
         end_point3D.y += (double)motors[MOTOR_Y]->data.position_error / ACCURACY;
         end_point3D.z += (double)motors[MOTOR_Z]->data.position_error / ACCURACY;
         angle = 360;
-    }angle = (angle == 0) ? 360 : angle;
+    }
 
     specific_data->steps = round(angle / settings->angle_step);
 
@@ -165,7 +165,6 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
     if(!(*(settings->motors_are_on)))
     {
         // set current error (after last step)
-        // in first run of step_G2 position_error will be corrupted (!)
         Point3D_d destination3D = get_point3D_form_point2D(specific_data->destination_point,
                                                            settings->plane_selection.plane_x,
                                                            settings->plane_selection.plane_y,
