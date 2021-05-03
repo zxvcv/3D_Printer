@@ -39,6 +39,8 @@ typedef struct DataG2_Tag{
     Point2D_d center_point;
     Point2D_d end_point;
 
+    Point2D_d destination_point;
+
     double radius;
     int steps;
 }DataG2;
@@ -73,7 +75,7 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
 
     end_point3D.x = (cmd->used_fields & PARAM_X) ? cmd->data.x : start_point3D.x;
     end_point3D.y = (cmd->used_fields & PARAM_Y) ? cmd->data.y : start_point3D.y;
-    end_point3D.z = (cmd->used_fields & PARAM_K) ? cmd->data.z : start_point3D.z;
+    end_point3D.z = (cmd->used_fields & PARAM_Z) ? cmd->data.z : start_point3D.z;
 
     Point2D_d temp;
     temp = get_point2D_form_point3D(start_point3D, settings->plane_selection.plane_x,
@@ -94,27 +96,38 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
     specific_data->end_point.x = temp.x;
     specific_data->end_point.y = temp.y;
 
+    specific_data->destination_point.x = specific_data->start_point.x;
+    specific_data->destination_point.y = specific_data->start_point.y;
 
     // check length of radius
     specific_data->radius = get_distance_between_points(specific_data->start_point,
         specific_data->center_point);
-    double end_radius = get_distance_between_points(specific_data->end_point,
-        specific_data->center_point);
+    // double end_radius = get_distance_between_points(specific_data->end_point,
+    //     specific_data->center_point);
 
-    if(!compare_doubles(specific_data->radius, end_radius, 1./ACCURACY))
-    {
-        #ifdef USE_INTERRUPTS
-        IRQ_DISABLE;
-        #endif /* USE_INTERRUPTS */
+    // Point3D_d step_point3D;
+    // step_point3D.x = (double)motors[MOTOR_X]->settings.step_size / ACCURACY;
+    // step_point3D.y = (double)motors[MOTOR_Y]->settings.step_size / ACCURACY;
+    // step_point3D.z = (double)motors[MOTOR_Z]->settings.step_size / ACCURACY;
+    // Point2D_d step_point2D = get_point2D_form_point3D(step_point3D,
+    //                                                   settings->plane_selection.plane_x,
+    //                                                   settings->plane_selection.plane_y,
+    //                                                   settings->plane_selection.plane_z);
+    // double step_accuracy = sqrt(pow(step_point2D.x, 2) + pow(step_point2D.y, 2));
+    // if(!compare_doubles(specific_data->radius, end_radius, step_accuracy))
+    // {
+    //     #ifdef USE_INTERRUPTS
+    //     IRQ_DISABLE;
+    //     #endif /* USE_INTERRUPTS */
 
-        free(cmd->specific_data);
+    //     free(cmd->specific_data);
 
-        #ifdef USE_INTERRUPTS
-        IRQ_ENABLE;
-        #endif /* USE_INTERRUPTS */
+    //     #ifdef USE_INTERRUPTS
+    //     IRQ_ENABLE;
+    //     #endif /* USE_INTERRUPTS */
 
-        return STD_PARAMETER_ERROR;
-    }
+    //     return STD_PARAMETER_ERROR;
+    // }
 
     // calculate number of moves
     vect2D_d start_vect = getVector2D(specific_data->center_point.x, specific_data->center_point.y,
@@ -123,7 +136,13 @@ Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd)
                                       specific_data->end_point.x,    specific_data->end_point.y);
     double angle = get_angle_in_degrees(getAngleBetweenVectors2D(start_vect, end_vect));
 
-    angle = (angle == 0) ? 360 : angle;
+    if(angle == 0)
+    {
+        end_point3D.x += (double)motors[MOTOR_X]->data.position_error / ACCURACY;
+        end_point3D.y += (double)motors[MOTOR_Y]->data.position_error / ACCURACY;
+        end_point3D.z += (double)motors[MOTOR_Z]->data.position_error / ACCURACY;
+        angle = 360;
+    }
 
     specific_data->steps = round(angle / settings->angle_step);
 
@@ -145,6 +164,18 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
 
     if(!(*(settings->motors_are_on)))
     {
+        // set current error (after last step)
+        Point3D_d destination3D = get_point3D_form_point2D(specific_data->destination_point,
+                                                           settings->plane_selection.plane_x,
+                                                           settings->plane_selection.plane_y,
+                                                           settings->plane_selection.plane_z);
+        motors[MOTOR_X]->data.position_error = (int)(destination3D.x * ACCURACY) -
+            motors[MOTOR_X]->data.position;
+        motors[MOTOR_Y]->data.position_error = (int)(destination3D.y * ACCURACY) -
+            motors[MOTOR_Y]->data.position;
+        motors[MOTOR_Z]->data.position_error = (int)(destination3D.z * ACCURACY) -
+            motors[MOTOR_Z]->data.position;
+
         Point3D_d current_point3D;
         current_point3D.x = (double)motors[MOTOR_X]->data.position / ACCURACY;
         current_point3D.y = (double)motors[MOTOR_Y]->data.position / ACCURACY;
@@ -163,24 +194,14 @@ Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd)
             return STD_OK;
         }
 
-        Point2D_d destination = get_next_circle_point(specific_data->start_point,
+        specific_data->destination_point = get_next_circle_point(specific_data->destination_point,
             specific_data->center_point, specific_data->radius, settings->angle_step,
-            (settings->circle_move_mode == CLOCKWISE ? true : false));
+            (settings->circle_move_mode == CLOCKWISE_CIRCLE ? true : false));
 
-        Point3D_d destination3D = get_point3D_form_point2D(destination,
-                                                           settings->plane_selection.plane_x,
-                                                           settings->plane_selection.plane_y,
-                                                           settings->plane_selection.plane_z);
-
-        Point3D_d destination_err3D = {
-            motors[MOTOR_X]->data.position_error / ACCURACY,
-            motors[MOTOR_Y]->data.position_error / ACCURACY,
-            motors[MOTOR_Z]->data.position_error / ACCURACY
-        };
-
-        destination3D.x += destination_err3D.x;
-        destination3D.y += destination_err3D.y;
-        destination3D.z += destination_err3D.z;
+        destination3D = get_point3D_form_point2D(specific_data->destination_point,
+                                                 settings->plane_selection.plane_x,
+                                                 settings->plane_selection.plane_y,
+                                                 settings->plane_selection.plane_z);
 
         specific_data->steps -= 1;
 
