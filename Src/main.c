@@ -134,20 +134,20 @@ int main(void)
   }
   msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
       get_str_error_code(stdErr));
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
-  stdErr = send_message(printerSettings.buff_comm, "ERR_DATA:\n", 10);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.communication, "ERR_DATA:\n", 10);
   msgSize = sprintf(printerSettings.msg_buffer, "X: pos:%d pos_err:%d\n",
       printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
   msgSize = sprintf(printerSettings.msg_buffer, "Y: pos:%d pos_err:%d\n",
       printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
   msgSize = sprintf(printerSettings.msg_buffer, "Z: pos:%d pos_err:%d\n",
       printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
   msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
       printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
-  stdErr = send_message(printerSettings.buff_comm, printerSettings.msg_buffer, msgSize);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
   /* USER CODE END 3 */
 }
 

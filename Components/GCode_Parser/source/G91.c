@@ -32,12 +32,12 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_G91(GCodeCommand* cmd)
+Std_Err init_G91(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    global_gcode_settings.positioning_mode = RELATIVE;
+    settings->positioning_mode = RELATIVE;
 
     return STD_OK;
 }

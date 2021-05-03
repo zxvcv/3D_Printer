@@ -27,7 +27,7 @@
 #include "SD.h"
 #include "A4988_stepstick.h"
 #include "EEPROM_24AA01.h"
-#include "Buffered_Communication.h"
+#include "Manager_Communication.h"
 #include "Manager_SDcard.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
@@ -64,6 +64,7 @@ typedef struct DeviceSettings_Tag{
     EEPROMSettings* eeprom;
 
     BuffCommunication_Settings* buff_comm;
+    Communication_Settings* communication;
 
     char msg_buffer[50];
 }DeviceSettings;

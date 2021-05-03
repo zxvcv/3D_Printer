@@ -18,7 +18,6 @@
 #include "Manager_SDcard.h"
 #include <string.h>
 #include <stdio.h>
-#include "GCode_Parser.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
@@ -59,8 +58,6 @@
 
 FATFS fatfs;
 FIL file;
-GCodeCommand executingCmdSD;
-BuffCommunication_Settings* buff_comm_debug; // DEBUG
 
 
 Std_Err reset_parser_SDcard(SDCard_Settings* settings)
@@ -159,8 +156,9 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
 
     stdErr = fifo_create(&(settings->BuffIN_SDcmd));
     if(stdErr != STD_OK) { return stdErr; }
-    buff_comm_debug = buff_comm; // DEBUG
-    init_GCodeParser(motors, buff_comm, motors_are_on);
+
+    settings->buff_comm = buff_comm;
+    init_GCodeParser(&(settings->gcode), motors, buff_comm, motors_are_on);
     return stdErr;
 }
 
@@ -236,7 +234,7 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
 
             GCodeCommand cmd;
 
-            stdErr = parse_GCodeCommand((char*)cmdData, &cmd);
+            stdErr = parse_GCodeCommand(&(settings->gcode), (char*)cmdData, &cmd);
             if(stdErr != STD_OK) { return stdErr; }
 
             stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
@@ -276,29 +274,29 @@ Std_Err execute_command_SDcard(SDCard_Settings* settings)
             stdErr = fifo_front(settings->BuffIN_SDcmd, (void**)&cmd);
             if(stdErr != STD_OK) { return stdErr; }
 
-            memcpy(&executingCmdSD, cmd, sizeof(GCodeCommand));
+            memcpy(&(settings->executingCmd), cmd, sizeof(GCodeCommand));
             stdErr = fifo_pop_C(settings->BuffIN_SDcmd);
             if(stdErr != STD_OK) { return stdErr; }
 
-            stdErr = executingCmdSD.init(&executingCmdSD);
+            stdErr = settings->executingCmd.init(&(settings->gcode), &(settings->executingCmd));
             if(stdErr != STD_OK) { return stdErr; }
 
             settings->flags.executing_command = true;
         }
 
         /* there is command ongoing, process next step */
-        if(settings->flags.executing_command && executingCmdSD.step != NULL)
+        if(settings->flags.executing_command && settings->executingCmd.step != NULL)
         {
-            stdErr = executingCmdSD.step(&executingCmdSD);
+            stdErr = settings->executingCmd.step(&(settings->gcode), &(settings->executingCmd));
             if(stdErr != STD_OK) { return stdErr; }
         }
 
         /* there is no next step to process, deinitialize command */
-        if(settings->flags.executing_command && executingCmdSD.step == NULL)
+        if(settings->flags.executing_command && settings->executingCmd.step == NULL)
         {
-            if(executingCmdSD.remove != NULL)
+            if(settings->executingCmd.remove != NULL)
             {
-                stdErr = executingCmdSD.remove(&executingCmdSD);
+                stdErr = settings->executingCmd.remove(&(settings->gcode), &(settings->executingCmd));
                 if(stdErr != STD_OK) { return stdErr; }
             }
 

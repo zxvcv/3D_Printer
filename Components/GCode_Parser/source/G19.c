@@ -32,15 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    //...
-
-    return STD_OK;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -49,4 +40,15 @@ Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+Std_Err init_G19(GCode_Settings* settings, GCodeCommand* cmd)
+{
+    cmd->remove = NULL;
+    cmd->step = NULL;
+
+    settings->plane_selection.plane_x = 0;
+    settings->plane_selection.plane_y = 1;
+    settings->plane_selection.plane_z = 1;
+
+    return STD_OK;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

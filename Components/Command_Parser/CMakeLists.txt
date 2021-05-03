@@ -22,18 +22,23 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/Command_Parser.c
 
-    ${SOURCE_DIR}/reusable.c
+    ${SOURCE_DIR}/forward_gcode.c
     ${SOURCE_DIR}/U00.c
     ${SOURCE_DIR}/U01.c
     ${SOURCE_DIR}/U02.c
+    ${SOURCE_DIR}/U03.c
     ${SOURCE_DIR}/U10.c
     ${SOURCE_DIR}/U11.c
+    ${SOURCE_DIR}/U12.c
+    ${SOURCE_DIR}/U13.c
     ${SOURCE_DIR}/U20.c
     ${SOURCE_DIR}/U21.c
     ${SOURCE_DIR}/U22.c
     ${SOURCE_DIR}/U23.c
     ${SOURCE_DIR}/U24.c
     ${SOURCE_DIR}/U25.c
+    ${SOURCE_DIR}/U26.c
+    ${SOURCE_DIR}/U27.c
     ${SOURCE_DIR}/U40.c
 )
 

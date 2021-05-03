@@ -32,7 +32,7 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_M109(GCodeCommand* cmd)
+Std_Err init_M109(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;

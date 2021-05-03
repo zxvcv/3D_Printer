@@ -32,16 +32,16 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_G92(GCodeCommand* cmd)
+Std_Err init_G92(GCode_Settings* settings, GCodeCommand* cmd)
 {
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    Motor** motors = global_gcode_settings.motors;
+    Motor** motors = settings->motors;
 
     Std_Err stdErr;
 
-    for(uint8_t i=0x01; i<=PARAM_E; i<<=1)
+    for(uint8_t i=PARAM_X; i<=PARAM_E; i<<=1)
     {
         if(cmd->used_fields & i)
         {

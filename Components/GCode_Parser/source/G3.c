@@ -32,15 +32,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd)
-{
-    cmd->remove = NULL;
-    cmd->step = NULL;
-
-    //...
-
-    return STD_OK;
-}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -49,4 +40,22 @@ Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd)
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
+extern Std_Err step_G2(GCode_Settings* settings, GCodeCommand* cmd);
+extern Std_Err remove_G2(GCode_Settings* settings, GCodeCommand* cmd);
+extern Std_Err init_circle_movement(GCode_Settings* settings, GCodeCommand* cmd);
+
+
+Std_Err init_G3(GCode_Settings* settings, GCodeCommand* cmd)
+{
+    Std_Err stdErr = STD_OK;
+
+    cmd->remove = remove_G2;
+    cmd->step = step_G2;
+
+    settings->circle_move_mode = COUNTER_CLOCKWISE_CIRCLE;
+
+    stdErr = init_circle_movement(settings, cmd);
+
+    return stdErr;
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

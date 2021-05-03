@@ -66,6 +66,14 @@ typedef struct vect2D_d{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+vect2D_d getVector2D(double p1X, double p1Y, double p2X, double p2Y);
+
+double getVectorLength2D(vect2D_d vect);
+
+double getVectorScalarProduct2D(vect2D_d vect1, vect2D_d vect2);
+
+double getAngleBetweenVectors2D(vect2D_d vect1, vect2D_d vect2);
+
 vect2D_d getVelocity2D(vect2D_d move, double v);
 
 vect3D_d getVelocity3D(vect3D_d move, double v);

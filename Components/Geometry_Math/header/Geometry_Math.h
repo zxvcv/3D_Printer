@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: GCode_Parser
+ * NAME: Geometry_Math
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,8 +16,8 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef GCODE_PARSER_H_
-#define GCODE_PARSER_H_
+#ifndef GEOMETRY_MATH_H_
+#define GEOMETRY_MATH_H_
 
 
 /* ############################################################################################ *
@@ -25,9 +25,6 @@
  * ############################################################################################ */
 
 #include <stdbool.h>
-#include "Error_Codes.h"
-#include "A4988_stepstick.h"
-#include "Buffered_Communication.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -52,58 +49,16 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct GCode_Settings_Tag{
-    Motor** motors;
-    BuffCommunication_Settings* buff_comm;
+typedef struct Point2D_d_Tag{
+    double x;
+    double y;
+}Point2D_d;
 
-    bool* motors_are_on;
-    double speed;
-    double angle_step;
-
-    enum{
-        RELATIVE = 0,
-        ABSOLUTE
-    }positioning_mode;
-
-    enum{
-        CLOCKWISE_CIRCLE = 0,
-        COUNTER_CLOCKWISE_CIRCLE
-    }circle_move_mode;
-
-    struct{
-        unsigned int plane_x    :1;
-        unsigned int plane_y    :1;
-        unsigned int plane_z    :1;
-    }plane_selection;
-}GCode_Settings;
-
-typedef struct GCodeCommand_Tag{
-    Std_Err (*init)(GCode_Settings*, struct GCodeCommand_Tag*);
-    Std_Err (*remove)(GCode_Settings*, struct GCodeCommand_Tag*);
-    Std_Err (*step)(GCode_Settings*, struct GCodeCommand_Tag*);
-
-
-    uint16_t used_fields;
-    struct{
-        double x;       //X-axis move
-        double y;       //Y-axis move
-        double z;       //Z-axis move
-        double e;       //extruder-axis move
-        double f;       //speed of the movement
-        double s;       //temperature
-        double i;       //X-axis relative circle center position form start point
-        double j;       //Y-axis relative circle center position form start point
-        double k;       //Z-axis relative circle center position form start point
-    }data;
-    void* specific_data;
-
-    struct{
-        double x;
-        double y;
-        double z;
-        double e;
-    }target_position;
-}GCodeCommand;
+typedef struct Point3D_d_Tag{
+    double x;
+    double y;
+    double z;
+}Point3D_d;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -112,12 +67,24 @@ typedef struct GCodeCommand_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_GCodeParser(GCode_Settings* settings, Motor** motors,
-    BuffCommunication_Settings* buff_comm, bool* motors_are_on);
+Point2D_d get_point2D_form_point3D(Point3D_d point3D, bool withX, bool withY, bool withZ);
 
-Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cmdOUT);
+Point3D_d get_point3D_form_point2D(Point2D_d point2D, bool withX, bool withY, bool withZ);
+
+bool compare_doubles(double d1, double d2, double accuracy);
+
+double get_angle_in_degrees(double rad_angle);
+
+double get_angle_in_radians(double degree_angle);
+
+double get_distance_between_points(Point2D_d p1, Point2D_d p2);
+
+Point2D_d get_line_equation_from_points(Point2D_d v1, Point2D_d v2);
+
+Point2D_d get_next_circle_point(Point2D_d start_point, Point2D_d circle_center, double radius,
+    double angle_step, bool is_clockwise);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* GCODE_PARSER_H_ */
+#endif /* GEOMETRY_MATH_H_ */

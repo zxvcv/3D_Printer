@@ -32,17 +32,17 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err step_U40(SystemCommand* cmd)
+Std_Err step_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr;
 
-    stdErr = parse_command_SDcard(global_systemCmd_settings.sd);
+    stdErr = parse_command_SDcard(settings->sd);
     if(stdErr != STD_OK) { return stdErr; }
 
-    stdErr = execute_command_SDcard(global_systemCmd_settings.sd);
+    stdErr = execute_command_SDcard(settings->sd);
     if(stdErr != STD_OK) { return stdErr; }
 
-    if(!global_systemCmd_settings.sd->flags.executing_program)
+    if(!settings->sd->flags.executing_program)
     {
         cmd->step = NULL;
     }
@@ -51,16 +51,16 @@ Std_Err step_U40(SystemCommand* cmd)
 }
 
 
-Std_Err remove_U40(SystemCommand* cmd)
+Std_Err remove_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Err_Msg msgErr;
-    msgErr = sdcard_close_file(global_systemCmd_settings.sd);
+    msgErr = sdcard_close_file(settings->sd);
 
     return msgErr.err;
 }
 
 
-Std_Err init_U40(SystemCommand* cmd)
+Std_Err init_U40(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr;
     Err_Msg msgErr;
@@ -69,12 +69,12 @@ Std_Err init_U40(SystemCommand* cmd)
     cmd->remove = remove_U40;
     cmd->step = step_U40;
 
-    msgErr = sdcard_open_file(global_systemCmd_settings.sd, "fl.txt", FA_READ);
+    msgErr = sdcard_open_file(settings->sd, "fl.txt", FA_READ);
     if(msgErr.err != STD_OK) { return msgErr.err; }
 
-    global_systemCmd_settings.sd->flags.executing_program = true;
+    settings->sd->flags.executing_program = true;
 
-    stdErr = parse_command_SDcard(global_systemCmd_settings.sd);
+    stdErr = parse_command_SDcard(settings->sd);
 
     return stdErr;
 }

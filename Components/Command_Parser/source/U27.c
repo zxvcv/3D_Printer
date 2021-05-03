@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: GCode_Parser
+ * NAME: Command_Parser
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -32,14 +32,24 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-Std_Err init_M104(GCode_Settings* settings, GCodeCommand* cmd)
+Std_Err init_U27(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
+    Std_Err stdErr = STD_OK;
+
     cmd->remove = NULL;
     cmd->step = NULL;
 
-    //...
+    if((cmd->used_fields & PARAM_V) &&
+        cmd->data.v >= _ANGLE_MIN_VAL && cmd->data.v <= _ANGLE_MAX_VAL)
+    {
+        settings->sd->gcode.angle_step = cmd->data.v;
+    }
+    else
+    {
+        stdErr = STD_PARAMETER_ERROR;
+    }
 
-    return STD_OK;
+    return stdErr;
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

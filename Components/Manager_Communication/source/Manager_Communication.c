@@ -17,9 +17,7 @@
 
 #include "Manager_Communication.h"
 #include <string.h>
-#include "Command_Parser.h"
 #include "Project_Config.h"
-#include "Error_Codes.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -36,8 +34,6 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-SystemCommand executingCmd;
-Communication_Flags communication_flags;
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
@@ -46,22 +42,19 @@ Communication_Flags communication_flags;
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-Std_Err init_communication_manager(BuffCommunication_Settings* settings, UART_HandleTypeDef* huart)
+void init_communication_manager(Communication_Settings* settings,
+    BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
+    SDCard_Settings* sd, uint8_t* motor_data_addresses)
 {
-    Std_Err stdErr;
+    settings->buff_comm = buff_comm;
+    settings->flags.executing_command = false;
 
-    // communication_flags.eofRecieved = false;
-    // communication_flags.end_program = false;
-    // communication_flags.executing_program = false;
-    communication_flags.executing_command = false;
-
-    stdErr = init_buffered_communication(settings, huart);
-
-    return stdErr;
+    init_SystemCommandsParser(&(settings->sys_comm), buff_comm, motors, eeprom, sd,
+        motor_data_addresses);
 }
 
 
-Std_Err parse_communication_command(BuffCommunication_Settings* settings)
+Std_Err parse_communication_command(Communication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
 
@@ -70,30 +63,30 @@ Std_Err parse_communication_command(BuffCommunication_Settings* settings)
     uint8_t* data;
     uint8_t temp[25];
 
-    if(settings->EOL_recieved)
+    if(settings->buff_comm->EOL_recieved)
     {
-        settings->EOL_recieved = false;
+        settings->buff_comm->EOL_recieved = false;
 
         do
         {
-            stdErr = fifo_front(settings->Buff_IN, (void**)&data);
+            stdErr = fifo_front(settings->buff_comm->Buff_IN, (void**)&data);
             temp[sizeTemp++] = *data;
             if(stdErr != STD_OK) { return stdErr; }
 
-            stdErr = fifo_pop_C(settings->Buff_IN);
+            stdErr = fifo_pop_C(settings->buff_comm->Buff_IN);
             if(stdErr != STD_OK) { return stdErr; }
 
         }while(temp[sizeTemp - 1] != '\n');
         temp[sizeTemp - 1] = '\0';
 
-        stdErr = parse_SystemCommand((char*)temp, &cmd);
+        stdErr = parse_SystemCommand(&(settings->sys_comm), (char*)temp, &cmd);
         if(stdErr != STD_OK) { return stdErr; }
 
         #ifdef USE_INTERRUPTS
         IRQ_DISABLE;
         #endif /* USE_INTERRUPTS */
 
-        stdErr = fifo_push_C(settings->Buff_InputCommands, &cmd, sizeof(SystemCommand));
+        stdErr = fifo_push_C(settings->buff_comm->Buff_InputCommands, &cmd, sizeof(SystemCommand));
 
         #ifdef USE_INTERRUPTS
         IRQ_ENABLE;
@@ -104,70 +97,71 @@ Std_Err parse_communication_command(BuffCommunication_Settings* settings)
 }
 
 
-Std_Err execute_communication_command(BuffCommunication_Settings* settings)
+Std_Err execute_communication_command(Communication_Settings* settings)
 {
     Std_Err stdErr = STD_OK;
 
     SystemCommand* cmd = NULL;
     uint8_t listSize;
 
-    listSize = fifo_getSize(settings->Buff_InputCommands);
+    listSize = fifo_getSize(settings->buff_comm->Buff_InputCommands);
 
     /* no command ongoing, initialize new command */
-    if(listSize > 0 && !communication_flags.executing_command)
+    if(listSize > 0 && !settings->flags.executing_command)
     {
-        stdErr = fifo_front(settings->Buff_InputCommands, (void**)&cmd);
+        stdErr = fifo_front(settings->buff_comm->Buff_InputCommands, (void**)&cmd);
         if(stdErr != STD_OK) { return stdErr; }
 
-        memcpy(&executingCmd, cmd, sizeof(SystemCommand));
-        stdErr = fifo_pop_C(settings->Buff_InputCommands);
+        memcpy(&(settings->executingCmd), cmd, sizeof(SystemCommand));
+        stdErr = fifo_pop_C(settings->buff_comm->Buff_InputCommands);
         if(stdErr != STD_OK) { return stdErr; }
 
-        stdErr = executingCmd.init(&executingCmd);
+        stdErr = settings->executingCmd.init(&(settings->sys_comm), &(settings->executingCmd));
         if(stdErr != STD_OK) { return stdErr; }
 
-        communication_flags.executing_command = true;
+        settings->flags.executing_command = true;
     }
 
     /* there is command ongoing, process next step */
-    if(communication_flags.executing_command && executingCmd.step != NULL)
+    if(settings->flags.executing_command && settings->executingCmd.step != NULL)
     {
-        stdErr = executingCmd.step(&executingCmd);
+        stdErr = settings->executingCmd.step(&(settings->sys_comm), &(settings->executingCmd));
         if(stdErr != STD_OK) { return stdErr; }
     }
 
     /* there is no next step to process, deinitialize command */
-    if(communication_flags.executing_command && executingCmd.step == NULL)
+    if(settings->flags.executing_command && settings->executingCmd.step == NULL)
     {
-        if(executingCmd.remove != NULL)
+        if(settings->executingCmd.remove != NULL)
         {
-            stdErr = executingCmd.remove(&executingCmd);
+            stdErr = settings->executingCmd.remove(&(settings->sys_comm),
+                &(settings->executingCmd));
             if(stdErr != STD_OK) { return stdErr; }
         }
 
-        communication_flags.executing_command = false;
+        settings->flags.executing_command = false;
     }
 
     return stdErr;
 }
 
 
-Std_Err send_communication_command(BuffCommunication_Settings* settings)
+Std_Err send_communication_command(Communication_Settings* settings)
 {
     Std_Err stdErr;
 
-    stdErr = send_buffered_message(settings);
+    stdErr = send_buffered_message(settings->buff_comm);
     if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
 
     return stdErr;
 }
 
 
-Std_Err send_message(BuffCommunication_Settings* settings, char* msg, uint8_t msgSize)
+Std_Err send_message(Communication_Settings* settings, char* msg, uint8_t msgSize)
 {
     Std_Err stdErr;
 
-    stdErr = add_message_to_send(settings, msg, msgSize);
+    stdErr = add_message_to_send(settings->buff_comm, msg, msgSize);
     if(stdErr == STD_BUSY_ERROR) { stdErr = STD_OK; }
 
     return stdErr;
