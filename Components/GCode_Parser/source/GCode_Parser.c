@@ -86,7 +86,29 @@ Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cm
     char* token = NULL, * cmdName = NULL;
     double val;
 
+    // delete all comments
+    bool isComment = false;
+    for (int i = 0; i < strlen(cmd); ++i)
+    {
+        if(cmd[i] == ";")
+        {
+            isComment = true;
+        }
+
+        if(isComment && cmd[i] != '\n')
+        {
+            cmd[i] = ' ';
+        }
+    }
+
+    // if empty line then pass
     cmdName = strtok(cmd, " ");
+    if(strcmp(cmdName, "\n") == 0)
+    {
+        return STD_OK;
+    }
+
+    // parse command
     token = strtok(NULL, " ");
     memset(cmdOUT, 0, sizeof(GCodeCommand));
 
