@@ -235,9 +235,13 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
             GCodeCommand cmd;
 
             stdErr = parse_GCodeCommand(&(settings->gcode), (char*)cmdData, &cmd);
-            if(stdErr != STD_OK) { return stdErr; }
+            if(stdErr == STD_OK)
+            {
+                stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
+                if(stdErr != STD_OK) { return stdErr; }
+            }
 
-            stdErr = fifo_push_C(settings->BuffIN_SDcmd, &cmd, sizeof(GCodeCommand));
+            if(stdErr == STD_COMMAND_ERROR) { stdErr = STD_OK; }
             if(stdErr != STD_OK) { return stdErr; }
 
             ++(settings->cnt);

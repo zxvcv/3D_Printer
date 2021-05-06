@@ -58,7 +58,8 @@ typedef enum Std_Err_Tag{
     STD_BUSY_ERROR          = 5,
     STD_TIMEOUT_ERROR       = 6,
     STD_INTERRUPTED_ERROR   = 7,
-    STD_IO_ERROR            = 8
+    STD_IO_ERROR            = 8,
+    STD_COMMAND_ERROR       = 9
 } Std_Err;
 
 typedef struct Err_Msg_Tag{

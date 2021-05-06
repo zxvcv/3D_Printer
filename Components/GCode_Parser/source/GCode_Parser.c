@@ -82,7 +82,7 @@ void init_GCodeParser(GCode_Settings* settings, Motor** motors,
 
 Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cmdOUT)
 {
-    Std_Err stdErr = STD_ERROR;
+    Std_Err stdErr = STD_COMMAND_ERROR;
     char* token = NULL, * cmdName = NULL;
     double val;
 
@@ -90,7 +90,7 @@ Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cm
     bool isComment = false;
     for (int i = 0; i < strlen(cmd); ++i)
     {
-        if(cmd[i] == ";")
+        if(cmd[i] == ';')
         {
             isComment = true;
         }
@@ -103,10 +103,6 @@ Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cm
 
     // if empty line then pass
     cmdName = strtok(cmd, " ");
-    if(strcmp(cmdName, "\n") == 0)
-    {
-        return STD_OK;
-    }
 
     // parse command
     token = strtok(NULL, " ");
@@ -118,11 +114,6 @@ Std_Err parse_GCodeCommand(GCode_Settings* settings, char* cmd, GCodeCommand* cm
             stdErr = STD_OK;
             break;
         }
-    }
-
-    if(stdErr == STD_ERROR)
-    {
-        return stdErr;
     }
 
     while (token != NULL) {

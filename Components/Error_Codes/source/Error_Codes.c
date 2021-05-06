@@ -34,6 +34,7 @@
 #define MSG_STD_TIMEOUT_ERROR ("STD_TIMEOUT_ERROR")
 #define MSG_STD_INTERRUPTED_ERROR ("STD_INTERRUPTED_ERROR")
 #define MSG_STD_IO_ERROR ("STD_IO_ERROR")
+#define MSG_STD_COMMAND_ERROR ("STD_COMMAND_ERROR")
 #define MSG_UNKNOWN ("UNKNOWN_ERROR")
 /*[[COMPONENT_DEFINES_C]]*/
 
@@ -90,6 +91,7 @@ char* get_str_error_code(Std_Err err)
         case STD_TIMEOUT_ERROR: str_err_code = MSG_STD_TIMEOUT_ERROR; break;
         case STD_INTERRUPTED_ERROR: str_err_code = MSG_STD_INTERRUPTED_ERROR; break;
         case STD_IO_ERROR: str_err_code = MSG_STD_IO_ERROR; break;
+        case STD_COMMAND_ERROR: str_err_code = MSG_STD_COMMAND_ERROR; break;
         default: str_err_code = MSG_UNKNOWN; break;
     }
     return str_err_code;
