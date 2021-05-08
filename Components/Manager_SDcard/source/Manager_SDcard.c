@@ -75,6 +75,7 @@ Std_Err reset_parser_SDcard(SDCard_Settings* settings)
     settings->counterTab[1] = BYTES_TO_READ;
     settings->cnt = 0;
     settings->bytesRead = 0;
+    settings->program_line_counter = 0;
 
     return stdErr;
 }
@@ -159,6 +160,7 @@ Std_Err init_manager_SDcard(SDCard_Settings* settings, Motor** motors,
 
     settings->buff_comm = buff_comm;
     init_GCodeParser(&(settings->gcode), motors, buff_comm, motors_are_on);
+
     return stdErr;
 }
 
@@ -213,6 +215,8 @@ Std_Err parse_command_SDcard(SDCard_Settings* settings)
         {
             uint8_t cmdData[BYTES_TO_READ];
             uint8_t cmdLen = 0;
+
+            settings->program_line_counter += 1;
 
             if(settings->counterTab[settings->unactiveTab] < BYTES_TO_READ)
             {

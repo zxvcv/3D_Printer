@@ -148,6 +148,9 @@ int main(void)
   msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
       printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
   stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
+  msgSize = sprintf(printerSettings.msg_buffer, "SD_CARD_LINE: %d\n",
+      printerSettings.communication->sys_comm.sd->program_line_counter);
+  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
   /* USER CODE END 3 */
 }
 

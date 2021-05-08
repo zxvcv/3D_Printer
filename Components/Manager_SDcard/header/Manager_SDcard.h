@@ -72,6 +72,7 @@ typedef struct SDCard_Settings_Tag{
     uint8_t counterTab[2];
     UINT bytesRead;
     uint8_t cnt;
+    int program_line_counter;
 
     struct{
         bool eofRecieved;
