@@ -482,6 +482,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : BOUDARY_BUTTON_X_MIN_Pin BOUDARY_BUTTON_X_MAX_Pin BOUDARY_BUTTON_Y_MIN_Pin OUDARY_BUTTON_Y_MAX_Pin
+                           BOUDARY_BUTTON_Z_MIN_Pin */
+  GPIO_InitStruct.Pin = BOUDARY_BUTTON_X_MIN_Pin|BOUDARY_BUTTON_X_MAX_Pin|BOUDARY_BUTTON_Y_MIN_Pin|OUDARY_BUTTON_Y_MAX_Pin
+                          |BOUDARY_BUTTON_Z_MIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD2_Pin MOT4_SLEEP_Pin MOT4_RESET_Pin MOT4_DIRECTION_Pin
                            MOT4_STEP_Pin */
   GPIO_InitStruct.Pin = LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin
@@ -500,12 +508,34 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : BOUDARY_BUTTON_Z_MAX_Pin */
+  GPIO_InitStruct.Pin = BOUDARY_BUTTON_Z_MAX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BOUDARY_BUTTON_Z_MAX_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : SDSPI_CS_Pin */
   GPIO_InitStruct.Pin = SDSPI_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SDSPI_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
