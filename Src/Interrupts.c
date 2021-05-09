@@ -73,6 +73,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         receive_buffered_message_IT(printerSettings.buff_comm);
     }
 }
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    send_message(printerSettings.communication, ">BUTTON_PRESSED\n", 16);
+}
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
