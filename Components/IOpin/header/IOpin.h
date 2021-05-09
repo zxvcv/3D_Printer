@@ -53,6 +53,18 @@ typedef struct IO_Pin_Tag{
     GPIO_TypeDef* PORT;
     uint16_t PIN;
 }IO_Pin;
+
+typedef struct IO_Pin_IT_Tag{
+    GPIO_TypeDef* PORT;
+    uint16_t PIN;
+
+    enum{
+        PRESSED,
+        RELEASED
+    }state;
+    bool event_received;
+    uint8_t vibrations_delay_counter;
+}IO_Pin_IT;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -61,6 +73,19 @@ typedef struct IO_Pin_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
+void IOpin_init(IO_Pin settings, GPIO_TypeDef* port, uint16_t pin);
+
+void IOpin_IO_init(IO_Pin_IT settings, GPIO_TypeDef* port, uint16_t pin);
+
+void IOpin_set_state(IO_Pin_IT* settings, bool state);
+
+void IOpin_set_event_received(IO_Pin_IT* settings, bool state);
+
+void IOpin_set_vibrations_delay_counter(IO_Pin_IT* settings);
+
+bool IOpin_subtract_vibrations_delay_counter(IO_Pin_IT* settings);
+
+void IOpin_check_pin_IT(IO_Pin_IT* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

@@ -37,6 +37,7 @@
  * ############################################################################################ */
 
 extern DeviceSettings printerSettings;
+extern TIM_HandleTypeDef htim6;
 
 
 
@@ -46,13 +47,21 @@ extern DeviceSettings printerSettings;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    for(int i=0; i< MOTORS_NUM; ++i)
+    if(htim == &htim6)
     {
-        if(printerSettings.motors_are_on)
+        for(int i=0; i< MOTORS_NUM; ++i)
         {
-            motor_update(printerSettings.motors[i]);
-            /*TODO: error handling*/
+            if(printerSettings.motors_are_on)
+            {
+                motor_update(printerSettings.motors[i]);
+                /*TODO: error handling*/
+            }
         }
+    }
+
+    if(htim == &htim16)
+    {
+        IOpin_subtract_vibrations_delay_counter(printerSettings.boundaryDetection.minX);
     }
 }
 
@@ -77,7 +86,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    send_message(printerSettings.communication, ">BUTTON_PRESSED\n", 16);
+    if(GPIO_Pin == printerSettings.boundaryDetection.minX.PIN)
+    {
+        IOpin_check_pin_IT(printerSettings.boundaryDetection.minX);
+    }
+
+    if(GPIO_Pin == printerSettings.boundaryDetection.maxX.PIN)
+    {
+        IOpin_check_pin_IT(printerSettings.boundaryDetection.maxX);
+    }
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
