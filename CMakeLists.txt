@@ -37,6 +37,7 @@ list(APPEND LIBRARIES
     GCode_Parser
     Geometry_Math
     IOpin
+    Manager_BoundariesDetector
     Manager_Communication
     Manager_EEPROM
     Manager_SDcard

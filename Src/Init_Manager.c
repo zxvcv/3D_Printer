@@ -136,6 +136,13 @@ Std_Err init_manager(DeviceSettings* settings)
     }
 
     _init_motors(settings);
+    init_boundariesDetector_manager(settings->boundaryDetectioncl,
+        BOUNDARY_BUTTON_X_MIN_GPIO_Port, BOUNDARY_BUTTON_X_MIN_Pin,
+        BOUNDARY_BUTTON_X_MAX_GPIO_Port, BOUNDARY_BUTTON_X_MAX_Pin,
+        BOUNDARY_BUTTON_Y_MIN_GPIO_Port, BOUNDARY_BUTTON_Y_MIN_Pin,
+        BOUNDARY_BUTTON_Y_MAX_GPIO_Port, BOUNDARY_BUTTON_Y_MAX_Pin,
+        BOUNDARY_BUTTON_Z_MIN_GPIO_Port, BOUNDARY_BUTTON_Z_MIN_Pin,
+        BOUNDARY_BUTTON_Z_MAX_GPIO_Port, BOUNDARY_BUTTON_Z_MAX_Pin);
 
     stdErr = init_buffered_communication(settings->buff_comm, &huart2);
     if(stdErr != STD_OK) { return stdErr; }

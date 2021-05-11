@@ -29,6 +29,7 @@
 #include "EEPROM_24AA01.h"
 #include "Manager_Communication.h"
 #include "Manager_SDcard.h"
+#include "Manager_BoundariesDetector.h"
 #include "Project_Config.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -65,6 +66,8 @@ typedef struct DeviceSettings_Tag{
 
     BuffCommunication_Settings* buff_comm;
     Communication_Settings* communication;
+
+    BoundariesDetector_Settings* boundaryDetection;
 
     char msg_buffer[50];
 }DeviceSettings;

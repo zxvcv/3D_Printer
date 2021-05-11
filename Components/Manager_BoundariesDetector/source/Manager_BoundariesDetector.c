@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Project_Objects
+ * NAME: Manager_BoundariesDetector
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -15,9 +15,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Project_Objects.h"
-#include "Manager_EEPROM.h"
-#include "Project_Config.h"
+#include "Manager_BoundariesDetector.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -39,67 +37,21 @@
 
 
 /* ############################################################################################ *
- *                                      EXTERNS                                                 *
- * ############################################################################################ */
-
-
-extern SPI_HandleTypeDef hspi2;
-
-
-
-
-/* ############################################################################################ *
- *                                      PRIVATE OBJECTS                                         *
- * ############################################################################################ */
-
-SDCard_Settings sd;
-
-Motor motor1;
-Motor motor2;
-Motor motor3;
-Motor motor4;
-
-EEPROMSettings eeprom;
-
-BuffCommunication_Settings buff_comm;
-Communication_Settings communication;
-
-BoundariesDetector_Settings boundaryDetection;
-
-
-
-/* ############################################################################################ *
- *                                      PUBLIC OBJECTS                                          *
- * ############################################################################################ */
-
-DeviceSettings printerSettings;
-
-
-
-/* ############################################################################################ *
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_deviceSettings(DeviceSettings* settings)
+void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
+    GPIO_TypeDef* minX_port, uint16_t minX_pin, GPIO_TypeDef* maxX_port, uint16_t maxX_pin,
+    GPIO_TypeDef* minY_port, uint16_t minY_pin, GPIO_TypeDef* maxY_port, uint16_t maxY_pin,
+    GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin)
 {
-    settings->sd = &sd;
+    IOpin_IO_init(&(settings->minX), minX_port, minX_pin);
+    IOpin_IO_init(&(settings->maxX), maxX_port, maxX_pin);
 
-    settings->motors[MOTOR_X] = &motor1;
-    settings->motors[MOTOR_Y] = &motor2;
-    settings->motors[MOTOR_Z] = &motor3;
-    settings->motors[MOTOR_E] = &motor4;
+    IOpin_IO_init(&(settings->minY), minY_port, minY_pin);
+    IOpin_IO_init(&(settings->maxY), maxY_port, maxY_pin);
 
-    /* eeprom addresses setup */
-    for(int i=0; i<MOTORS_NUM; ++i)
-    {
-        settings->motor_data_addresses[i] = 0x00 + i * sizeof(MotorData_EEPROM);
-    }
-
-    settings->eeprom = &eeprom;
-
-    settings->buff_comm = &buff_comm;
-    settings->communication = &communication;
-
-    settings->boundaryDetection = &boundaryDetection;
+    IOpin_IO_init(&(settings->minZ), minZ_port, minZ_pin);
+    IOpin_IO_init(&(settings->maxZ), maxZ_port, maxZ_pin);
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

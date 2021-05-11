@@ -519,14 +519,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BOUDARY_BUTTON_X_MIN_Pin BOUDARY_BUTTON_X_MAX_Pin */
-  GPIO_InitStruct.Pin = BOUDARY_BUTTON_X_MIN_Pin|BOUDARY_BUTTON_X_MAX_Pin;
+  /*Configure GPIO pins : BOUNDARY_BUTTON_X_MIN_Pin BOUNDARY_BUTTON_X_MAX_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_X_MIN_Pin|BOUNDARY_BUTTON_X_MAX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BOUDARY_BUTTON_Y_MIN_Pin OUDARY_BUTTON_Y_MAX_Pin BOUDARY_BUTTON_Z_MIN_Pin */
-  GPIO_InitStruct.Pin = BOUDARY_BUTTON_Y_MIN_Pin|OUDARY_BUTTON_Y_MAX_Pin|BOUDARY_BUTTON_Z_MIN_Pin;
+  /*Configure GPIO pins : BOUNDARY_BUTTON_Y_MIN_Pin BOUNDARY_BUTTON_Y_MAX_Pin BOUNDARY_BUTTON_Z_MIN_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_Y_MIN_Pin|BOUNDARY_BUTTON_Y_MAX_Pin|BOUNDARY_BUTTON_Z_MIN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -549,11 +549,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BOUDARY_BUTTON_Z_MAX_Pin */
-  GPIO_InitStruct.Pin = BOUDARY_BUTTON_Z_MAX_Pin;
+  /*Configure GPIO pin : BOUNDARY_BUTTON_Z_MAX_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_Z_MAX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BOUDARY_BUTTON_Z_MAX_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(BOUNDARY_BUTTON_Z_MAX_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SDSPI_CS_Pin */
   GPIO_InitStruct.Pin = SDSPI_CS_Pin;

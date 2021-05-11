@@ -24,6 +24,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
+#include <stdbool.h>
 #include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -73,9 +74,9 @@ typedef struct IO_Pin_IT_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void IOpin_init(IO_Pin settings, GPIO_TypeDef* port, uint16_t pin);
+void IOpin_init(IO_Pin* settings, GPIO_TypeDef* port, uint16_t pin);
 
-void IOpin_IO_init(IO_Pin_IT settings, GPIO_TypeDef* port, uint16_t pin);
+void IOpin_IO_init(IO_Pin_IT* settings, GPIO_TypeDef* port, uint16_t pin);
 
 void IOpin_set_state(IO_Pin_IT* settings, bool state);
 
