@@ -87,15 +87,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    // if(GPIO_Pin == printerSettings.boundaryDetection->minX.PIN)
-    // {
-    //     IOpin_check_pin_IT(&(printerSettings.boundaryDetection->minX));
-    // }
+    // Std_Err stdErr = STD_OK;
 
-    // if(GPIO_Pin == printerSettings.boundaryDetection->maxX.PIN)
-    // {
-    //     IOpin_check_pin_IT(&(printerSettings.boundaryDetection->maxX));
-    // }
+    // stdErr =
+    check_boundaries(printerSettings.boundaryDetection, GPIO_Pin);
+
+    // [TODO]: error handling!!!!
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

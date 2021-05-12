@@ -26,6 +26,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     Project_Config
+    Error_Codes
     IOpin
 )
 

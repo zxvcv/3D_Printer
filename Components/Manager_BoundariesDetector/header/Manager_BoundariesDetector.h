@@ -52,9 +52,14 @@
  * ############################################################################################ */
 
 typedef struct BoundariesDetector_Settings_Tag{
-    BoundaryDetector boundX;
-    BoundaryDetector boundY;
-    BoundaryDetector boundZ;
+    BoundDetector bound_MinX;
+    BoundDetector bound_MaxX;
+
+    BoundDetector bound_MinY;
+    BoundDetector bound_MaxY;
+
+    BoundDetector bound_MinZ;
+    BoundDetector bound_MaxZ;
 }BoundariesDetector_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -68,6 +73,8 @@ void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
     GPIO_TypeDef* minX_port, uint16_t minX_pin, GPIO_TypeDef* maxX_port, uint16_t maxX_pin,
     GPIO_TypeDef* minY_port, uint16_t minY_pin, GPIO_TypeDef* maxY_port, uint16_t maxY_pin,
     GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin);
+
+Std_Err check_boundaries(BoundariesDetector_Settings* settings, uint16_t interruptPin);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

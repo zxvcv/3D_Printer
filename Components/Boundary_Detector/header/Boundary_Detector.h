@@ -25,6 +25,7 @@
  * ############################################################################################ */
 
 #include "Project_Config.h"
+#include "Error_Codes.h"
 #include "IOpin.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
@@ -50,10 +51,11 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct BoundaryDetector_Tag{
-    IO_Pin_IT minDetector;
-    IO_Pin_IT maxDetector;
-}BoundaryDetector;
+typedef struct BoundDetector_Tag{
+    Std_Err (*on_detection)(struct BoundDetector_Tag*);
+
+    IO_Pin_IT detector;
+}BoundDetector;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -62,9 +64,14 @@ typedef struct BoundaryDetector_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_boundaryDetector(BoundaryDetector* settings,
-    GPIO_TypeDef* minDetector_port, uint16_t minDetector_pin,
-    GPIO_TypeDef* maxDetector_port, uint16_t maxDetector_pin);
+void init_boundaryDetector(BoundDetector* settings,
+    GPIO_TypeDef* detector_port, uint16_t detector_pin);
+
+Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin);
+
+void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*));
+
+void reset_onDetection_event(BoundDetector* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
