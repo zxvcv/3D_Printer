@@ -62,7 +62,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     if(htim == &htim16)
     {
-        IOpin_subtract_vibrations_delay_counter(&(printerSettings.boundaryDetection->minX));
+        // IOpin_subtract_vibrations_delay_counter(&(printerSettings.boundaryDetection->minX));
     }
 }
 
@@ -87,15 +87,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if(GPIO_Pin == printerSettings.boundaryDetection->minX.PIN)
-    {
-        IOpin_check_pin_IT(&(printerSettings.boundaryDetection->minX));
-    }
+    // if(GPIO_Pin == printerSettings.boundaryDetection->minX.PIN)
+    // {
+    //     IOpin_check_pin_IT(&(printerSettings.boundaryDetection->minX));
+    // }
 
-    if(GPIO_Pin == printerSettings.boundaryDetection->maxX.PIN)
-    {
-        IOpin_check_pin_IT(&(printerSettings.boundaryDetection->maxX));
-    }
+    // if(GPIO_Pin == printerSettings.boundaryDetection->maxX.PIN)
+    // {
+    //     IOpin_check_pin_IT(&(printerSettings.boundaryDetection->maxX));
+    // }
 }
 /*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 

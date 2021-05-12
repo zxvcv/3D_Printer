@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.16.3)
 
 #####################################   LOCAL VARIABLES   #########################################
-set(LOCAL_TARGET Manager_BoundariesDetector)
+set(LOCAL_TARGET Boundary_Detector)
 set(MAIN_APP_DIR ../..)
 set(SOURCE_DIR source)
 set(HEADER_DIR header)
@@ -17,7 +17,7 @@ include(${MAIN_APP_DIR}/cmake/f_compile_options.cmake)
 
 #####################################   CREATE TARGET   ###########################################
 add_library(${LOCAL_TARGET}
-    ${SOURCE_DIR}/Manager_BoundariesDetector.c
+    ${SOURCE_DIR}/Boundary_Detector.c
 )
 
 target_include_directories(${LOCAL_TARGET} PUBLIC
@@ -26,8 +26,7 @@ target_include_directories(${LOCAL_TARGET} PUBLIC
 
 target_link_libraries(${LOCAL_TARGET}
     Project_Config
-    Boundary_Detector
-    HAL_Drivers
+    IOpin
 )
 
 

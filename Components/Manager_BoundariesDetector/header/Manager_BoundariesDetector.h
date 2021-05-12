@@ -25,7 +25,8 @@
  * ############################################################################################ */
 
 #include "Project_Config.h"
-#include "IOpin.h"
+#include "Boundary_Detector.h"
+#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -51,14 +52,9 @@
  * ############################################################################################ */
 
 typedef struct BoundariesDetector_Settings_Tag{
-    IO_Pin_IT minX;
-    IO_Pin_IT maxX;
-
-    IO_Pin_IT minY;
-    IO_Pin_IT maxY;
-
-    IO_Pin_IT minZ;
-    IO_Pin_IT maxZ;
+    BoundaryDetector boundX;
+    BoundaryDetector boundY;
+    BoundaryDetector boundZ;
 }BoundariesDetector_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 

@@ -136,7 +136,7 @@ Std_Err init_manager(DeviceSettings* settings)
     }
 
     _init_motors(settings);
-    init_boundariesDetector_manager(settings->boundaryDetectioncl,
+    init_boundariesDetector_manager(settings->boundaryDetection,
         BOUNDARY_BUTTON_X_MIN_GPIO_Port, BOUNDARY_BUTTON_X_MIN_Pin,
         BOUNDARY_BUTTON_X_MAX_GPIO_Port, BOUNDARY_BUTTON_X_MAX_Pin,
         BOUNDARY_BUTTON_Y_MIN_GPIO_Port, BOUNDARY_BUTTON_Y_MIN_Pin,

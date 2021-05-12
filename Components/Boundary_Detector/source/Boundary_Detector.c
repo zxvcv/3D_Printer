@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Manager_BoundariesDetector
+ * NAME: Boundary_Detector
  *      [[COMPONENT_DESCRIPTION]]
  ************************************************************************************************/
 
@@ -15,7 +15,7 @@
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "Manager_BoundariesDetector.h"
+#include "Boundary_Detector.h"
 /*[[COMPONENT_INCLUDES_C]]*/
 
 
@@ -40,13 +40,11 @@
  *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
-    GPIO_TypeDef* minX_port, uint16_t minX_pin, GPIO_TypeDef* maxX_port, uint16_t maxX_pin,
-    GPIO_TypeDef* minY_port, uint16_t minY_pin, GPIO_TypeDef* maxY_port, uint16_t maxY_pin,
-    GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin)
+void init_boundaryDetector(BoundaryDetector* settings,
+    GPIO_TypeDef* minDetector_port, uint16_t minDetector_pin,
+    GPIO_TypeDef* maxDetector_port, uint16_t maxDetector_pin)
 {
-    init_boundaryDetector(&(settings->boundX), minX_port, minX_pin, maxX_port, maxX_pin);
-    init_boundaryDetector(&(settings->boundY), minY_port, minY_pin, maxY_port, maxY_pin);
-    init_boundaryDetector(&(settings->boundZ), minZ_port, minZ_pin, maxZ_port, maxZ_pin);
+    IOpin_IO_init(&(settings->minDetector), minDetector_port, minDetector_pin);
+    IOpin_IO_init(&(settings->maxDetector), maxDetector_port, maxDetector_pin);
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/
