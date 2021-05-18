@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Project_Objects
+ * NAME: Manager_BoundariesDetector
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,21 +16,17 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef PROJECT_OBJECTS_H_
-#define PROJECT_OBJECTS_H_
+#ifndef MANAGER_BOUNDARIES_DETECTOR_H_
+#define MANAGER_BOUNDARIES_DETECTOR_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "SD.h"
-#include "A4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "Manager_Communication.h"
-#include "Manager_SDcard.h"
-#include "Manager_BoundariesDetector.h"
 #include "Project_Config.h"
+#include "Boundary_Detector.h"
+#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -55,23 +51,16 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct DeviceSettings_Tag{
-    SDCard_Settings* sd;
+typedef struct BoundariesDetector_Settings_Tag{
+    BoundDetector bound_MinX;
+    BoundDetector bound_MaxX;
 
-    Motor* motors[MOTORS_NUM];
-    uint8_t motor_data_addresses[MOTORS_NUM];
-    bool motors_are_on;
+    BoundDetector bound_MinY;
+    BoundDetector bound_MaxY;
 
-    EEPROMSettings* eeprom;
-
-    BuffCommunication_Settings* buff_comm;
-    Communication_Settings* communication;
-
-    BoundariesDetector_Settings* boundaryDetection;
-
-    char msg_buffer[50];
-    Std_Err error;
-}DeviceSettings;
+    BoundDetector bound_MinZ;
+    BoundDetector bound_MaxZ;
+}BoundariesDetector_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -80,9 +69,16 @@ typedef struct DeviceSettings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_deviceSettings(DeviceSettings* settings);
+void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
+    GPIO_TypeDef* minX_port, uint16_t minX_pin, GPIO_TypeDef* maxX_port, uint16_t maxX_pin,
+    GPIO_TypeDef* minY_port, uint16_t minY_pin, GPIO_TypeDef* maxY_port, uint16_t maxY_pin,
+    GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin);
+
+Std_Err check_boundaries(BoundariesDetector_Settings* settings, uint16_t interruptPin);
+
+void subtract_vibrations_delay_counters(BoundariesDetector_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* PROJECT_OBJECTS_H_ */
+#endif /* MANAGER_BOUNDARIES_DETECTOR_H_ */

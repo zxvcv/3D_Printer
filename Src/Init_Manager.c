@@ -39,6 +39,7 @@
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim16;
 
 
 
@@ -127,6 +128,7 @@ Std_Err init_manager(DeviceSettings* settings)
     init_deviceSettings(settings);
 
     HAL_TIM_Base_Start_IT(&htim6);
+    HAL_TIM_Base_Start_IT(&htim16);
 
     EEPROM_init(settings->eeprom, &hi2c1);
 
@@ -136,6 +138,13 @@ Std_Err init_manager(DeviceSettings* settings)
     }
 
     _init_motors(settings);
+    init_boundariesDetector_manager(settings->boundaryDetection,
+        BOUNDARY_BUTTON_X_MIN_GPIO_Port, BOUNDARY_BUTTON_X_MIN_Pin,
+        BOUNDARY_BUTTON_X_MAX_GPIO_Port, BOUNDARY_BUTTON_X_MAX_Pin,
+        BOUNDARY_BUTTON_Y_MIN_GPIO_Port, BOUNDARY_BUTTON_Y_MIN_Pin,
+        BOUNDARY_BUTTON_Y_MAX_GPIO_Port, BOUNDARY_BUTTON_Y_MAX_Pin,
+        BOUNDARY_BUTTON_Z_MIN_GPIO_Port, BOUNDARY_BUTTON_Z_MIN_Pin,
+        BOUNDARY_BUTTON_Z_MAX_GPIO_Port, BOUNDARY_BUTTON_Z_MAX_Pin);
 
     stdErr = init_buffered_communication(settings->buff_comm, &huart2);
     if(stdErr != STD_OK) { return stdErr; }

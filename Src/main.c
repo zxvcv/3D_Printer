@@ -51,6 +51,7 @@ SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -68,6 +69,7 @@ static void MX_TIM6_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -85,7 +87,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   Std_Err stdErr = STD_OK;
-  uint8_t msgSize;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -112,6 +113,7 @@ int main(void)
   MX_SPI3_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
   stdErr = init_manager(&printerSettings);
   /* USER CODE END 2 */
@@ -130,27 +132,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
-  msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
-      get_str_error_code(stdErr));
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  stdErr = send_message(printerSettings.communication, "ERR_DATA:\n", 10);
-  msgSize = sprintf(printerSettings.msg_buffer, "X: pos:%d pos_err:%d\n",
-      printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "Y: pos:%d pos_err:%d\n",
-      printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "Z: pos:%d pos_err:%d\n",
-      printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
-      printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "SD_CARD_LINE: %d\n",
-      printerSettings.communication->sys_comm.sd->program_line_counter);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
+
+  printerSettings.error = stdErr;
+  Error_Handler();
   /* USER CODE END 3 */
 }
 
@@ -192,10 +177,11 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USART2
-                              |RCC_PERIPHCLK_I2C1;
+                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_TIM16;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -367,6 +353,38 @@ static void MX_TIM6_Init(void)
 }
 
 /**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 60;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 59999;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+
+  /* USER CODE END TIM16_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -482,6 +500,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : BOUNDARY_BUTTON_X_MIN_Pin BOUNDARY_BUTTON_X_MAX_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_X_MIN_Pin|BOUNDARY_BUTTON_X_MAX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BOUNDARY_BUTTON_Y_MIN_Pin BOUNDARY_BUTTON_Y_MAX_Pin BOUNDARY_BUTTON_Z_MIN_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_Y_MIN_Pin|BOUNDARY_BUTTON_Y_MAX_Pin|BOUNDARY_BUTTON_Z_MIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD2_Pin MOT4_SLEEP_Pin MOT4_RESET_Pin MOT4_DIRECTION_Pin
                            MOT4_STEP_Pin */
   GPIO_InitStruct.Pin = LD2_Pin|MOT4_SLEEP_Pin|MOT4_RESET_Pin|MOT4_DIRECTION_Pin
@@ -500,12 +530,34 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : BOUNDARY_BUTTON_Z_MAX_Pin */
+  GPIO_InitStruct.Pin = BOUNDARY_BUTTON_Z_MAX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BOUNDARY_BUTTON_Z_MAX_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : SDSPI_CS_Pin */
   GPIO_InitStruct.Pin = SDSPI_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SDSPI_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -522,7 +574,40 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
+  Std_Err stdErr = printerSettings.error;
+  char msg_buff[50];
+  uint8_t msgSize;
+
+  msgSize = sprintf(msg_buff, "MAIN_LOOP_ERROR: %s\n", get_str_error_code(stdErr));
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "ERR_DATA:\n");
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "X: pos:%d pos_err:%d\n",
+      printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "Y: pos:%d pos_err:%d\n",
+      printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "Z: pos:%d pos_err:%d\n",
+      printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "E: pos:%d pos_err:%d\n",
+      printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "SD_CARD_LINE: %d\n",
+      printerSettings.communication->sys_comm.sd->program_line_counter);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // DEBUG
+  HAL_Delay(1000);
+
   while (1)
   {
   }

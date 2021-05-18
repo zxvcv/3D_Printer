@@ -64,6 +64,8 @@ EEPROMSettings eeprom;
 BuffCommunication_Settings buff_comm;
 Communication_Settings communication;
 
+BoundariesDetector_Settings boundaryDetection;
+
 
 
 /* ############################################################################################ *
@@ -97,5 +99,7 @@ void init_deviceSettings(DeviceSettings* settings)
 
     settings->buff_comm = &buff_comm;
     settings->communication = &communication;
+
+    settings->boundaryDetection = &boundaryDetection;
 }
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

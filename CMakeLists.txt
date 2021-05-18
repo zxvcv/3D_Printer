@@ -29,6 +29,7 @@ set(LDSCRIPT STM32F303RETx_FLASH.ld)
 #####################################   LIBRARIES   ###############################################
 list(APPEND LIBRARIES
     A4988_stepstick
+    Boundary_Detector
     Buffered_Communication
     Command_Parser
     EEPROM_24AA01
@@ -37,6 +38,7 @@ list(APPEND LIBRARIES
     GCode_Parser
     Geometry_Math
     IOpin
+    Manager_BoundariesDetector
     Manager_Communication
     Manager_EEPROM
     Manager_SDcard
