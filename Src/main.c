@@ -87,7 +87,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   Std_Err stdErr = STD_OK;
-  uint8_t msgSize;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -136,25 +135,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
   }
-  msgSize = sprintf(printerSettings.msg_buffer, "MAIN_LOOP_ERROR: %s\n",
-      get_str_error_code(stdErr));
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  stdErr = send_message(printerSettings.communication, "ERR_DATA:\n", 10);
-  msgSize = sprintf(printerSettings.msg_buffer, "X: pos:%d pos_err:%d\n",
-      printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "Y: pos:%d pos_err:%d\n",
-      printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "Z: pos:%d pos_err:%d\n",
-      printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "E: pos:%d pos_err:%d\n",
-      printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
-  msgSize = sprintf(printerSettings.msg_buffer, "SD_CARD_LINE: %d\n",
-      printerSettings.communication->sys_comm.sd->program_line_counter);
-  stdErr = send_message(printerSettings.communication, printerSettings.msg_buffer, msgSize);
+
+  printerSettings.error = stdErr;
+  Error_Handler();
   /* USER CODE END 3 */
 }
 
@@ -593,7 +576,40 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
+  Std_Err stdErr = printerSettings.error;
+  char msg_buff[50];
+  uint8_t msgSize;
+
+  msgSize = sprintf(msg_buff, "MAIN_LOOP_ERROR: %s\n", get_str_error_code(stdErr));
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "ERR_DATA:\n");
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "X: pos:%d pos_err:%d\n",
+      printerSettings.motors[0]->data.position, printerSettings.motors[0]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "Y: pos:%d pos_err:%d\n",
+      printerSettings.motors[1]->data.position, printerSettings.motors[1]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "Z: pos:%d pos_err:%d\n",
+      printerSettings.motors[2]->data.position, printerSettings.motors[2]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "E: pos:%d pos_err:%d\n",
+      printerSettings.motors[3]->data.position, printerSettings.motors[3]->data.position_error);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
+  msgSize = sprintf(msg_buff, "SD_CARD_LINE: %d\n",
+      printerSettings.communication->sys_comm.sd->program_line_counter);
+  HAL_UART_Transmit(&huart2, (uint8_t*)msg_buff, msgSize, 1000);
+
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // DEBUG
+  HAL_Delay(1000);
+
   while (1)
   {
   }

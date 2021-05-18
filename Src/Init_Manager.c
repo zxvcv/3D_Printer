@@ -39,6 +39,7 @@
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim16;
 
 
 
@@ -127,6 +128,7 @@ Std_Err init_manager(DeviceSettings* settings)
     init_deviceSettings(settings);
 
     HAL_TIM_Base_Start_IT(&htim6);
+    HAL_TIM_Base_Start_IT(&htim16);
 
     EEPROM_init(settings->eeprom, &hi2c1);
 

@@ -70,6 +70,7 @@ typedef struct DeviceSettings_Tag{
     BoundariesDetector_Settings* boundaryDetection;
 
     char msg_buffer[50];
+    Std_Err error;
 }DeviceSettings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 

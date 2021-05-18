@@ -55,6 +55,8 @@ typedef struct BoundDetector_Tag{
     Std_Err (*on_detection)(struct BoundDetector_Tag*);
 
     IO_Pin_IT detector;
+    bool state;
+    uint8_t delay_counter;
 }BoundDetector;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -72,6 +74,8 @@ Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin);
 void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*));
 
 void reset_onDetection_event(BoundDetector* settings);
+
+void subtract_vibrations_delay_counter(BoundDetector* settigns);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 

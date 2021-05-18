@@ -79,4 +79,17 @@ Std_Err check_boundaries(BoundariesDetector_Settings* settings, uint16_t interru
 
     return stdErr;
 }
+
+
+void subtract_vibrations_delay_counters(BoundariesDetector_Settings* settings)
+{
+    subtract_vibrations_delay_counter(&(settings->bound_MinX));
+    subtract_vibrations_delay_counter(&(settings->bound_MaxX));
+
+    subtract_vibrations_delay_counter(&(settings->bound_MinY));
+    subtract_vibrations_delay_counter(&(settings->bound_MaxY));
+
+    subtract_vibrations_delay_counter(&(settings->bound_MinZ));
+    subtract_vibrations_delay_counter(&(settings->bound_MaxZ));
+}
 /*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

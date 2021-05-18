@@ -75,6 +75,8 @@ void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
     GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin);
 
 Std_Err check_boundaries(BoundariesDetector_Settings* settings, uint16_t interruptPin);
+
+void subtract_vibrations_delay_counters(BoundariesDetector_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
