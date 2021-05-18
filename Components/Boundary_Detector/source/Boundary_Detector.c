@@ -6,32 +6,17 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Project_Objects
+ * NAME: Boundary_Detector
  *      [[COMPONENT_DESCRIPTION]]
- * ============================================================================================
- * COMMENTS:
- *      [[COMPONENT_COMMENTS]]
- * ============================================================================================
- * EXAMPLE:
- *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
-
-#ifndef PROJECT_OBJECTS_H_
-#define PROJECT_OBJECTS_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "SD.h"
-#include "A4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "Manager_Communication.h"
-#include "Manager_SDcard.h"
-#include "Manager_BoundariesDetector.h"
-#include "Project_Config.h"
-/*[[COMPONENT_INCLUDES_H]]*/
+#include "Boundary_Detector.h"
+/*[[COMPONENT_INCLUDES_C]]*/
 
 
 
@@ -39,50 +24,76 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-/*[[COMPONENT_DEFINES_H]]*/
+/*[[COMPONENT_DEFINES_C]]*/
 
 
 
 /* ############################################################################################ *
- *                                      EXTERNS                                                 *
+ *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-/*[[COMPONENT_EXTERNS_H]]*/
+bool get_state(BoundDetector* settings)
+{
+    settings->state =
+        (HAL_GPIO_ReadPin(settings->detector.PORT, settings->detector.PIN) == GPIO_PIN_SET) ?
+        true : false;
+}
+
+Std_Err onDetection_breakProgram(BoundDetector* settings)
+{
+    return STD_IO_ERROR;
+}
+/*[[COMPONENT_PRIVATE_DEFINITIONS]]*/
 
 
 
 /* ############################################################################################ *
- *                                      DATA TYPES                                              *
+ *                                      PUBLIC DEFINITIONS                                      *
  * ############################################################################################ */
 
-typedef struct DeviceSettings_Tag{
-    SDCard_Settings* sd;
+void init_boundaryDetector(BoundDetector* settings,
+    GPIO_TypeDef* detector_port, uint16_t detector_pin)
+{
+    IOpin_IO_init(&(settings->detector), detector_port, detector_pin);
 
-    Motor* motors[MOTORS_NUM];
-    uint8_t motor_data_addresses[MOTORS_NUM];
-    bool motors_are_on;
-
-    EEPROMSettings* eeprom;
-
-    BuffCommunication_Settings* buff_comm;
-    Communication_Settings* communication;
-
-    BoundariesDetector_Settings* boundaryDetection;
-
-    char msg_buffer[50];
-    Std_Err error;
-}DeviceSettings;
-/*[[COMPONENT_DATA_TYPES_H]]*/
+    settings->on_detection = onDetection_breakProgram;
+    settings->delay_counter = 0;
+    get_state(settings);
+}
 
 
+Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin)
+{
+    Std_Err stdErr = STD_OK;
 
-/* ############################################################################################ *
- *                                      PUBLIC DECLARATIONS                                     *
- * ############################################################################################ */
+    if(interruptPin == settings->detector.PIN && settings->delay_counter == 0)
+    {
+        settings->state = !(settings->state);
+        settings->delay_counter = 2;
+        stdErr = settings->on_detection(settings);
+    }
 
-void init_deviceSettings(DeviceSettings* settings);
-/*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
+    return stdErr;
+}
 
 
+void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*))
+{
+    settings->on_detection = event;
+}
 
-#endif /* PROJECT_OBJECTS_H_ */
+
+void reset_onDetection_event(BoundDetector* settings)
+{
+    settings->on_detection = onDetection_breakProgram;
+}
+
+
+void subtract_vibrations_delay_counter(BoundDetector* settings)
+{
+    if(settings->delay_counter > 0)
+    {
+        settings->delay_counter -= 1;
+    }
+}
+/*[[COMPONENT_PUBLIC_DEFINITIONS]]*/

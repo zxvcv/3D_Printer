@@ -6,7 +6,7 @@
  * See attached LICENSE file
  * ############################################################################################ */
 /************************************************************************************************
- * NAME: Project_Objects
+ * NAME: Boundary_Detector
  *      [[COMPONENT_DESCRIPTION]]
  * ============================================================================================
  * COMMENTS:
@@ -16,21 +16,17 @@
  *      [[COMPONENT_EXAMPLE]]
  ************************************************************************************************/
 
-#ifndef PROJECT_OBJECTS_H_
-#define PROJECT_OBJECTS_H_
+#ifndef BOUNDARY_DETECTOR_H_
+#define BOUNDARY_DETECTOR_H_
 
 
 /* ############################################################################################ *
  *                                      INCLUDES                                                *
  * ############################################################################################ */
 
-#include "SD.h"
-#include "A4988_stepstick.h"
-#include "EEPROM_24AA01.h"
-#include "Manager_Communication.h"
-#include "Manager_SDcard.h"
-#include "Manager_BoundariesDetector.h"
 #include "Project_Config.h"
+#include "Error_Codes.h"
+#include "IOpin.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -55,23 +51,13 @@
  *                                      DATA TYPES                                              *
  * ############################################################################################ */
 
-typedef struct DeviceSettings_Tag{
-    SDCard_Settings* sd;
+typedef struct BoundDetector_Tag{
+    Std_Err (*on_detection)(struct BoundDetector_Tag*);
 
-    Motor* motors[MOTORS_NUM];
-    uint8_t motor_data_addresses[MOTORS_NUM];
-    bool motors_are_on;
-
-    EEPROMSettings* eeprom;
-
-    BuffCommunication_Settings* buff_comm;
-    Communication_Settings* communication;
-
-    BoundariesDetector_Settings* boundaryDetection;
-
-    char msg_buffer[50];
-    Std_Err error;
-}DeviceSettings;
+    IO_Pin_IT detector;
+    bool state;
+    uint8_t delay_counter;
+}BoundDetector;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
 
@@ -80,9 +66,18 @@ typedef struct DeviceSettings_Tag{
  *                                      PUBLIC DECLARATIONS                                     *
  * ############################################################################################ */
 
-void init_deviceSettings(DeviceSettings* settings);
+void init_boundaryDetector(BoundDetector* settings,
+    GPIO_TypeDef* detector_port, uint16_t detector_pin);
+
+Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin);
+
+void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*));
+
+void reset_onDetection_event(BoundDetector* settings);
+
+void subtract_vibrations_delay_counter(BoundDetector* settigns);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
 
-#endif /* PROJECT_OBJECTS_H_ */
+#endif /* BOUNDARY_DETECTOR_H_ */

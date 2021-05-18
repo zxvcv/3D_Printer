@@ -25,7 +25,8 @@
  * ############################################################################################ */
 
 #include "Project_Config.h"
-#include "IOpin.h"
+#include "Boundary_Detector.h"
+#include "stm32f3xx_hal.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -51,14 +52,14 @@
  * ############################################################################################ */
 
 typedef struct BoundariesDetector_Settings_Tag{
-    IO_Pin_IT minX;
-    IO_Pin_IT maxX;
+    BoundDetector bound_MinX;
+    BoundDetector bound_MaxX;
 
-    IO_Pin_IT minY;
-    IO_Pin_IT maxY;
+    BoundDetector bound_MinY;
+    BoundDetector bound_MaxY;
 
-    IO_Pin_IT minZ;
-    IO_Pin_IT maxZ;
+    BoundDetector bound_MinZ;
+    BoundDetector bound_MaxZ;
 }BoundariesDetector_Settings;
 /*[[COMPONENT_DATA_TYPES_H]]*/
 
@@ -72,6 +73,10 @@ void init_boundariesDetector_manager(BoundariesDetector_Settings* settings,
     GPIO_TypeDef* minX_port, uint16_t minX_pin, GPIO_TypeDef* maxX_port, uint16_t maxX_pin,
     GPIO_TypeDef* minY_port, uint16_t minY_pin, GPIO_TypeDef* maxY_port, uint16_t maxY_pin,
     GPIO_TypeDef* minZ_port, uint16_t minZ_pin, GPIO_TypeDef* maxZ_port, uint16_t maxZ_pin);
+
+Std_Err check_boundaries(BoundariesDetector_Settings* settings, uint16_t interruptPin);
+
+void subtract_vibrations_delay_counters(BoundariesDetector_Settings* settings);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/
 
 
