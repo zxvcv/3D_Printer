@@ -26,7 +26,7 @@
  *                                      DEFINES                                                 *
  * ############################################################################################ */
 
-#define SYSTEM_COMMANDS_NUM 17
+#define SYSTEM_COMMANDS_NUM 18
 /*[[COMPONENT_DEFINES_C]]*/
 
 
@@ -47,6 +47,7 @@ const struct {
         {   "U11",      init_U11    },// "DM",   systemCmd_MotorLinearRelativeMove
         {   "U12",      init_U12    },
         {   "U13",      init_U13    },
+        {   "U14",      init_U14    },
         {   "U20",      init_U20    },// "PV",   systemCmd_MotorPositionValueSet
         {   "U21",      init_U21    },// "PZ",   systemCmd_MotorPositionZero
         {   "U22",      init_U22    },// "PE",   systemCmd_MotorPositionEnd
@@ -67,12 +68,14 @@ const struct {
 
 void init_SystemCommandsParser(SystemCommand_Settings* settings,
     BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
-    SDCard_Settings* sd, uint8_t* motor_data_addresses)
+    SDCard_Settings* sd, BoundariesDetector_Settings* boundaryDetection,
+    uint8_t* motor_data_addresses)
 {
     settings->buff_comm = buff_comm;
     settings->motors = motors;
     settings->eeprom = eeprom;
     settings->sd = sd;
+    settings->boundaryDetection = boundaryDetection;
     settings->motor_data_addresses = motor_data_addresses;
 }
 

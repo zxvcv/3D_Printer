@@ -32,14 +32,14 @@
  *                                      PRIVATE DEFINITIONS                                     *
  * ############################################################################################ */
 
-bool get_state(BoundDetector* settings)
+void set_state(BoundDetector* settings)
 {
     settings->state =
         (HAL_GPIO_ReadPin(settings->detector.PORT, settings->detector.PIN) == GPIO_PIN_SET) ?
         true : false;
 }
 
-Std_Err onDetection_breakProgram(BoundDetector* settings)
+Std_Err onDetection_breakProgram(BoundDetector* settings, void* event_data)
 {
     return STD_IO_ERROR;
 }
@@ -57,8 +57,9 @@ void init_boundaryDetector(BoundDetector* settings,
     IOpin_IO_init(&(settings->detector), detector_port, detector_pin);
 
     settings->on_detection = onDetection_breakProgram;
+    settings->event_data = NULL;
     settings->delay_counter = 0;
-    get_state(settings);
+    set_state(settings);
 }
 
 
@@ -70,22 +71,25 @@ Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin)
     {
         settings->state = !(settings->state);
         settings->delay_counter = 2;
-        stdErr = settings->on_detection(settings);
+        stdErr = settings->on_detection(settings, settings->event_data);
     }
 
     return stdErr;
 }
 
 
-void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*))
+void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*, void*),
+    void* event_data)
 {
     settings->on_detection = event;
+    settings->event_data = event_data;
 }
 
 
 void reset_onDetection_event(BoundDetector* settings)
 {
     settings->on_detection = onDetection_breakProgram;
+    settings->event_data = NULL;
 }
 
 

@@ -44,13 +44,14 @@
 
 void init_communication_manager(Communication_Settings* settings,
     BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
-    SDCard_Settings* sd, uint8_t* motor_data_addresses)
+    SDCard_Settings* sd, BoundariesDetector_Settings* boundaryDetection,
+    uint8_t* motor_data_addresses)
 {
     settings->buff_comm = buff_comm;
     settings->flags.executing_command = false;
 
     init_SystemCommandsParser(&(settings->sys_comm), buff_comm, motors, eeprom, sd,
-        motor_data_addresses);
+        boundaryDetection, motor_data_addresses);
 }
 
 

@@ -71,7 +71,8 @@ typedef struct Communication_Settings_Tag{
 
 void init_communication_manager(Communication_Settings* settings,
     BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
-    SDCard_Settings* sd, uint8_t* motor_data_addresses);
+    SDCard_Settings* sd, BoundariesDetector_Settings* boundaryDetection,
+    uint8_t* motor_data_addresses);
 
 Std_Err parse_communication_command(Communication_Settings* settings);
 

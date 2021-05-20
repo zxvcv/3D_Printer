@@ -29,6 +29,7 @@
 #include "GCode_Parser.h"
 #include "Manager_EEPROM.h"
 #include "Manager_SDcard.h"
+#include "Manager_BoundariesDetector.h"
 /*[[COMPONENT_INCLUDES_H]]*/
 
 
@@ -64,6 +65,7 @@ typedef struct SystemCommand_Settings_Tag{
     Motor** motors;
     EEPROMSettings* eeprom;
     SDCard_Settings* sd;
+    BoundariesDetector_Settings* boundaryDetection;
 
     uint8_t* motor_data_addresses;
 
@@ -73,7 +75,6 @@ typedef struct SystemCommand_Settings_Tag{
 typedef struct SystemCommand_Tag{
     Std_Err (*init)(SystemCommand_Settings*, struct SystemCommand_Tag*);
     Std_Err (*remove)(SystemCommand_Settings*, struct SystemCommand_Tag*);
-
     Std_Err (*step)(SystemCommand_Settings*, struct SystemCommand_Tag*);
 
 
@@ -90,6 +91,7 @@ typedef struct SystemCommand_Tag{
         double k;       //Z-axis relative circle center position form start point
         double v;       //custom value
     }data;
+    void* specific_data;
 
     GCodeCommand gcode_cmd;
 }SystemCommand;
@@ -103,7 +105,8 @@ typedef struct SystemCommand_Tag{
 
 void init_SystemCommandsParser(SystemCommand_Settings* settings,
     BuffCommunication_Settings* buff_comm, Motor** motors, EEPROMSettings* eeprom,
-    SDCard_Settings* sd, uint8_t* motor_data_addresses);
+    SDCard_Settings* sd, BoundariesDetector_Settings* boundaryDetection,
+    uint8_t* motor_data_addresses);
 
 Std_Err parse_SystemCommand(SystemCommand_Settings* settings, char* cmd, SystemCommand* cmdOUT);
 /*[[COMPONENT_PUBLIC_DECLARATIONS]]*/

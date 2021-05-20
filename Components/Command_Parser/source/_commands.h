@@ -101,6 +101,8 @@ Std_Err init_U12(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U13(SystemCommand_Settings* settings, SystemCommand* cmd);
 
+Std_Err init_U14(SystemCommand_Settings* settings, SystemCommand* cmd);
+
 Std_Err init_U20(SystemCommand_Settings* settings, SystemCommand* cmd);
 
 Std_Err init_U21(SystemCommand_Settings* settings, SystemCommand* cmd);

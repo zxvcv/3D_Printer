@@ -52,7 +52,8 @@
  * ############################################################################################ */
 
 typedef struct BoundDetector_Tag{
-    Std_Err (*on_detection)(struct BoundDetector_Tag*);
+    Std_Err (*on_detection)(struct BoundDetector_Tag*, void*);
+    void* event_data; // data for on_detection call
 
     IO_Pin_IT detector;
     bool state;
@@ -71,7 +72,8 @@ void init_boundaryDetector(BoundDetector* settings,
 
 Std_Err check_boundDetector_IT(BoundDetector* settings, uint16_t interruptPin);
 
-void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*));
+void set_onDetection_event(BoundDetector* settings, Std_Err (*event)(BoundDetector*, void*),
+    void* invocation_data);
 
 void reset_onDetection_event(BoundDetector* settings);
 

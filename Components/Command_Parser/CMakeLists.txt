@@ -31,6 +31,7 @@ add_library(${LOCAL_TARGET}
     ${SOURCE_DIR}/U11.c
     ${SOURCE_DIR}/U12.c
     ${SOURCE_DIR}/U13.c
+    ${SOURCE_DIR}/U14.c
     ${SOURCE_DIR}/U20.c
     ${SOURCE_DIR}/U21.c
     ${SOURCE_DIR}/U22.c
@@ -53,6 +54,7 @@ target_link_libraries(${LOCAL_TARGET}
     GCode_Parser
     Manager_EEPROM
     Manager_SDcard
+    Manager_BoundariesDetector
 )
 
 

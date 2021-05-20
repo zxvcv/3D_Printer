@@ -155,7 +155,8 @@ Std_Err init_manager(DeviceSettings* settings)
     if(stdErr != STD_OK) { return stdErr; }
 
     init_communication_manager(settings->communication, settings->buff_comm,
-        settings->motors, settings->eeprom, settings->sd, settings->motor_data_addresses);
+        settings->motors, settings->eeprom, settings->sd, settings->boundaryDetection,
+        settings->motor_data_addresses);
 
     return STD_OK;
 }
