@@ -74,6 +74,7 @@ Std_Err step_U14(SystemCommand_Settings* settings, SystemCommand* cmd)
 {
     Std_Err stdErr = STD_OK;
     Data_U14* specific_data = (Data_U14*)cmd->specific_data;
+    Motor** motors = settings->motors;
 
     if(!(specific_data->detection_is_progress))
     {
@@ -82,20 +83,44 @@ Std_Err step_U14(SystemCommand_Settings* settings, SystemCommand* cmd)
             specific_data->detection_is_progress = true;
             set_onDetection_event(&(settings->boundaryDetection->bound_MinX), onDetection_min,
                 (void*)specific_data);
-            // TODO: start move (decrease position)
-        }
 
-        if(specific_data->axisX_max)
+            motor_set_position_zero(motors[MOTOR_X], -1000);
+            motor_set_position(motors[MOTOR_X], 0);
+            stdErr = forward_command_concurrently(settings, cmd, "G1 X-1000", false);
+        }
+        else if(specific_data->axisX_max)
         {
             specific_data->detection_is_progress = true;
             set_onDetection_event(&(settings->boundaryDetection->bound_MaxX), onDetection_min,
                 (void*)specific_data);
-            // TODO: start move (increase position)
+
+            motor_set_position_end(motors[MOTOR_X], 1000);
+            motor_set_position(motors[MOTOR_X], 0);
+            stdErr = forward_command_concurrently(settings, cmd, "G1 X1000", false);
         }
 
         // TODO: after set min and max for axis move this axis to middle position
 
         // TODO: expand functionality to Y and Z axis
+    }
+    else
+    {
+        if(cmd->gcode_cmd.remove == NULL)
+        {
+            specific_data->detection_is_progress = false;
+
+            if(specific_data->axisX_min)
+            {
+                motor_set_position_zero(motors[MOTOR_X], 0);
+                motor_set_position(motors[MOTOR_X], 0);
+                specific_data->axisX_min = false;
+            }
+            else if(specific_data->axisX_max)
+            {
+                motor_set_position_end(motors[MOTOR_X], motors[MOTOR_X]->data.position);
+                specific_data->axisX_max = false;
+            }
+        }
     }
 
     return stdErr;

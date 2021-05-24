@@ -254,6 +254,18 @@ Std_Err motor_set_position(Motor* motor, double position)
 }
 
 
+void motor_set_position_zero(Motor* motor, int position_zero)
+{
+    motor->settings.position_zero = ((int)(position_zero * ACCURACY)) / motor->settings.step_size;
+}
+
+
+void motor_set_position_end(Motor* motor, int position_end)
+{
+    motor->settings.position_end = ((int)(position_end * ACCURACY)) / motor->settings.step_size;
+}
+
+
 Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
                                        MotorCounters* counters, bool* direction)
 {

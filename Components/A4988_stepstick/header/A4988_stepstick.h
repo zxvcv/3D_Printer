@@ -117,6 +117,10 @@ void motor_set_reversed_state(Motor* motor, bool is_reversed);
 
 Std_Err motor_set_position(Motor* motor, double position);
 
+void motor_set_position_zero(Motor* motor, int position_zero);
+
+void motor_set_position_end(Motor* motor, int position_end);
+
 Std_Err motor_get_linear_move_settings(Motor* motor, double move, double speed, const int accuracy,
                                        MotorCounters* counters, bool* direction);
 
